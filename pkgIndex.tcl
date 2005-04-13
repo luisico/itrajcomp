@@ -8,4 +8,5 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded rmsdtt 1.0 [list source [file join $dir rmsdtt.tcl]]
+package ifneeded rmsdtt 1.0 [list source [file join $dir versions 1.9 rmsdtt.tcl]]
+package ifneeded rmsdtt2 2.0 [list source [file join $dir gui.tcl]]\n[list source [file join $dir rms.tcl]]\n[list source [file join $dir utils.tcl]]\n[list source [file join $dir rmsdtt.tcl]]\n[list source [file join $dir save.tcl]]
