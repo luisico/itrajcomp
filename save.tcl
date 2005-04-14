@@ -37,9 +37,13 @@ package provide rmsdtt2 2.0
 
 # Save data procs (general)
 #                  -------
-proc ::rmsdtt2::saveData { data {format "tab"} {fileout ""} {sort 0} {mol_ref "all"} {mol_tar "all"} {options ""} } {
-  upvar $data values
+proc ::rmsdtt2::saveData { self {fileout ""} {format "tab"} {options ""}} {
   array set opt $options
+  
+  variable ${self}::keys
+  variable ${self}::vals
+  variable ${self}::mol1
+  variable ${self}::mol2
 
   if {[llength [info procs "SaveData_$format"]]} {
     if {$fileout != ""} {
@@ -47,54 +51,51 @@ proc ::rmsdtt2::saveData { data {format "tab"} {fileout ""} {sort 0} {mol_ref "a
       set fileout_id [open $fileout w]
       fconfigure $fileout_id
       
-      set keys [GetKeys values $sort $mol_ref $mol_tar]
-      
-      ParseMols mol_ref
-      ParseMols mol_tar
-      set opt(mol_ref) $mol_ref
-      set opt(mol_tar) $mol_tar
-      set loptions [array get opt]
-      SaveData_$format values $keys $loptions $fileout_id
-      
+      set opt(mols) [CombineMols $mol1 $mol2]
+
+      switch -exact format {
+	plotmtv {
+	  SaveData_$format $vals $keys $fileout_id [array get opt]
+	}
+	default {
+	  SaveData_$format $vals $keys $fileout_id [array get opt]
+	}
+      }
       close $fileout_id
     }
   } else {
     puts "WARNING: SaveData_$format not implemented yet"
   }
+  
 }
+
 
 # Save data procs (tabular)
 #                  -------
-proc ::rmsdtt2::SaveData_tab {data keys options id} {
-  upvar $data values
+proc ::rmsdtt2::SaveData_tab {data keys id options} {
   #array set opt $options
   
-  puts $id "mref  fref   mol frame      rmsd"
+  puts $id "mol1 frame1   mol2 frame2      rmsd"
 
-  foreach key $keys {
-    set indices [split $key :]
+  for {set z 0} {$z < [llength $keys]} {incr z} {
+    set key [lindex $keys $z]
+    set indices [split $key :,]
     set i [lindex $indices 0]
     set j [lindex $indices 1]
     set k [lindex $indices 2]
     set l [lindex $indices 3]
-    puts $id [format "%4d %5d   %3d %5d   %7.3f" $i $j $k $l $values($key)]
+    puts $id [format "%4d %6d   %4d %6d   %7.3f" $i $j $k $l [lindex $data $z]]
   }
 }
 
-
 # Save data procs (plotmtv)
 #                  -------
-proc ::rmsdtt2::SaveData_plotmtv {data keys options id} {
-  upvar $data values
+proc ::rmsdtt2::SaveData_plotmtv {data keys id options} {
   array set opt $options
 
   #puts "DEBUG: [array get opt]"
-  
-  set nx 0
-  foreach i [CombineMols $opt(mol_ref) $opt(mol_tar)] {
-    set nx [expr $nx + [molinfo $i get numframes]]
-  }
-  
+
+  set nx [expr round(sqrt(2*[llength $data]+1/4)-0.5) ]
   puts $id "$ DATA=CONTOUR"
   puts $id "#% contours = ( 10 20 30 40 50 60 70 80 95 100 )"
   puts $id "% contfill"
@@ -102,22 +103,41 @@ proc ::rmsdtt2::SaveData_plotmtv {data keys options id} {
   puts $id "% ymin=0 ymax=$nx"
   puts $id "% xmin=0 xmax=$nx"
   puts $id "% nx=$nx ny=$nx"
+
+  # Create a rectangular matrix filling with 0.0
+  set last 0
+  set values {}
+  
+  for {set z 0} {$z < $nx} {incr z} {
+    set y [expr ($nx-1) - $z]
+    #puts -nonewline "DEBUG $z: "
+    for {set u 0} {$u < $z} {incr u} {
+      lappend values 0.0
+      #puts -nonewline [format "  %6.4f" 0.0]
+    }
+    for {set x $last} {$x <= [expr $last+$y]} {incr x} {
+      lappend values [lindex $data $x]
+      #puts -nonewline [format "  %6.4f" [lindex $data $x]]
+    }
+    set last $x
+    #puts ""
+  }
+  
   if {[info exists opt(binary)]} {
     puts $id "% BINARY"
-    foreach key $keys {
-      lappend vals $values($key)
-    }
-    puts $id [binary format "d[llength $vals]" [eval list $vals]]
+    puts $id [binary format "d[llength $values]" [eval list $values]]
   } else {
     set columns 0
-    foreach key $keys {
+    for {set z 0} {$z < [llength $values]} {incr z} {
       set columns [expr $columns + 1]
-      puts -nonewline $id [format "  %6.4f" $values($key)]
+      #puts "$z [lindex $values $z]"
+      puts -nonewline $id [format "  %6.4f" [lindex $values $z]]
       if {$columns > 9} {
 	set columns 0
 	puts $id ""
       }
     }
+    puts $id ""
   }
 
   puts $id "$ END"
