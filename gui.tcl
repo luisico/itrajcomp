@@ -74,36 +74,28 @@ proc rmsdtt2::init {} {
   wm iconname $w "RMSDTT" 
   wm resizable $w 1 0
 
-  variable mol1_def
-  variable frame1_def
-  variable mol2_def
-  variable frame2_def
-  set mol1_def top
-  set frame1_def all
-  set mol2_def top
-  set frame2_def all
+  variable mol1_def   top
+  variable frame1_def all
+  variable mol2_def   top
+  variable frame2_def all
 
-  variable mol1_m_list
-  variable mol1_f_list
-  variable mol2_m_list
-  variable mol2_f_list
-  set mol1_m_list 0
-  set mol1_f_list 0
-  set mol2_m_list 0
-  set mol2_f_list 0
+  variable mol1_m_list 0
+  variable mol1_f_list 0
+  variable mol2_m_list 0
+  variable mol2_f_list 0
 
-  variable skip1
-  variable skip2
-  set skip1 0
-  set skip2 0
+  variable skip1 0
+  variable skip2 0
 
-  variable selmod
-  set selmod "no"
+  variable selmod "no"
 
-  variable samemols
-  set samemols 0
+  variable samemols 0
+
+  variable calctype "rms"
   
-  # Frame for menu
+  variable cutoff 5.0
+
+  # Menu
   frame $w.menubar -relief raised -bd 2
   pack $w.menubar -padx 1 -fill x
 
@@ -221,7 +213,7 @@ proc rmsdtt2::init {} {
   pack $w.mols.mol2.f.skip.l $w.mols.mol2.f.skip.e -side left
   #--
 
-  # Frame for atom selection
+  # Atom selection
   #--
   frame $w.atoms -relief ridge -bd 4
   label $w.atoms.title -text "Atom selection:"
@@ -238,16 +230,73 @@ proc rmsdtt2::init {} {
   pack $w.atoms.no $w.atoms.bb $w.atoms.tr $w.atoms.sc -side top -anchor w
   #--
  
-
-  # New-object button
+  # Calculation type
   #--
-  button $w.new -text "New" -command "[namespace current]::DoRmsd"
+  frame $w.calc
+  radiobutton $w.calc.rms      -text "Rmsd"     -variable [namespace current]::calctype -value "rms"
+  radiobutton $w.calc.contacts -text "Contacts:" -variable [namespace current]::calctype -value "contacts"
+  entry $w.calc.cutoff -width 5 -textvariable [namespace current]::cutoff
+
+  pack $w.calc -side left
+  pack $w.calc.rms $w.calc.contacts $w.calc.cutoff -side left -anchor n
+  #--
+
+  
+
+  # New-object buttons
+  #--
+  button $w.new -text "New object" -command "[namespace current]::CreateObject"
   pack $w.new
   #--
 
   [namespace current]::UpdateGUI
 
 }
+
+proc rmsdtt2::CreateObject {} {
+  variable w
+  variable mol1_def
+  variable frame1_def
+  variable mol1_m_list
+  variable mol1_f_list
+  variable skip1
+  variable mol2_def
+  variable frame2_def
+  variable mol2_m_list
+  variable mol2_f_list
+  variable skip2
+  variable selmod
+  variable samemols
+  variable calctype
+
+  if {$samemols} {
+    set mol2_def $mol1_def
+    set frame2_def $frame1_def
+    set mol2_m_list $mol1_m_list
+    set mol2_f_list $mol1_f_list
+    set skip2 $skip1
+  }
+
+  # Parse list of molecules
+  set mol1 [[namespace current]::ParseMols $mol1_def $mol1_m_list]
+  set mol2 [[namespace current]::ParseMols $mol2_def $mol2_m_list]
+
+  # Parse frames
+  set frame1 [[namespace current]::ParseFrames $frame1_def $mol1 $skip1 $mol1_f_list]
+  set frame2 [[namespace current]::ParseFrames $frame2_def $mol2 $skip2 $mol2_f_list]
+
+  #puts "$mol1 $frame1 $mol2 $frame2 $selmod"
+  set sel [ParseSel [$w.atoms.sel get 1.0 end] $selmod]
+  #puts $sel
+
+  set r [[namespace current]::Objnew ":auto" mol1 $mol1 frame1 $frame1 mol2 $mol2 frame2 $frame2 sel $sel rep_sel $sel type $calctype]
+
+  [namespace current]::$calctype $r
+#  [namespace current]::Objdump $r
+  [namespace current]::NewPlot $r
+
+}
+
 
 proc rmsdtt2::UpdateGUI {} {
   variable w
@@ -301,8 +350,9 @@ proc rmsdtt2::Graph {self} {
 	    
 	    $plot bind $key <Enter> "[namespace current]::ShowPoint $key $data($key) 1"
 	    $plot bind $key <B1-ButtonRelease> "[namespace current]::MapPoint $key $data($key)" 
-	    $plot bind $key <B2-ButtonRelease> "[namespace current]::ShowPoint $key $data($key) 0" 
+	    $plot bind $key <B2-ButtonRelease> "[namespace current]::ShowPoint $key $data($key) 0"
 	    $plot bind $key <B3-ButtonRelease> "[namespace current]::MapCluster1 $key"
+	    $plot bind $key <Shift-B3-ButtonRelease> "[namespace current]::MapCluster2 $key"
 	  }
 	  set offy [expr $offy+[llength $f2]]
 	}
@@ -338,8 +388,8 @@ proc rmsdtt2::NewPlot {self} {
     set rep_style_list [list Lines Bonds DynamicBonds Hbonds Points VDW CPK Licorice Trace Tube Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Dotted Solvent]
     set rep_color_list [list Name Type ResName ResType ResID Chain SegName Molecule Structure ColorID Beta Occupancy Mass Charge Pos User Index Backbone Throb Timestep Volume]
 
-    set rep_style "Lines"
-    set rep_color "Name"
+    set rep_style "NewRibbons"
+    set rep_color "Molecule"
     set rep_colorid 0
 
     set r_thres_rel 0.5
@@ -366,7 +416,7 @@ proc rmsdtt2::NewPlot {self} {
     frame $p.u.l.canvas -relief raised -bd 2
     pack $p.u.l.canvas -side top -anchor nw -expand yes -fill both
 
-    set plot [canvas $p.u.l.canvas.c -height 400 -width 400 -scrollregion {0 0 1000 1000} -xscrollcommand "$p.u.l.canvas.xs set" -yscrollcommand "$p.u.l.canvas.ys set" -xscrollincrement 10 -yscrollincrement 10]
+    set plot [canvas $p.u.l.canvas.c -height 400 -width 400 -scrollregion {0 0 2000 2000} -xscrollcommand "$p.u.l.canvas.xs set" -yscrollcommand "$p.u.l.canvas.ys set" -xscrollincrement 10 -yscrollincrement 10]
     scrollbar $p.u.l.canvas.xs -orient horizontal -command "$plot xview"
     scrollbar $p.u.l.canvas.ys -orient vertical   -command "$plot yview"
 
@@ -409,7 +459,7 @@ proc rmsdtt2::NewPlot {self} {
     
     set y $off
     set val $min
-    set reg [expr $max/$rg_n]
+    set reg [expr double($max-$min)/$rg_n]
     for {set i 0} {$i <= $rg_n} {incr i} {
       set color [[namespace parent]::ColorScale $max $min $val 1.0]
       $scale create rectangle 0 $y $rg_w [expr $y+$rg_h] -fill $color -outline $color
@@ -419,7 +469,7 @@ proc rmsdtt2::NewPlot {self} {
     
     set y $off
     set val $min
-    set reg [expr $max/$lb_n]
+    set reg [expr double($max-$min)/$lb_n]
     for {set i 0} {$i <= $lb_n} {incr i} {
       $scale create text 12 $y -text [format "%4.2f" $val] -anchor w -font [list helvetica 6 normal]
       set val [expr $val+ $reg]
@@ -443,7 +493,7 @@ proc rmsdtt2::NewPlot {self} {
     # Display selection
     frame $p.l.l.atoms -relief ridge -bd 4
     frame $p.l.l.atoms.orig
-    label $p.l.l.atoms.orig.l -text "RMSD atom selection:"
+    label $p.l.l.atoms.orig.l -text "Original atom selection:"
     entry $p.l.l.atoms.orig.e -width [expr [llength $sel]*4] -textvariable [namespace current]::sel -state disable
     frame $p.l.l.atoms.sel
     label $p.l.l.atoms.sel.l -text "Display atom selection:"
@@ -494,19 +544,21 @@ proc rmsdtt2::NewPlot {self} {
     pack $p.l.l.atoms.reps.color.l $p.l.l.atoms.reps.color.m -side left
     pack $p.l.l.atoms.reps.color.id -side left
 
-    # Clustering
-    frame $p.l.l.cluster -relief ridge -bd 2
-    pack $p.l.l.cluster -side top
-
-    label $p.l.l.cluster.rthres_label -text "r(thres,rel):"
-    entry $p.l.l.cluster.rthres -width 5 -textvariable [namespace current]::r_thres_rel
-    label $p.l.l.cluster.ncrit_label -text "N(crit,rel):"
-    entry $p.l.l.cluster.ncrit -width 5 -textvariable [namespace current]::N_crit_rel
-    checkbutton $p.l.l.cluster.graphics -text "Graphics" -variable [namespace current]::clustering_graphics
-    button $p.l.l.cluster.bt -text "Cluster" -command "[namespace current]::Cluster"
-    pack $p.l.l.cluster.rthres_label $p.l.l.cluster.rthres $p.l.l.cluster.ncrit_label $p.l.l.cluster.ncrit $p.l.l.cluster.graphics $p.l.l.cluster.bt -side left 
-
-    # Quit button
+    if {$type eq "rms"} {
+      # Clustering
+      frame $p.l.l.cluster -relief ridge -bd 2
+      pack $p.l.l.cluster -side top
+      
+      label $p.l.l.cluster.rthres_label -text "r(thres,rel):"
+      entry $p.l.l.cluster.rthres -width 5 -textvariable [namespace current]::r_thres_rel
+      label $p.l.l.cluster.ncrit_label -text "N(crit,rel):"
+      entry $p.l.l.cluster.ncrit -width 5 -textvariable [namespace current]::N_crit_rel
+      checkbutton $p.l.l.cluster.graphics -text "Graphics" -variable [namespace current]::clustering_graphics
+      button $p.l.l.cluster.bt -text "Cluster" -command "[namespace current]::Cluster"
+      pack $p.l.l.cluster.rthres_label $p.l.l.cluster.rthres $p.l.l.cluster.ncrit_label $p.l.l.cluster.ncrit $p.l.l.cluster.graphics $p.l.l.cluster.bt -side left 
+    }
+    
+    # Destroy button
     button $p.l.l.destroy -text "Destroy" -command "[namespace current]::Destroy"
     pack $p.l.l.destroy
 
@@ -567,6 +619,7 @@ proc rmsdtt2::NewPlot {self} {
       variable data
       variable keys
       variable highlight
+      variable type
       
       set indices [split $key ,:]
       set i [lindex $indices 0]
@@ -574,26 +627,46 @@ proc rmsdtt2::NewPlot {self} {
       set ref1 "$i:$j"
 
       [namespace current]::MapClear
+
+      [namespace current]::AddRep $ref1
       foreach mykey [array names data $ref1,*] {
 	set indices [split $mykey ,:]
 	set k [lindex $indices 2]
 	set l [lindex $indices 3]
-	if {$data($mykey) <= $data($key)} {
-	  set color black
-	  $plot itemconfigure $mykey -outline $color
-	  [namespace current]::AddRep $k:$l
-	  set add_rep($mykey) 1
+	if {$type eq "rms"} {
+	  if {$data($mykey) <= $data($key)} {
+	    set color black
+	    $plot itemconfigure $mykey -outline $color
+	    set add_rep($mykey) 1
+	    [namespace current]::AddRep $k:$l
+	  }
+	} else {
+	  if {$data($mykey) >= $data($key)} {
+	    set color black
+	    $plot itemconfigure $mykey -outline $color
+	    set add_rep($mykey) 1
+	    [namespace current]::AddRep $k:$l
+	  }
 	}
       }
       foreach mykey [array names data *,$ref1] {
 	set indices [split $mykey ,:]
 	set k [lindex $indices 0]
 	set l [lindex $indices 1]
-	if {$data($mykey) <= $data($key)} {
-	  set color black
-	  $plot itemconfigure $mykey -outline $color
-	  [namespace current]::AddRep $k:$l
-	  set add_rep($mykey) 1
+	if {$type eq "rms"} {
+	  if {$data($mykey) <= $data($key)} {
+	    set color black
+	    $plot itemconfigure $mykey -outline $color
+	    set add_rep($mykey) 1
+	    [namespace current]::AddRep $k:$l
+	  }
+	} else {
+	  if {$data($mykey) >= $data($key)} {
+	    set color black
+	    $plot itemconfigure $mykey -outline $color
+	    set add_rep($mykey) 1
+	    [namespace current]::AddRep $k:$l
+	  }
 	}
       }
 
@@ -610,18 +683,29 @@ proc rmsdtt2::NewPlot {self} {
       variable keys
       variable rep_sel
       variable highlight
+      variable type
       
       [namespace current]::MapClear
       foreach mykey $keys {
 	set indices [split $mykey ,]
 	set key1 [lindex $indices 0]
 	set key2 [lindex $indices 1]
-	if {$data($mykey) <= $data($key)} {
-	  set color black
-	  $plot itemconfigure $mykey -outline $color
-	  [namespace current]::AddRep $key1
-	  [namespace current]::AddRep $key2
-	  set add_rep($mykey) 1
+	if {$type eq "rms"} {
+	  if {$data($mykey) <= $data($key)} {
+	    set color black
+	    $plot itemconfigure $mykey -outline $color
+	    [namespace current]::AddRep $key1
+	    [namespace current]::AddRep $key2
+	    set add_rep($mykey) 1
+	  }
+	} else {
+	  if {$data($mykey) >= $data($key)} {
+	    set color black
+	    $plot itemconfigure $mykey -outline $color
+	    [namespace current]::AddRep $key1
+	    [namespace current]::AddRep $key2
+	    set add_rep($mykey) 1
+	  }
 	}
       }
     }

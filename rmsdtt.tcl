@@ -88,6 +88,7 @@ proc rmsdtt2::Objvars {self} {
 proc rmsdtt2::Objdump {self} {
   puts "$self:"
   namespace eval [namespace current]::${self}:: {
+    puts "  type    $type"
     puts "  mol1    $mol1"
     puts "  frame1  $frame1"
     puts "  mol2    $mol2"

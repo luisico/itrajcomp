@@ -29,13 +29,13 @@
 #      puts "VMD RMSDTT2 could not be started:\n$msg"
 #    }
 
-# rms.tcl
-#    Functions to calculate rms.
+# contacs.tcl
+#    Functions to calculate contacts between atoms.
 
 
 package provide rmsdtt2 2.0
 
-proc rmsdtt2::rms { self } {
+proc rmsdtt2::contacts { self } {
   namespace eval [namespace current]::${self}:: {
     
     variable mol1
@@ -60,22 +60,11 @@ proc rmsdtt2::rms { self } {
       set natoms($i) [[atomselect $i $sel frame 0] num]
     }
     
-    # Check number of atoms in selections
-    foreach i $mol_all {
-      foreach j $mol_all {
-	if {$i < $j} {
-	  if {$natoms($i) != $natoms($j)} {
-	    puts "Selections differ for molecules $i ($natoms($i)) and $j ($natoms($j))"
-	    return -code return
-	  }
-	}
-      }
-    }
-    
     # Calculate rmsd for each pair reference(mol,frame)-target(mol,frame)
     set max 0
     set min 0
-#    set z 1
+    set cutoff 5.0
+    set z 1
     foreach i $mol1 {
       set sel1 [atomselect $i $sel]
       foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
@@ -88,11 +77,12 @@ proc rmsdtt2::rms { self } {
 #	      set data($i:$j,$k:$l) $data($k:$l,$i:$j)
 	      continue
 	    } else {
-	      set data($i:$j,$k:$l) [measure rmsd $sel1 $sel2]
-#	      if {$z} {
-#		set min $data($i:$j,$k:$l)
-#		set z 0
-#	      }
+	      set data($i:$j,$k:$l) [llength [lindex [measure contacts $cutoff $sel1 $sel2] 0]]
+	      if {$z} {
+		set min $data($i:$j,$k:$l)
+		set max $data($i:$j,$k:$l)
+		set z 0
+	      }
 	      if {$data($i:$j,$k:$l) > $max} {
 		set max $data($i:$j,$k:$l)
 	      }
@@ -111,4 +101,5 @@ proc rmsdtt2::rms { self } {
     
   }
 }
+
 
