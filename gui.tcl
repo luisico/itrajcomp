@@ -366,35 +366,27 @@ proc rmsdtt2::Graph {self} {
 proc rmsdtt2::NewPlot {self} {
   namespace eval [namespace current]::${self}:: {
 
+    set rep_style_list [list Lines Bonds DynamicBonds Hbonds Points VDW CPK Licorice Trace Tube Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Dotted Solvent]
+    set rep_color_list [list Name Type ResName ResType ResID Chain SegName Molecule Structure ColorID Beta Occupancy Mass Charge Pos User Index Backbone Throb Timestep Volume]
+    set save_format_list [list tab matrix plotmtv plotmtv_binary]
+
     variable add_rep
     variable info_key1
     variable info_key2
-    variable info_rmsd
+    variable info_value
+    variable info_sticky  0
     variable p
     variable plot
-    variable r_thres_rel
-    variable N_crit_rel
+    variable r_thres_rel  0.5
+    variable N_crit_rel   0.5
     variable grid
-    variable clustering_graphics
-    variable rep_style
-    variable rep_color
-    variable rep_colorid
-    variable info_sticky
-    variable highlight
-
-    set highlight 0.2
-    set info_sticky 0
-
-    set rep_style_list [list Lines Bonds DynamicBonds Hbonds Points VDW CPK Licorice Trace Tube Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Dotted Solvent]
-    set rep_color_list [list Name Type ResName ResType ResID Chain SegName Molecule Structure ColorID Beta Occupancy Mass Charge Pos User Index Backbone Throb Timestep Volume]
-
-    set rep_style "NewRibbons"
-    set rep_color "Molecule"
-    set rep_colorid 0
-
-    set r_thres_rel 0.5
-    set N_crit_rel 0.5
-    set clustering_graphics 0
+    variable clustering_graphics 0
+    variable rep_style    NewRibbons
+    variable rep_color    Molecule
+    variable rep_colorid  0
+    variable highlight    0.2
+    variable save_format  tab
+    
 
     set p [toplevel ".${self}_plot"]
     wm title $p "RMSDtt object $self"
@@ -434,7 +426,7 @@ proc rmsdtt2::NewPlot {self} {
     pack $p.u.l.info.keys_label $p.u.l.info.keys_entry1 $p.u.l.info.keys_entry2 -side left
     
     label $p.u.l.info.rmsd_label -text "RMSD:"
-    entry $p.u.l.info.rmsd_entry -width 8 -textvariable [namespace current]::info_rmsd
+    entry $p.u.l.info.rmsd_entry -width 8 -textvariable [namespace current]::info_value
     pack $p.u.l.info.rmsd_label $p.u.l.info.rmsd_entry -side left
 
     checkbutton $p.u.l.info.sticky -text "Sticky" -variable [namespace current]::info_sticky
@@ -514,16 +506,14 @@ proc rmsdtt2::NewPlot {self} {
 
     frame $p.l.l.atoms.reps.style
     label $p.l.l.atoms.reps.style.l -text "Style method:"
-    menubutton $p.l.l.atoms.reps.style.m -text "Style" -menu $p.l.l.atoms.reps.style.m.list -textvariable [namespace current]::rep_style -relief raised
-    menu $p.l.l.atoms.reps.style.m.list
-    foreach entry $rep_style_list {
-      $p.l.l.atoms.reps.style.m.list add radiobutton -label $entry -variable [namespace current]::rep_style -value $entry -command "[namespace current]::UpdateSelection"
-    }
+
+    eval tk_optionMenu $p.l.l.atoms.reps.style.m [namespace current]::rep_style $rep_style_list
     pack $p.l.l.atoms.reps.style -side left
     pack $p.l.l.atoms.reps.style.l $p.l.l.atoms.reps.style.m -side left
 
     frame $p.l.l.atoms.reps.color
     label $p.l.l.atoms.reps.color.l -text "Color method:"
+#    eval tk_optionMenu $p.l.l.atoms.reps.color.m [namespace current]::rep_color $rep_color_list
     menubutton $p.l.l.atoms.reps.color.m -text "Color" -menu $p.l.l.atoms.reps.color.m.list -textvariable [namespace current]::rep_color -relief raised
     menu $p.l.l.atoms.reps.color.m.list
 
@@ -558,18 +548,47 @@ proc rmsdtt2::NewPlot {self} {
       pack $p.l.l.cluster.rthres_label $p.l.l.cluster.rthres $p.l.l.cluster.ncrit_label $p.l.l.cluster.ncrit $p.l.l.cluster.graphics $p.l.l.cluster.bt -side left 
     }
     
+    # Save button
+    frame $p.l.l.save
+    button $p.l.l.save.b -text "Save Data" -command "[namespace current]::SaveData"
+    label $p.l.l.save.l -text "Format:"
+    eval tk_optionMenu $p.l.l.save.m [namespace current]::save_format $save_format_list
+
+    pack $p.l.l.save -side left
+    pack $p.l.l.save.b $p.l.l.save.l $p.l.l.save.m -side left
+
     # Destroy button
     button $p.l.l.destroy -text "Destroy" -command "[namespace current]::Destroy"
-    pack $p.l.l.destroy
+    pack $p.l.l.destroy -side right
+
 
     set grid 10
     [namespace parent]::Graph $self
     
+    proc SaveData {} {
+      variable save_format
+      variable self
+      
+      set typeList {
+	{"Data Files" ".dat .txt .out"}
+	{"All files" ".*"}
+      }
+      
+      set file [tk_getSaveFile -filetypes $typeList -defaultextension ".dat" -title "Select file to save data"]
+
+      if { $file == "" } {
+        return;
+      }
+
+      [namespace parent]::saveData $self $file $save_format
+    }
+
     proc ShowPoint {key val stick} {
       variable info_key1
       variable info_key2
-      variable info_rmsd
+      variable info_value
       variable info_sticky
+      variable dataformat
       
       if {$info_sticky && $stick} return
 
@@ -580,7 +599,7 @@ proc rmsdtt2::NewPlot {self} {
       set l [lindex $indices 3]
       set info_key1 [format "%3d %3d" $i $j]
       set info_key2 [format "%3d %3d" $k $l]
-      set info_rmsd [format "%8.4f" $val]
+      set info_value [format "$dataformat" $val]
     }
 
     proc MapPoint {key data} {

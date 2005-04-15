@@ -49,6 +49,7 @@ proc rmsdtt2::contacts { self } {
     variable data
     variable min
     variable max
+    variable dataformat "%4i"
     
     # Combined list of molecules involved
     set mol_all [[namespace parent]::CombineMols $mol1 $mol2]
@@ -61,8 +62,6 @@ proc rmsdtt2::contacts { self } {
     }
     
     # Calculate rmsd for each pair reference(mol,frame)-target(mol,frame)
-    set max 0
-    set min 0
     set cutoff 5.0
     set z 1
     foreach i $mol1 {

@@ -49,6 +49,7 @@ proc rmsdtt2::rms { self } {
     variable data
     variable min
     variable max
+    variable dataformat "%8.4f"
     
     # Combined list of molecules involved
     set mol_all [[namespace parent]::CombineMols $mol1 $mol2]
@@ -73,9 +74,7 @@ proc rmsdtt2::rms { self } {
     }
     
     # Calculate rmsd for each pair reference(mol,frame)-target(mol,frame)
-    set max 0
-    set min 0
-#    set z 1
+    set z 1
     foreach i $mol1 {
       set sel1 [atomselect $i $sel]
       foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
@@ -89,10 +88,11 @@ proc rmsdtt2::rms { self } {
 	      continue
 	    } else {
 	      set data($i:$j,$k:$l) [measure rmsd $sel1 $sel2]
-#	      if {$z} {
-#		set min $data($i:$j,$k:$l)
-#		set z 0
-#	      }
+	      if {$z} {
+		set min $data($i:$j,$k:$l)
+		set max $data($i:$j,$k:$l)
+		set z 0
+	      }
 	      if {$data($i:$j,$k:$l) > $max} {
 		set max $data($i:$j,$k:$l)
 	      }
