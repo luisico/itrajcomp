@@ -95,6 +95,7 @@ proc rmsdtt2::Objdump {self} {
     puts "  frame2  $frame2"
     puts "  sel     $sel"
     puts "  rep_sel $rep_sel"
+    puts "  cutoff  $cutoff"
     if {[info exists min]} {
       puts "  keys   $keys"
       puts "  vals   $vals"

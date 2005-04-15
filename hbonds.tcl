@@ -29,13 +29,13 @@
 #      puts "VMD RMSDTT2 could not be started:\n$msg"
 #    }
 
-# contacs.tcl
-#    Functions to calculate contacts between atoms.
+# hbonds.tcl
+#    Functions to calculate hydrogen bonds between selections.
 
 
 package provide rmsdtt2 2.0
 
-proc rmsdtt2::contacts { self } {
+proc rmsdtt2::hbonds { self } {
   namespace eval [namespace current]::${self}:: {
     
     variable mol1
@@ -51,6 +51,7 @@ proc rmsdtt2::contacts { self } {
     variable max
     variable dataformat "%4i"
     variable cutoff
+    variable angle
     
     # Combined list of molecules involved
     set mol_all [[namespace parent]::CombineMols $mol1 $mol2]
@@ -62,7 +63,7 @@ proc rmsdtt2::contacts { self } {
       set natoms($i) [[atomselect $i $sel frame 0] num]
     }
     
-    # Calculate contacts
+    # Calculate hbonds
     set z 1
     foreach i $mol1 {
       set sel1 [atomselect $i $sel]
@@ -76,7 +77,7 @@ proc rmsdtt2::contacts { self } {
 #	      set data($i:$j,$k:$l) $data($k:$l,$i:$j)
 	      continue
 	    } else {
-	      set data($i:$j,$k:$l) [llength [lindex [measure contacts $cutoff $sel1 $sel2] 0]]
+	      set data($i:$j,$k:$l) [llength [lindex [measure hbonds $cutoff $angle $sel1 $sel2] 0]]
 	      if {$z} {
 		set min $data($i:$j,$k:$l)
 		set max $data($i:$j,$k:$l)

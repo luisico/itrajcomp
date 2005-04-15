@@ -94,6 +94,7 @@ proc rmsdtt2::init {} {
   variable calctype "rms"
   
   variable cutoff 5.0
+  variable angle 30.0
 
   # Menu
   frame $w.menubar -relief raised -bd 2
@@ -233,15 +234,18 @@ proc rmsdtt2::init {} {
   # Calculation type
   #--
   frame $w.calc
-  radiobutton $w.calc.rms      -text "Rmsd"     -variable [namespace current]::calctype -value "rms"
-  radiobutton $w.calc.contacts -text "Contacts:" -variable [namespace current]::calctype -value "contacts"
+  radiobutton $w.calc.rms      -text "Rmsd"      -variable [namespace current]::calctype -value "rms"      -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.contacts -text "Contacts:" -variable [namespace current]::calctype -value "contacts" -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.hbonds   -text "Hbonds:"   -variable [namespace current]::calctype -value "hbonds"   -command [namespace current]::UpdateGUI
+
+  label $w.calc.cutoff_l -text "Cutoff:"
   entry $w.calc.cutoff -width 5 -textvariable [namespace current]::cutoff
+  label $w.calc.angle_l -text "Angle:"
+  entry $w.calc.angle  -width 5 -textvariable [namespace current]::angle
 
   pack $w.calc -side left
-  pack $w.calc.rms $w.calc.contacts $w.calc.cutoff -side left -anchor n
+  pack $w.calc.rms $w.calc.contacts $w.calc.hbonds $w.calc.cutoff_l $w.calc.cutoff $w.calc.angle_l $w.calc.angle -side left -anchor n
   #--
-
-  
 
   # New-object buttons
   #--
@@ -268,6 +272,8 @@ proc rmsdtt2::CreateObject {} {
   variable selmod
   variable samemols
   variable calctype
+  variable cutoff
+  variable angle
 
   if {$samemols} {
     set mol2_def $mol1_def
@@ -289,7 +295,16 @@ proc rmsdtt2::CreateObject {} {
   set sel [ParseSel [$w.atoms.sel get 1.0 end] $selmod]
   #puts $sel
 
-  set r [[namespace current]::Objnew ":auto" mol1 $mol1 frame1 $frame1 mol2 $mol2 frame2 $frame2 sel $sel rep_sel $sel type $calctype]
+  set defaults [list mol1 $mol1 frame1 $frame1 mol2 $mol2 frame2 $frame2 sel $sel rep_sel $sel type $calctype]
+  switch $calctype {
+    contacts {
+      lappend defaults cutoff $cutoff
+    }
+    hbonds {
+      lappend defaults cutoff $cutoff angle $angle
+    }
+  }
+  set r [eval [namespace current]::Objnew ":auto" $defaults]
 
   [namespace current]::$calctype $r
 #  [namespace current]::Objdump $r
@@ -301,6 +316,7 @@ proc rmsdtt2::CreateObject {} {
 proc rmsdtt2::UpdateGUI {} {
   variable w
   variable samemols
+  variable calctype
 
   set widgets [list m.title m.all m.top m.act m.ids.r m.ids.list f.title f.all f.top f.ids.r f.ids.list f.skip.l f.skip.e]
   if {$samemols} {
@@ -311,6 +327,27 @@ proc rmsdtt2::UpdateGUI {} {
   
   foreach widget $widgets {
     $w.mols.mol2.$widget config -state $state
+  }
+
+  switch $calctype {
+    contacts {
+      $w.calc.cutoff_l config -state normal
+      $w.calc.cutoff   config -state normal
+      $w.calc.angle_l  config -state disable
+      $w.calc.angle    config -state disable
+    }
+    hbonds {
+      $w.calc.cutoff_l config -state normal
+      $w.calc.cutoff   config -state normal
+      $w.calc.angle_l  config -state normal
+      $w.calc.angle    config -state normal
+    }
+    default {
+      $w.calc.cutoff_l config -state disable
+      $w.calc.cutoff   config -state disable
+      $w.calc.angle_l  config -state disable
+      $w.calc.angle    config -state disable
+    }
   }
 
 }
@@ -366,7 +403,7 @@ proc rmsdtt2::Graph {self} {
 proc rmsdtt2::NewPlot {self} {
   namespace eval [namespace current]::${self}:: {
 
-    set rep_style_list [list Lines Bonds DynamicBonds Hbonds Points VDW CPK Licorice Trace Tube Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Dotted Solvent]
+    set rep_style_list [list Lines Bonds DynamicBonds HBonds Points VDW CPK Licorice Trace Tube Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Dotted Solvent]
     set rep_color_list [list Name Type ResName ResType ResID Chain SegName Molecule Structure ColorID Beta Occupancy Mass Charge Pos User Index Backbone Throb Timestep Volume]
     set save_format_list [list tab matrix plotmtv plotmtv_binary]
 
@@ -506,8 +543,12 @@ proc rmsdtt2::NewPlot {self} {
 
     frame $p.l.l.atoms.reps.style
     label $p.l.l.atoms.reps.style.l -text "Style method:"
+    menubutton $p.l.l.atoms.reps.style.m -text "Style" -menu $p.l.l.atoms.reps.style.m.list -textvariable [namespace current]::rep_style -relief raised
+    menu $p.l.l.atoms.reps.style.m.list
+    foreach entry $rep_style_list {
+      $p.l.l.atoms.reps.style.m.list add radiobutton -label $entry -variable [namespace current]::rep_style -value $entry -command "[namespace current]::UpdateSelection"
+    }
 
-    eval tk_optionMenu $p.l.l.atoms.reps.style.m [namespace current]::rep_style $rep_style_list
     pack $p.l.l.atoms.reps.style -side left
     pack $p.l.l.atoms.reps.style.l $p.l.l.atoms.reps.style.m -side left
 
@@ -775,11 +816,23 @@ proc rmsdtt2::NewPlot {self} {
 	  set j [lindex $indices 1]
 	  set repname [mol repindex $i $rep_list($key)]
 	  mol modselect $repname $i $rep_sel
-	  mol modstyle  $repname $i $rep_style
-	  if {$rep_color eq "ColorID"} {
-	    mol modcolor  $repname $i $rep_color $rep_colorid
-	  } else {
-	    mol modcolor  $repname $i $rep_color
+	  switch $rep_style {
+	    HBonds {
+	      variable cutoff
+	      variable angle
+	      mol modstyle  $repname $i $rep_style $cutoff $angle
+	    }
+	    default {
+	      mol modstyle  $repname $i $rep_style
+	    }
+	  }
+	  switch $rep_color {
+	    ColorID {
+	      mol modcolor  $repname $i $rep_color $rep_colorid
+	    }
+	    default {
+	      mol modcolor  $repname $i $rep_color
+	    }
 	  }
 	}
       }
