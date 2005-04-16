@@ -49,8 +49,6 @@ proc rmsdtt2::AddRep1 {i j sel style color} {
 
 proc rmsdtt2::AddRep2 {i j k l sel} {
   variable w
-#  variable selmod
-#  set sel [ParseSel [$w.atoms.sel.e get 1.0 end] $selmod]
   mol rep Lines 2
   mol selection $sel
   mol addrep $i
@@ -217,3 +215,12 @@ proc rmsdtt2::ParseSel {orig selmod} {
   }
   return $sel
 }
+
+
+proc rmsdtt2::wlist {{W .}} {
+   set list [list $W]
+   foreach w [winfo children $W] {
+     set list [concat $list [wlist $w]]
+   }
+   return $list
+ }

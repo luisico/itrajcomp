@@ -42,8 +42,8 @@ proc rmsdtt2::hbonds { self } {
     variable mol2
     variable frame1
     variable frame2
-    variable sel
-    variable rep_sel
+    variable sel1
+    variable sel2
     variable keys {}
     variable vals {}
     variable data
@@ -53,31 +53,27 @@ proc rmsdtt2::hbonds { self } {
     variable cutoff
     variable angle
     
-    # Combined list of molecules involved
-    set mol_all [[namespace parent]::CombineMols $mol1 $mol2]
-    #puts "DEBUG: mol_all = $mol_all"
-    #puts "DEBUG: refs = [llength $mol1]; targets = [llength $mol2]; all = [llength $mol_all]"
-    
-    # Get number of atoms for each molecule only once
-    foreach i $mol_all {
-      set natoms($i) [[atomselect $i $sel frame 0] num]
+    if {$mol1 != $mol2} {
+      tk_messageBox -title "Warning " -message "Selections must come from the same molecule." -parent .rmsdtt2
+      return -code return
     }
-    
+
+
     # Calculate hbonds
     set z 1
     foreach i $mol1 {
-      set sel1 [atomselect $i $sel]
+      set s1 [atomselect $i $sel1]
       foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
-	$sel1 frame $j
+	$s1 frame $j
 	foreach k $mol2 {
-	  set sel2 [atomselect $k $sel]
+	  set s2 [atomselect $k $sel2]
 	  foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
-	    $sel2 frame $l
+	    $s2 frame $l
 	    if {[info exists data($k:$l,$i:$j)]} {
 #	      set data($i:$j,$k:$l) $data($k:$l,$i:$j)
 	      continue
 	    } else {
-	      set data($i:$j,$k:$l) [llength [lindex [measure hbonds $cutoff $angle $sel1 $sel2] 0]]
+	      set data($i:$j,$k:$l) [llength [lindex [measure hbonds $cutoff $angle $s1 $s2] 0]]
 	      if {$z} {
 		set min $data($i:$j,$k:$l)
 		set max $data($i:$j,$k:$l)

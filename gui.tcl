@@ -87,7 +87,8 @@ proc rmsdtt2::init {} {
   variable skip1 0
   variable skip2 0
 
-  variable selmod "no"
+  variable selmod1 "no"
+  variable selmod2 "no"
 
   variable samemols 0
 
@@ -116,12 +117,32 @@ proc rmsdtt2::init {} {
   pack $w.mols -side top -expand yes -fill x
   #--
   
-  # mol1 (reference)
+  checkbutton $w.mols.same -text "Same selections" -variable [namespace current]::samemols -command [namespace current]::UpdateGUI
+  pack $w.mols.same -side top
+
+  # SET1
   #--
   frame $w.mols.mol1 -relief ridge -bd 4
   label $w.mols.mol1.title -text "Set 1"
   pack $w.mols.mol1 -side left -anchor nw -expand yes -fill x
   pack $w.mols.mol1.title -side top
+  #--
+
+  # a1
+  #--
+  frame $w.mols.mol1.a -relief ridge -bd 2
+  label $w.mols.mol1.a.title -text "Atom selection:"
+  text $w.mols.mol1.a.sel -exportselection yes -height 5 -width 30 -wrap word
+  $w.mols.mol1.a.sel insert end "all"
+  radiobutton $w.mols.mol1.a.no -text "None"      -variable [namespace current]::selmod1 -value "no"
+  radiobutton $w.mols.mol1.a.bb -text "Backbone"  -variable [namespace current]::selmod1 -value "bb"
+  radiobutton $w.mols.mol1.a.tr -text "Trace"     -variable [namespace current]::selmod1 -value "tr"
+  radiobutton $w.mols.mol1.a.sc -text "Sidechain" -variable [namespace current]::selmod1 -value "sc"
+
+  pack $w.mols.mol1.a -side bottom -expand yes -fill x
+  pack $w.mols.mol1.a.title
+  pack $w.mols.mol1.a.sel -side left -expand yes -fill x
+  pack $w.mols.mol1.a.no $w.mols.mol1.a.bb $w.mols.mol1.a.tr $w.mols.mol1.a.sc -side top -anchor w
   #--
 
   # m1
@@ -164,14 +185,30 @@ proc rmsdtt2::init {} {
   pack $w.mols.mol1.f.skip.l $w.mols.mol1.f.skip.e -side left
   #--
 
-  # mol2 (reference)
+
+  # SET2
   #--
   frame $w.mols.mol2 -relief ridge -bd 4
   label $w.mols.mol2.title -text "Set 2"
-  checkbutton $w.mols.mol2.same -text "Same as set 1" -variable [namespace current]::samemols -command [namespace current]::UpdateGUI
   pack $w.mols.mol2 -expand yes -fill x -side top -anchor n
   pack $w.mols.mol2.title -side top
-  pack $w.mols.mol2.same -side bottom
+  #--
+
+  # a2
+  #--
+  frame $w.mols.mol2.a -relief ridge -bd 2
+  label $w.mols.mol2.a.title -text "Atom selection:"
+  text $w.mols.mol2.a.sel -exportselection yes -height 5 -width 30 -wrap word
+  $w.mols.mol2.a.sel insert end "all"
+  radiobutton $w.mols.mol2.a.no -text "None"      -variable [namespace current]::selmod2 -value "no"
+  radiobutton $w.mols.mol2.a.bb -text "Backbone"  -variable [namespace current]::selmod2 -value "bb"
+  radiobutton $w.mols.mol2.a.tr -text "Trace"     -variable [namespace current]::selmod2 -value "tr"
+  radiobutton $w.mols.mol2.a.sc -text "Sidechain" -variable [namespace current]::selmod2 -value "sc"
+
+  pack $w.mols.mol2.a -side bottom -expand yes -fill x
+  pack $w.mols.mol2.a.title
+  pack $w.mols.mol2.a.sel -side left -expand yes -fill x
+  pack $w.mols.mol2.a.no $w.mols.mol2.a.bb $w.mols.mol2.a.tr $w.mols.mol2.a.sc -side top -anchor w
   #--
 
   # m2
@@ -214,43 +251,26 @@ proc rmsdtt2::init {} {
   pack $w.mols.mol2.f.skip.l $w.mols.mol2.f.skip.e -side left
   #--
 
-  # Atom selection
-  #--
-  frame $w.atoms -relief ridge -bd 4
-  label $w.atoms.title -text "Atom selection:"
-  text $w.atoms.sel -exportselection yes -height 5 -width 40 -wrap word
-  $w.atoms.sel insert end "resid 5 to 85"
-  radiobutton $w.atoms.no -text "None"      -variable [namespace current]::selmod -value "no"
-  radiobutton $w.atoms.bb -text "Backbone"  -variable [namespace current]::selmod -value "bb"
-  radiobutton $w.atoms.tr -text "Trace"     -variable [namespace current]::selmod -value "tr"
-  radiobutton $w.atoms.sc -text "Sidechain" -variable [namespace current]::selmod -value "sc"
-
-  pack $w.atoms -side top -expand yes -fill x
-  pack $w.atoms.title
-  pack $w.atoms.sel -side left -expand yes -fill x
-  pack $w.atoms.no $w.atoms.bb $w.atoms.tr $w.atoms.sc -side top -anchor w
-  #--
  
-  # Calculation type
+  # Calculation
   #--
-  frame $w.calc
+  frame $w.calc -relief ridge -bd 4
+  label $w.calc.label -text "Calculation:"
+
   radiobutton $w.calc.rms      -text "Rmsd"      -variable [namespace current]::calctype -value "rms"      -command [namespace current]::UpdateGUI
-  radiobutton $w.calc.contacts -text "Contacts:" -variable [namespace current]::calctype -value "contacts" -command [namespace current]::UpdateGUI
-  radiobutton $w.calc.hbonds   -text "Hbonds:"   -variable [namespace current]::calctype -value "hbonds"   -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.contacts -text "Contacts" -variable [namespace current]::calctype -value "contacts" -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.hbonds   -text "Hbonds"   -variable [namespace current]::calctype -value "hbonds"   -command [namespace current]::UpdateGUI
 
   label $w.calc.cutoff_l -text "Cutoff:"
   entry $w.calc.cutoff -width 5 -textvariable [namespace current]::cutoff
   label $w.calc.angle_l -text "Angle:"
   entry $w.calc.angle  -width 5 -textvariable [namespace current]::angle
 
-  pack $w.calc -side left
-  pack $w.calc.rms $w.calc.contacts $w.calc.hbonds $w.calc.cutoff_l $w.calc.cutoff $w.calc.angle_l $w.calc.angle -side left -anchor n
-  #--
+  button $w.calc.new -text "New object" -command "[namespace current]::CreateObject"
 
-  # New-object buttons
-  #--
-  button $w.new -text "New object" -command "[namespace current]::CreateObject"
-  pack $w.new
+  pack $w.calc -side left -expand yes -fill x
+  pack $w.calc.label $w.calc.rms $w.calc.contacts $w.calc.hbonds $w.calc.cutoff_l $w.calc.cutoff $w.calc.angle_l $w.calc.angle -side left
+  pack $w.calc.new -side right
   #--
 
   [namespace current]::UpdateGUI
@@ -264,12 +284,15 @@ proc rmsdtt2::CreateObject {} {
   variable mol1_m_list
   variable mol1_f_list
   variable skip1
+  variable selmod1
+
   variable mol2_def
   variable frame2_def
   variable mol2_m_list
   variable mol2_f_list
   variable skip2
-  variable selmod
+  variable selmod2
+
   variable samemols
   variable calctype
   variable cutoff
@@ -281,6 +304,11 @@ proc rmsdtt2::CreateObject {} {
     set mol2_m_list $mol1_m_list
     set mol2_f_list $mol1_f_list
     set skip2 $skip1
+    set selmod2 $selmod1
+    $w.mols.mol2.a.sel config -state normal
+    $w.mols.mol2.a.sel delete 1.0 end
+    $w.mols.mol2.a.sel insert end [$w.mols.mol1.a.sel get 1.0 end]
+    $w.mols.mol2.a.sel config -state disable
   }
 
   # Parse list of molecules
@@ -292,10 +320,10 @@ proc rmsdtt2::CreateObject {} {
   set frame2 [[namespace current]::ParseFrames $frame2_def $mol2 $skip2 $mol2_f_list]
 
   #puts "$mol1 $frame1 $mol2 $frame2 $selmod"
-  set sel [ParseSel [$w.atoms.sel get 1.0 end] $selmod]
-  #puts $sel
+  set sel1 [ParseSel [$w.mols.mol1.a.sel get 1.0 end] $selmod1]
+  set sel2 [ParseSel [$w.mols.mol2.a.sel get 1.0 end] $selmod2]
 
-  set defaults [list mol1 $mol1 frame1 $frame1 mol2 $mol2 frame2 $frame2 sel $sel rep_sel $sel type $calctype]
+  set defaults [list mol1 $mol1 frame1 $frame1 mol2 $mol2 frame2 $frame2 sel1 $sel1 sel2 $sel2 rep_sel1 $sel1 type $calctype]
   switch $calctype {
     contacts {
       lappend defaults cutoff $cutoff
@@ -306,8 +334,8 @@ proc rmsdtt2::CreateObject {} {
   }
   set r [eval [namespace current]::Objnew ":auto" $defaults]
 
-  [namespace current]::$calctype $r
 #  [namespace current]::Objdump $r
+  [namespace current]::$calctype $r
   [namespace current]::NewPlot $r
 
 }
@@ -317,16 +345,18 @@ proc rmsdtt2::UpdateGUI {} {
   variable w
   variable samemols
   variable calctype
-
-  set widgets [list m.title m.all m.top m.act m.ids.r m.ids.list f.title f.all f.top f.ids.r f.ids.list f.skip.l f.skip.e]
+   
   if {$samemols} {
     set state "disable"
   } else {
     set state "normal"
   }
   
-  foreach widget $widgets {
-    $w.mols.mol2.$widget config -state $state
+  foreach widget [[namespace current]::wlist $w.mols.mol2] {
+    if {[winfo class $widget] eq "Frame"} {
+      continue
+    }
+    $widget config -state $state
   }
 
   switch $calctype {
@@ -389,7 +419,8 @@ proc rmsdtt2::Graph {self} {
 	    $plot bind $key <B1-ButtonRelease> "[namespace current]::MapPoint $key $data($key)" 
 	    $plot bind $key <B2-ButtonRelease> "[namespace current]::ShowPoint $key $data($key) 0"
 	    $plot bind $key <B3-ButtonRelease> "[namespace current]::MapCluster1 $key"
-	    $plot bind $key <Shift-B3-ButtonRelease> "[namespace current]::MapCluster2 $key"
+	    $plot bind $key <Shift-B3-ButtonRelease> "[namespace current]::MapCluster2g $data($key)"
+	    $plot bind $key <Control-B3-ButtonRelease> "[namespace current]::MapCluster2l $data($key)"
 	  }
 	  set offy [expr $offy+[llength $f2]]
 	}
@@ -418,9 +449,9 @@ proc rmsdtt2::NewPlot {self} {
     variable N_crit_rel   0.5
     variable grid
     variable clustering_graphics 0
-    variable rep_style    NewRibbons
-    variable rep_color    Molecule
-    variable rep_colorid  0
+    variable rep_style1    NewRibbons
+    variable rep_color1    Molecule
+    variable rep_colorid1  0
     variable highlight    0.2
     variable save_format  tab
     
@@ -474,11 +505,11 @@ proc rmsdtt2::NewPlot {self} {
 #    pack $p.u.l.info.high_label $p.u.l.info.high_entry -side left
 
     # Scale
-    set sc_w    30.
+    set sc_w    40.
     set sc_h   200.
     set off     10.
     set rg_n    50
-    set rg_w    10.
+    set rg_w    20.
     set rg_h    [expr ($sc_h-2*$off)/$rg_n]
     set lb_n    10
     set lb_h    [expr $sc_h/($lb_n+1)]
@@ -500,7 +531,16 @@ proc rmsdtt2::NewPlot {self} {
     set val $min
     set reg [expr double($max-$min)/$lb_n]
     for {set i 0} {$i <= $lb_n} {incr i} {
-      $scale create text 12 $y -text [format "%4.2f" $val] -anchor w -font [list helvetica 6 normal]
+      $scale create line 15 $y $rg_w $y
+      if {$type eq "rms"} { 
+	$scale create text [expr $rg_w+1] $y -text [format "%4.2f" $val] -anchor w -font [list helvetica 6 normal] -tag "line$val"
+	$scale bind "line$val" <Shift-B1-ButtonRelease> "[namespace current]::MapCluster2g $val"
+	$scale bind "line$val" <Control-B1-ButtonRelease> "[namespace current]::MapCluster2l $val"
+      } else {
+	$scale create text [expr $rg_w+1] $y -text [format "%4i" [expr int($val)]] -anchor w -font [list helvetica 6 normal] -tag "line$val"
+	$scale bind "line$val" <Shift-B1-ButtonRelease> "[namespace current]::MapCluster2g $val"
+	$scale bind "line$val" <Control-B1-ButtonRelease> "[namespace current]::MapCluster2l $val"
+      }
       set val [expr $val+ $reg]
       set y [expr $y+$lb_h]
     }
@@ -520,60 +560,59 @@ proc rmsdtt2::NewPlot {self} {
     pack $p.u.r.zoom.label $p.u.r.zoom.incr $p.u.r.zoom.val $p.u.r.zoom.decr
     
     # Display selection
-    frame $p.l.l.atoms -relief ridge -bd 4
-    frame $p.l.l.atoms.orig
-    label $p.l.l.atoms.orig.l -text "Original atom selection:"
-    entry $p.l.l.atoms.orig.e -width [expr [llength $sel]*4] -textvariable [namespace current]::sel -state disable
-    frame $p.l.l.atoms.sel
-    label $p.l.l.atoms.sel.l -text "Display atom selection:"
-    text $p.l.l.atoms.sel.e -exportselection yes -height 3 -width 40 -wrap word
-    $p.l.l.atoms.sel.e insert end $sel
-    button $p.l.l.atoms.sel.b -text "Update" -command "[namespace current]::UpdateSelection"
+    frame $p.l.l.rep -relief ridge -bd 4
+    pack $p.l.l.rep -side top -expand yes -fill x 
 
-    pack $p.l.l.atoms -side top -expand yes -fill x
-    pack $p.l.l.atoms.orig -side top -anchor w
-    pack $p.l.l.atoms.orig.l $p.l.l.atoms.orig.e -side left
-    pack $p.l.l.atoms.sel -side top -expand yes -fill x
-    pack $p.l.l.atoms.sel.l -side top -anchor w
-    pack $p.l.l.atoms.sel.e -side left -expand yes -fill x
-    pack $p.l.l.atoms.sel.b -side left
-
-    frame $p.l.l.atoms.reps
-    pack $p.l.l.atoms.reps -side top -anchor w
-
-    frame $p.l.l.atoms.reps.style
-    label $p.l.l.atoms.reps.style.l -text "Style method:"
-    menubutton $p.l.l.atoms.reps.style.m -text "Style" -menu $p.l.l.atoms.reps.style.m.list -textvariable [namespace current]::rep_style -relief raised
-    menu $p.l.l.atoms.reps.style.m.list
-    foreach entry $rep_style_list {
-      $p.l.l.atoms.reps.style.m.list add radiobutton -label $entry -variable [namespace current]::rep_style -value $entry -command "[namespace current]::UpdateSelection"
+    label $p.l.l.rep.orig_l -text "Original:" -width 6
+    grid $p.l.l.rep.orig_l -column 1 -row 1
+    foreach x [list 1] {
+      entry $p.l.l.rep.orig_e$x -width 25 -textvariable [namespace current]::sel$x -state disable
+      grid $p.l.l.rep.orig_e$x -column [expr $x+1] -row 1
     }
 
-    pack $p.l.l.atoms.reps.style -side left
-    pack $p.l.l.atoms.reps.style.l $p.l.l.atoms.reps.style.m -side left
-
-    frame $p.l.l.atoms.reps.color
-    label $p.l.l.atoms.reps.color.l -text "Color method:"
-#    eval tk_optionMenu $p.l.l.atoms.reps.color.m [namespace current]::rep_color $rep_color_list
-    menubutton $p.l.l.atoms.reps.color.m -text "Color" -menu $p.l.l.atoms.reps.color.m.list -textvariable [namespace current]::rep_color -relief raised
-    menu $p.l.l.atoms.reps.color.m.list
-
-    menubutton $p.l.l.atoms.reps.color.id -text "ColorID" -menu $p.l.l.atoms.reps.color.id.list -textvariable [namespace current]::rep_colorid -relief raised -state disable
-    menu $p.l.l.atoms.reps.color.id.list
-    for {set i 0} {$i <= 16} {incr i} {
-      $p.l.l.atoms.reps.color.id.list add radiobutton -label $i -variable [namespace current]::rep_colorid -value $i -command "[namespace current]::UpdateSelection"
+    label $p.l.l.rep.disp_l -text "Display:" -width 6
+    grid $p.l.l.rep.disp_l -column 1 -row 2
+    foreach x [list 1] {
+      text $p.l.l.rep.disp_e$x -exportselection yes -height 3 -width 25 -wrap word
+      $p.l.l.rep.disp_e$x insert end [set "sel$x"]
+      grid $p.l.l.rep.disp_e$x -column [expr $x+1] -row 2
     }
+    
+    label $p.l.l.rep.style_l -text "Style:" -width 6
+    grid $p.l.l.rep.style_l -column 1 -row 3
+    foreach x [list 1] {
+      frame $p.l.l.rep.style$x
+      grid $p.l.l.rep.style$x -column [expr $x+1] -row 3
 
-    foreach entry $rep_color_list {
-      if {$entry eq "ColorID"} {
-	$p.l.l.atoms.reps.color.m.list add radiobutton -label $entry -variable [namespace current]::rep_color -value $entry -command "$p.l.l.atoms.reps.color.id config -state normal; [namespace current]::UpdateSelection"
-      } else {
-	$p.l.l.atoms.reps.color.m.list add radiobutton -label $entry -variable [namespace current]::rep_color -value $entry -command "$p.l.l.atoms.reps.color.id config -state disable; [namespace current]::UpdateSelection"
+      menubutton $p.l.l.rep.style$x.s -text "Style" -menu $p.l.l.rep.style$x.s.list -textvariable [namespace current]::rep_style$x -relief raised -font [list Helvetica 8]
+      menu $p.l.l.rep.style$x.s.list
+      foreach entry $rep_style_list {
+ 	$p.l.l.rep.style$x.s.list add radiobutton -label $entry -variable [namespace current]::rep_style$x -value $entry -command "[namespace current]::UpdateSelection" -font [list Helvetica 8]
       }
+
+      menubutton $p.l.l.rep.style$x.c -text "Color" -menu $p.l.l.rep.style$x.c.list -textvariable [namespace current]::rep_color$x -relief raised -font [list Helvetica 8]
+      menu $p.l.l.rep.style$x.c.list
+      foreach entry $rep_color_list {
+ 	if {$entry eq "ColorID"} {
+ 	  $p.l.l.rep.style$x.c.list add radiobutton -label $entry -variable [namespace current]::rep_color$x -value $entry -command "$p.l.l.rep.style$x.id config -state normal; [namespace current]::UpdateSelection" -font [list Helvetica 8]
+ 	} else {
+ 	  $p.l.l.rep.style$x.c.list add radiobutton -label $entry -variable [namespace current]::rep_color$x -value $entry -command "$p.l.l.rep.style$x.id config -state disable; [namespace current]::UpdateSelection" -font [list Helvetica 8]
+ 	}
+      }
+
+      menubutton $p.l.l.rep.style$x.id -text "ColorID" -menu $p.l.l.rep.style$x.id.list -textvariable [namespace current]::rep_colorid$x -relief raised -state disable -font [list Helvetica 8]
+      menu $p.l.l.rep.style$x.id.list
+      for {set i 0} {$i <= 16} {incr i} {
+  	$p.l.l.rep.style$x.id.list add radiobutton -label $i -variable [namespace current]::rep_colorid$x -value $i -command "[namespace current]::UpdateSelection" -font [list Helvetica 8]
+      }
+      
+      pack $p.l.l.rep.style$x.s $p.l.l.rep.style$x.c -side left
+      pack $p.l.l.rep.style$x.id -side left
     }
-    pack $p.l.l.atoms.reps.color -side left
-    pack $p.l.l.atoms.reps.color.l $p.l.l.atoms.reps.color.m -side left
-    pack $p.l.l.atoms.reps.color.id -side left
+
+    button $p.l.l.rep.but -text "Update\nVMD" -command "[namespace current]::UpdateSelection"
+    grid $p.l.l.rep.but -column 4 -row 2 -rowspan 2
+
 
     if {$type eq "rms"} {
       # Clustering
@@ -609,13 +648,14 @@ proc rmsdtt2::NewPlot {self} {
     proc SaveData {} {
       variable save_format
       variable self
+      variable p
       
       set typeList {
 	{"Data Files" ".dat .txt .out"}
 	{"All files" ".*"}
       }
       
-      set file [tk_getSaveFile -filetypes $typeList -defaultextension ".dat" -title "Select file to save data"]
+      set file [tk_getSaveFile -filetypes $typeList -defaultextension ".dat" -title "Select file to save data" -parent $p]
 
       if { $file == "" } {
         return;
@@ -734,14 +774,22 @@ proc rmsdtt2::NewPlot {self} {
 
     }
 
-    proc MapCluster2 {key} {
+    proc MapCluster2g {val} {
+      [namespace current]::MapCluster2 $val 1
+    }
+
+    proc MapCluster2l {val} {
+      [namespace current]::MapCluster2 $val 0
+    }
+
+    proc MapCluster2 {val mode} {
       variable add_rep
       variable plot
       variable max
       variable min
       variable data
       variable keys
-      variable rep_sel
+      variable rep_sel1
       variable highlight
       variable type
       
@@ -750,8 +798,8 @@ proc rmsdtt2::NewPlot {self} {
 	set indices [split $mykey ,]
 	set key1 [lindex $indices 0]
 	set key2 [lindex $indices 1]
-	if {$type eq "rms"} {
-	  if {$data($mykey) <= $data($key)} {
+	if {$mode} {
+	  if {$data($mykey) >= $val} {
 	    set color black
 	    $plot itemconfigure $mykey -outline $color
 	    [namespace current]::AddRep $key1
@@ -759,7 +807,7 @@ proc rmsdtt2::NewPlot {self} {
 	    set add_rep($mykey) 1
 	  }
 	} else {
-	  if {$data($mykey) >= $data($key)} {
+	  if {$data($mykey) <= $val} {
 	    set color black
 	    $plot itemconfigure $mykey -outline $color
 	    [namespace current]::AddRep $key1
@@ -801,37 +849,37 @@ proc rmsdtt2::NewPlot {self} {
 
     proc UpdateSelection {} {
       variable p
-      variable rep_sel
-      variable rep_style
-      variable rep_color
-      variable rep_colorid
+      variable rep_sel1
+      variable rep_style1
+      variable rep_color1
+      variable rep_colorid1
       variable rep_list
       variable rep_num
 
-      set rep_sel [[namespace parent]::ParseSel [$p.l.l.atoms.sel.e get 1.0 end] ""]
+      set rep_sel1 [[namespace parent]::ParseSel [$p.l.l.rep.disp_e1 get 1.0 end] ""]
       foreach key [array names rep_list] {
 	if {$rep_num($key) > 0} {
 	  set indices [split $key :]
 	  set i [lindex $indices 0]
 	  set j [lindex $indices 1]
 	  set repname [mol repindex $i $rep_list($key)]
-	  mol modselect $repname $i $rep_sel
-	  switch $rep_style {
+	  mol modselect $repname $i $rep_sel1
+	  switch $rep_style1 {
 	    HBonds {
 	      variable cutoff
 	      variable angle
-	      mol modstyle  $repname $i $rep_style $cutoff $angle
+	      mol modstyle  $repname $i $rep_style1 $cutoff $angle
 	    }
 	    default {
-	      mol modstyle  $repname $i $rep_style
+	      mol modstyle  $repname $i $rep_style1
 	    }
 	  }
-	  switch $rep_color {
+	  switch $rep_color1 {
 	    ColorID {
-	      mol modcolor  $repname $i $rep_color $rep_colorid
+	      mol modcolor  $repname $i $rep_color1 $rep_colorid1
 	    }
 	    default {
-	      mol modcolor  $repname $i $rep_color
+	      mol modcolor  $repname $i $rep_color1
 	    }
 	  }
 	}
@@ -990,20 +1038,20 @@ proc rmsdtt2::NewPlot {self} {
       variable rep_list
       variable rep_num
       variable p
-      variable rep_sel
-      variable rep_style
-      variable rep_color
-      variable rep_colorid
-      
-      set rep_sel [[namespace parent]::ParseSel [$p.l.l.atoms.sel.e get 1.0 end] ""]
+      variable rep_sel1
+      variable rep_style1
+      variable rep_color1
+      variable rep_colorid1
+
+      set rep_sel1 [[namespace parent]::ParseSel [$p.l.l.rep.disp_e1 get 1.0 end] ""]
       set indices [split $key :]
       set rep_num($key) [expr $rep_num($key) +1]
       #puts "add $key = $rep_num($key)"
       if {$rep_num($key) <= 1} {
-	if {$rep_color eq "ColorID"} {
-	  set rep_list($key) [[namespace parent]::AddRep1 [lindex $indices 0] [lindex $indices 1] $rep_sel $rep_style [list $rep_color $rep_colorid]]
+	if {$rep_color1 eq "ColorID"} {
+	  set rep_list($key) [[namespace parent]::AddRep1 [lindex $indices 0] [lindex $indices 1] $rep_sel1 $rep_style1 [list $rep_color1 $rep_colorid1]]
 	} else {
-	  set rep_list($key) [[namespace parent]::AddRep1 [lindex $indices 0] [lindex $indices 1] $rep_sel $rep_style $rep_color]
+	  set rep_list($key) [[namespace parent]::AddRep1 [lindex $indices 0] [lindex $indices 1] $rep_sel1 $rep_style1 $rep_color1]
 	}
       }
     }
@@ -1080,7 +1128,7 @@ proc rmsdtt2::hls2rgb {h l s} {
 
 proc rmsdtt2::about { } {
     set vn [package present rmsdtt2]
-    tk_messageBox -title "About rmsdtt2 $vn" -message \
+    tk_messageBox -title "About rmsdtt2 $vn"  -parent .rmsdtt2 -message \
 "rmsdtt2 version $vn
 
 Copyright (C) Luis Gracia <lug2002@med.cornell.edu> 

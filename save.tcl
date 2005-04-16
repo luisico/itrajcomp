@@ -47,6 +47,7 @@ proc ::rmsdtt2::saveData { self {fileout ""} {format "tab"} {options ""}} {
   variable ${self}::frame1
   variable ${self}::frame2
   variable ${self}::dataformat
+  variable ${self}::p
 
   if {[llength [info procs "SaveData_$format"]]} {
     if {$fileout != ""} {
@@ -65,7 +66,7 @@ proc ::rmsdtt2::saveData { self {fileout ""} {format "tab"} {options ""}} {
       if {$format eq "plotmtv" || $format eq "plotmtv_binary"} {
 	set status [catch {exec plotmtv $fileout &} msg]
 	if { $status } {
-	  tk_messageBox -title "Warning" -message "Could not open plotmtv\n\nError returned:\n $msg" -type ok
+	  tk_messageBox -title "Warning" -message "Could not open plotmtv\n\nError returned:\n $msg" -type ok -parent $p
 	} 
       }
     }

@@ -51,7 +51,7 @@ proc rmsdtt2::Objnew {{self ":auto"} args} {
 #  interp alias {} $self: {} namespace eval ::rmsdtt2::$self
   array set defaults {
     mol1 0 frame1 0 mol2 0 frame2 0
-    sel all rep_sel all
+    sel1 all sel2 all
   }
   foreach {key val} $args {
     set defaults($key) $val
@@ -87,22 +87,20 @@ proc rmsdtt2::Objvars {self} {
 
 proc rmsdtt2::Objdump {self} {
   puts "$self:"
-  namespace eval [namespace current]::${self}:: {
-    puts "  type    $type"
-    puts "  mol1    $mol1"
-    puts "  frame1  $frame1"
-    puts "  mol2    $mol2"
-    puts "  frame2  $frame2"
-    puts "  sel     $sel"
-    puts "  rep_sel $rep_sel"
-    puts "  cutoff  $cutoff"
-    if {[info exists min]} {
-      puts "  keys   $keys"
-      puts "  vals   $vals"
-      puts "  min    $min"
-      puts "  max    $max"
+  set prefix [namespace current]::${self}::
+
+  foreach var [lsort [info var $prefix*]] {
+    if {[string match *upproc_var* $var]} {
+      continue
+    }
+    set vartxt [namespace tail $var]
+    if {[array exists $var]} {
+      puts "  $vartxt [array get $var]"
+    } else {
+      puts "  $vartxt [set $var]"
     }
   }
+
 }
 
 proc rmsdtt2::Objlist {} {
