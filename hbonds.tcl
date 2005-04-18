@@ -59,8 +59,26 @@ proc rmsdtt2::hbonds { self } {
     }
 
 
+    # Calculate max numbers of iteractions
+    set maxkeys 0
+    foreach i $mol1 {
+      foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
+	foreach k $mol2 {
+	  foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
+	    if {[info exists foo($k:$l,$i:$j)]} {
+	      continue
+	    } else {
+	      set foo($i:$j,$k:$l) 1
+	      incr maxkeys
+	    }
+	  }
+	}
+      }
+    }
+
     # Calculate hbonds
     set z 1
+    set count 0
     foreach i $mol1 {
       set s1 [atomselect $i $sel1]
       foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
@@ -74,6 +92,8 @@ proc rmsdtt2::hbonds { self } {
 	      continue
 	    } else {
 	      set data($i:$j,$k:$l) [llength [lindex [measure hbonds $cutoff $angle $s1 $s2] 0]]
+	      incr count
+	      [namespace parent]::ProgressBar $count $maxkeys
 	      if {$z} {
 		set min $data($i:$j,$k:$l)
 		set max $data($i:$j,$k:$l)

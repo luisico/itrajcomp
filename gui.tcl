@@ -101,15 +101,37 @@ proc rmsdtt2::init {} {
   frame $w.menubar -relief raised -bd 2
   pack $w.menubar -padx 1 -fill x
 
-  menubutton $w.menubar.debug -text "Debug" -underline 0 -menu $w.menubar.debug.menu -width 4
+  menubutton $w.menubar.options -text "Options" -underline 0 -menu $w.menubar.options.menu -width 4
+  menu $w.menubar.options.menu -tearoff no
+  $w.menubar.options.menu add checkbutton -label "Progress bar" -variable [namespace current]::options(progress) -command "[namespace current]::ProgressBar 0 0"
+  pack $w.menubar.options -side left
+
   menubutton $w.menubar.help -text "Help" -underline 0 -menu $w.menubar.help.menu -width 4
   menu $w.menubar.help.menu -tearoff no
   $w.menubar.help.menu add command -label "About" -command [namespace current]::about
   pack $w.menubar.help -side right
 
+#  menubutton $w.menubar.debug -text "Debug" -underline 0 -menu $w.menubar.debug.menu -width 4
 #  menu $w.menubar.debug.menu -tearoff no
 #  $w.menubar.debug.menu add command -label "Reload packages" -command [source /home/luis/vmdplugins/rmsdtt/gui.tcl]
 #  pack $w.menubar.debug -side right
+
+  # Status line
+  #--
+  frame $w.status
+  label $w.status.label -text "Status:"
+
+  canvas $w.status.info -relief sunken -height 20 -highlightthickness 0
+  $w.status.info xview moveto 0
+  $w.status.info yview moveto 0
+  $w.status.info create rect 0 0 0 0 -tag progress -fill cyan -outline cyan
+  $w.status.info create text 5 2 -tag txt -anchor nw
+
+  pack $w.status -side bottom -fill x -expand yes
+  pack $w.status.label -side left
+  pack $w.status.info -side left -fill x -expand yes
+  #--
+
 
   # Frame for molecule/frame selection
   #--
@@ -335,8 +357,11 @@ proc rmsdtt2::CreateObject {} {
   set r [eval [namespace current]::Objnew ":auto" $defaults]
 
 #  [namespace current]::Objdump $r
+  [namespace current]::Status "Calculating $calctype ..."
   [namespace current]::$calctype $r
+  [namespace current]::Status "Creating graph for $r ..."
   [namespace current]::NewPlot $r
+#  [namespace current]::ClearStatus
 
 }
 
@@ -390,6 +415,9 @@ proc rmsdtt2::Graph {self} {
     variable rep_num
     variable colors
 
+    set maxkeys [llength $keys]
+    set count 0
+    
     set offx 0
     set offy 0
     set width 3
@@ -421,6 +449,8 @@ proc rmsdtt2::Graph {self} {
 	    $plot bind $key <B3-ButtonRelease> "[namespace current]::MapCluster1 $key"
 	    $plot bind $key <Shift-B3-ButtonRelease> "[namespace current]::MapCluster2g $data($key)"
 	    $plot bind $key <Control-B3-ButtonRelease> "[namespace current]::MapCluster2l $data($key)"
+	    incr count
+	    [namespace parent]::ProgressBar $count $maxkeys
 	  }
 	  set offy [expr $offy+[llength $f2]]
 	}
@@ -559,59 +589,81 @@ proc rmsdtt2::NewPlot {self} {
     button $p.u.r.zoom.decr -text "-" -command "[namespace current]::Zoom -1"
     pack $p.u.r.zoom.label $p.u.r.zoom.incr $p.u.r.zoom.val $p.u.r.zoom.decr
     
+    # Calculation info
+    frame $p.l.l.info -relief ridge -bd 4
+    pack $p.l.l.info -side top -expand yes -fill x 
+
+    label $p.l.l.info.type -text "$type" -font [list fixed 10 bold]
+    pack $p.l.l.info.type -side left
+
+    frame $p.l.l.info.sel
+    pack $p.l.l.info.sel -side left
+
+    foreach x [list 1 2] {
+      label $p.l.l.info.sel.e$x -text "[set sel$x]" -relief sunken -bd 1
+      pack $p.l.l.info.sel.e$x -side left -expand yes -fill x
+    }
+    
+    switch $type {
+      contacts {
+	frame $p.l.l.info.other
+	pack $p.l.l.info.other -side left
+	label $p.l.l.info.other.cutoff -text "Cutoff: $cutoff"
+	pack $p.l.l.info.other.cutoff -side left
+      }
+      hbonds {
+	frame $p.l.l.info.other
+	pack $p.l.l.info.other -side left
+	label $p.l.l.info.other.cutoff_l -text "Cutoff: $cutoff"
+	label $p.l.l.info.other.angle_l -text "Angle: $angle"
+	pack $p.l.l.info.other.cutoff $p.l.l.info.other.angle -side left
+      }
+    }
+    
     # Display selection
     frame $p.l.l.rep -relief ridge -bd 4
     pack $p.l.l.rep -side top -expand yes -fill x 
 
-    label $p.l.l.rep.orig_l -text "Original:" -width 6
-    grid $p.l.l.rep.orig_l -column 1 -row 1
+    label $p.l.l.rep.l -text "Representation:"
+    pack $p.l.l.rep.l -side top -anchor w
     foreach x [list 1] {
-      entry $p.l.l.rep.orig_e$x -width 25 -textvariable [namespace current]::sel$x -state disable
-      grid $p.l.l.rep.orig_e$x -column [expr $x+1] -row 1
-    }
+      frame $p.l.l.rep.disp$x
+      pack $p.l.l.rep.disp$x -side left
 
-    label $p.l.l.rep.disp_l -text "Display:" -width 6
-    grid $p.l.l.rep.disp_l -column 1 -row 2
-    foreach x [list 1] {
-      text $p.l.l.rep.disp_e$x -exportselection yes -height 3 -width 25 -wrap word
-      $p.l.l.rep.disp_e$x insert end [set "sel$x"]
-      grid $p.l.l.rep.disp_e$x -column [expr $x+1] -row 2
-    }
-    
-    label $p.l.l.rep.style_l -text "Style:" -width 6
-    grid $p.l.l.rep.style_l -column 1 -row 3
-    foreach x [list 1] {
-      frame $p.l.l.rep.style$x
-      grid $p.l.l.rep.style$x -column [expr $x+1] -row 3
+      text $p.l.l.rep.disp$x.e -exportselection yes -height 3 -width 25 -wrap word
+      $p.l.l.rep.disp$x.e insert end [set sel$x]
+      pack $p.l.l.rep.disp$x.e -side top -anchor w
 
-      menubutton $p.l.l.rep.style$x.s -text "Style" -menu $p.l.l.rep.style$x.s.list -textvariable [namespace current]::rep_style$x -relief raised -font [list Helvetica 8]
-      menu $p.l.l.rep.style$x.s.list
+      frame $p.l.l.rep.disp$x.style
+      pack $p.l.l.rep.disp$x.style -side top
+
+      menubutton $p.l.l.rep.disp$x.style.s -text "Style" -menu $p.l.l.rep.disp$x.style.s.list -textvariable [namespace current]::rep_style$x -relief raised -font [list Helvetica 8]
+      menu $p.l.l.rep.disp$x.style.s.list
       foreach entry $rep_style_list {
- 	$p.l.l.rep.style$x.s.list add radiobutton -label $entry -variable [namespace current]::rep_style$x -value $entry -command "[namespace current]::UpdateSelection" -font [list Helvetica 8]
+ 	$p.l.l.rep.disp$x.style.s.list add radiobutton -label $entry -variable [namespace current]::rep_style$x -value $entry -command "[namespace current]::UpdateSelection" -font [list Helvetica 8]
       }
 
-      menubutton $p.l.l.rep.style$x.c -text "Color" -menu $p.l.l.rep.style$x.c.list -textvariable [namespace current]::rep_color$x -relief raised -font [list Helvetica 8]
-      menu $p.l.l.rep.style$x.c.list
+      menubutton $p.l.l.rep.disp$x.style.c -text "Color" -menu $p.l.l.rep.disp$x.style.c.list -textvariable [namespace current]::rep_color$x -relief raised -font [list Helvetica 8]
+      menu $p.l.l.rep.disp$x.style.c.list
       foreach entry $rep_color_list {
  	if {$entry eq "ColorID"} {
- 	  $p.l.l.rep.style$x.c.list add radiobutton -label $entry -variable [namespace current]::rep_color$x -value $entry -command "$p.l.l.rep.style$x.id config -state normal; [namespace current]::UpdateSelection" -font [list Helvetica 8]
+ 	  $p.l.l.rep.disp$x.style.c.list add radiobutton -label $entry -variable [namespace current]::rep_color$x -value $entry -command "$p.l.l.rep.disp$x.style.id config -state normal; [namespace current]::UpdateSelection" -font [list Helvetica 8]
  	} else {
- 	  $p.l.l.rep.style$x.c.list add radiobutton -label $entry -variable [namespace current]::rep_color$x -value $entry -command "$p.l.l.rep.style$x.id config -state disable; [namespace current]::UpdateSelection" -font [list Helvetica 8]
+ 	  $p.l.l.rep.disp$x.style.c.list add radiobutton -label $entry -variable [namespace current]::rep_color$x -value $entry -command "$p.l.l.rep.disp$x.style.id config -state disable; [namespace current]::UpdateSelection" -font [list Helvetica 8]
  	}
       }
 
-      menubutton $p.l.l.rep.style$x.id -text "ColorID" -menu $p.l.l.rep.style$x.id.list -textvariable [namespace current]::rep_colorid$x -relief raised -state disable -font [list Helvetica 8]
-      menu $p.l.l.rep.style$x.id.list
+      menubutton $p.l.l.rep.disp$x.style.id -text "ColorID" -menu $p.l.l.rep.disp$x.style.id.list -textvariable [namespace current]::rep_colorid$x -relief raised -state disable -font [list Helvetica 8]
+      menu $p.l.l.rep.disp$x.style.id.list
       for {set i 0} {$i <= 16} {incr i} {
-  	$p.l.l.rep.style$x.id.list add radiobutton -label $i -variable [namespace current]::rep_colorid$x -value $i -command "[namespace current]::UpdateSelection" -font [list Helvetica 8]
+  	$p.l.l.rep.disp$x.style.id.list add radiobutton -label $i -variable [namespace current]::rep_colorid$x -value $i -command "[namespace current]::UpdateSelection" -font [list Helvetica 8]
       }
       
-      pack $p.l.l.rep.style$x.s $p.l.l.rep.style$x.c -side left
-      pack $p.l.l.rep.style$x.id -side left
+      pack $p.l.l.rep.disp$x.style.s $p.l.l.rep.disp$x.style.c $p.l.l.rep.disp$x.style.id -side left
     }
 
     button $p.l.l.rep.but -text "Update\nVMD" -command "[namespace current]::UpdateSelection"
-    grid $p.l.l.rep.but -column 4 -row 2 -rowspan 2
+    pack $p.l.l.rep.but -side left
 
 
     if {$type eq "rms"} {
@@ -856,7 +908,7 @@ proc rmsdtt2::NewPlot {self} {
       variable rep_list
       variable rep_num
 
-      set rep_sel1 [[namespace parent]::ParseSel [$p.l.l.rep.disp_e1 get 1.0 end] ""]
+      set rep_sel1 [[namespace parent]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
       foreach key [array names rep_list] {
 	if {$rep_num($key) > 0} {
 	  set indices [split $key :]
@@ -1043,7 +1095,7 @@ proc rmsdtt2::NewPlot {self} {
       variable rep_color1
       variable rep_colorid1
 
-      set rep_sel1 [[namespace parent]::ParseSel [$p.l.l.rep.disp_e1 get 1.0 end] ""]
+      set rep_sel1 [[namespace parent]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
       set indices [split $key :]
       set rep_num($key) [expr $rep_num($key) +1]
       #puts "add $key = $rep_num($key)"
@@ -1081,10 +1133,9 @@ proc rmsdtt2::NewPlot {self} {
 
 
 proc rmsdtt2::ColorScale {max min i l} {
-  #set color [[namespace parent]::ColorScale $max $min $data($key) $highlight]
-  #$plot itemconfigure $key -outline $color
-
-  set reg [expr $i/$max]
+  if {$max == 0} {
+    set max 1.0
+  }
 
   set h [expr 2.0/3.0]
 #  set l 1.0
@@ -1134,6 +1185,49 @@ proc rmsdtt2::about { } {
 Copyright (C) Luis Gracia <lug2002@med.cornell.edu> 
 
 "
+}
+
+
+proc rmsdtt2::ProgressBar {num max} {
+  variable w
+  variable options
+
+  set wp $w.status.info
+  set height [winfo height $wp]
+
+  if {$num == 0} {
+    set x 0
+    set height 0
+    $wp coords progress 0 0 $x $height
+    $wp lower progress
+    update idletasks
+  }
+
+  if {!$options(progress)} return
+
+  if {$max == 0} {
+    set x 0
+  } else {
+    set width [winfo width $wp]
+    set x [expr ($num * $width / double($max))]
+  }
+  $wp coords progress 0 0 $x $height
+  $wp lower progress
+  update idletasks
+}
+
+
+proc rmsdtt2::Status {txt} {
+  variable w
+  $w.status.info itemconfigure txt -text $txt
+  update idletasks
+
+}
+
+
+proc rmsdtt2::ClearStatus {} {
+  after 1000 "[namespace current]::Status {}"
+  after 1000 "[namespace current]::ProgressBar 1 0"
 }
 
 
