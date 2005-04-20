@@ -125,7 +125,7 @@ proc rmsdtt2::init {} {
   $w.status.info xview moveto 0
   $w.status.info yview moveto 0
   $w.status.info create rect 0 0 0 0 -tag progress -fill cyan -outline cyan
-  $w.status.info create text 5 2 -tag txt -anchor nw
+  $w.status.info create text 5 4 -tag txt -anchor nw
 
   pack $w.status -side bottom -fill x -expand yes
   pack $w.status.label -side left
@@ -466,7 +466,7 @@ proc rmsdtt2::NewPlot {self} {
 
     set rep_style_list [list Lines Bonds DynamicBonds HBonds Points VDW CPK Licorice Trace Tube Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Dotted Solvent]
     set rep_color_list [list Name Type ResName ResType ResID Chain SegName Molecule Structure ColorID Beta Occupancy Mass Charge Pos User Index Backbone Throb Timestep Volume]
-    set save_format_list [list tab matrix plotmtv plotmtv_binary]
+    set save_format_list [list tab matrix plotmtv plotmtv_binary postscript]
 
     variable add_rep
     variable info_key1
@@ -487,7 +487,7 @@ proc rmsdtt2::NewPlot {self} {
     
 
     set p [toplevel ".${self}_plot"]
-    wm title $p "RMSDtt object $self"
+    wm title $p "$self $type"
     
     frame $p.u -relief raised -bd 2
     frame $p.l
@@ -689,6 +689,11 @@ proc rmsdtt2::NewPlot {self} {
     pack $p.l.l.save -side left
     pack $p.l.l.save.b $p.l.l.save.l $p.l.l.save.m -side left
 
+    # View button
+    button $p.l.l.view -text "View Data" -command "[namespace current]::ViewData"
+    pack $p.l.l.view -side left
+
+
     # Destroy button
     button $p.l.l.destroy -text "Destroy" -command "[namespace current]::Destroy"
     pack $p.l.l.destroy -side right
@@ -714,6 +719,38 @@ proc rmsdtt2::NewPlot {self} {
       }
 
       [namespace parent]::saveData $self $file $save_format
+    }
+
+    proc ViewData {} {
+      variable self
+      variable p
+      variable r
+      variable keys
+      variable vals
+      variable dataformat      
+      
+      set r [toplevel ".${self}_raw"]
+      wm title $r "View $self"
+
+      text $r.data -exportselection yes -width 80 -xscrollcommand "$r.xs set" -yscrollcommand "$r.ys set"
+      scrollbar $r.xs -orient horizontal -command "$r.data xview"
+      scrollbar $r.ys -orient vertical   -command "$r.data yview"
+
+      pack $r.xs -side bottom -fill x
+      pack $r.ys -side right -fill y
+      pack $r.data -side right -expand yes -fill both
+
+      $r.data insert end "mol1 frame1   mol2 frame2      rmsd\n"
+      for {set z 0} {$z < [llength $keys]} {incr z} {
+	set key [lindex $keys $z]
+	set indices [split $key :,]
+	set i [lindex $indices 0]
+	set j [lindex $indices 1]
+	set k [lindex $indices 2]
+	set l [lindex $indices 3]
+	$r.data insert end [format "%4d %6d   %4d %6d   $dataformat\n" $i $j $k $l [lindex $vals $z]]
+      }
+
     }
 
     proc ShowPoint {key val stick} {

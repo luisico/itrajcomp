@@ -60,6 +60,7 @@ proc ::rmsdtt2::saveData { self {fileout ""} {format "tab"} {options ""}} {
       set opt(frame1) $frame1
       set opt(frame2) $frame2
       set opt(dataformat) $dataformat
+      set opt(canvas) $p
 
       SaveData_$format $vals $keys $fileout_id [array get opt]
       close $fileout_id
@@ -76,6 +77,19 @@ proc ::rmsdtt2::saveData { self {fileout ""} {format "tab"} {options ""}} {
   
 }
 
+
+# Save data procs (postscript)
+#                  ----------
+proc ::rmsdtt2::SaveData_postscript {data keys id options} {
+  array set opt $options
+  
+  set canvas $opt(canvas).u.l.canvas.c
+
+  set ps [$canvas postscript]
+  
+  puts $id $ps
+
+}
 
 # Save data procs (tabular)
 #                  -------
