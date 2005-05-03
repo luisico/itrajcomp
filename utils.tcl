@@ -223,4 +223,49 @@ proc rmsdtt2::wlist {{W .}} {
      set list [concat $list [wlist $w]]
    }
    return $list
- }
+}
+
+
+proc rmsdtt2::ColorScale {max min i l} {
+  if {$max == 0} {
+    set max 1.0
+  }
+
+  set h [expr 2.0/3.0]
+#  set l 1.0
+  set s 1.0
+
+  lassign [hls2rgb [expr ($h - $h*$i/$max)] $l $s] r g b
+
+  set r [expr int($r*255)]
+  set g [expr int($g*255)]
+  set b [expr int($b*255)]
+  return [format "#%.2X%.2X%.2X" $r $g $b]
+}
+
+
+proc rmsdtt2::hls2rgb {h l s} {
+  #http://wiki.tcl.tk/666
+  # h, l and s are floats between 0.0 and 1.0, ditto for r, g and b
+  # h = 0   => red
+  # h = 1/3 => green
+  # h = 2/3 => blue
+  
+  set h6 [expr {($h-floor($h))*6}]
+  set r [expr {  $h6 <= 3 ? 2-$h6
+		 : $h6-4}]
+  set g [expr {  $h6 <= 2 ? $h6
+		 : $h6 <= 5 ? 4-$h6
+		 : $h6-6}]
+  set b [expr {  $h6 <= 1 ? -$h6
+		 : $h6 <= 4 ? $h6-2
+		 : 6-$h6}]
+  set r [expr {$r < 0.0 ? 0.0 : $r > 1.0 ? 1.0 : double($r)}]
+  set g [expr {$g < 0.0 ? 0.0 : $g > 1.0 ? 1.0 : double($g)}]
+  set b [expr {$b < 0.0 ? 0.0 : $b > 1.0 ? 1.0 : double($b)}]
+  
+  set r [expr {(($r-1)*$s+1)*$l}]
+  set g [expr {(($g-1)*$s+1)*$l}]
+  set b [expr {(($b-1)*$s+1)*$l}]
+  return [list $r $g $b]
+}

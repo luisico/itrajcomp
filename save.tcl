@@ -35,34 +35,48 @@
 
 package provide rmsdtt2 2.0
 
+proc rmsdtt2::SaveDataBrowse {self} {
+  set typeList {
+    {"Data Files" ".dat .txt .out"}
+    {"Postscript Files" ".ps"}
+    {"All files" ".*"}
+  }
+  
+  set file [tk_getSaveFile -filetypes $typeList -defaultextension ".dat" -title "Select file to save data" -parent [set ${self}::p]]
+  
+  if { $file == "" } {
+    return;
+  }
+  
+  [namespace current]::saveData $self $file [set ${self}::save_format]
+}
+
+
 # Save data procs (general)
 #                  -------
 proc ::rmsdtt2::saveData { self {fileout ""} {format "tab"} {options ""}} {
   array set opt $options
   
-  variable ${self}::keys
-  variable ${self}::vals
-  variable ${self}::mol1
-  variable ${self}::mol2
-  variable ${self}::frame1
-  variable ${self}::frame2
-  variable ${self}::dataformat
-  variable ${self}::p
-
   if {[llength [info procs "SaveData_$format"]]} {
     if {$fileout != ""} {
       #puts "DEBUG: using file \"$fileout\" for output"
       set fileout_id [open $fileout w]
       fconfigure $fileout_id
-      
-      set opt(mol1) $mol1
-      set opt(mol2) $mol2
-      set opt(frame1) $frame1
-      set opt(frame2) $frame2
-      set opt(dataformat) $dataformat
-      set opt(canvas) $p
+    } else {
+      set fileout_id stdout
+    }
 
-      SaveData_$format $vals $keys $fileout_id [array get opt]
+    set opt(mol1) [set ${self}::mol1]
+    set opt(mol2) [set ${self}::mol2]
+    set opt(frame1) [set ${self}::frame1]
+    set opt(frame2) [set ${self}::frame2]
+    set opt(dataformat) [set ${self}::dataformat]
+    set opt(canvas) [set ${self}::p]
+
+    set output [SaveData_$format [set ${self}::vals] [set ${self}::keys] [array get opt]]
+
+    if {$fileout != ""} {
+      puts $fileout_id $output
       close $fileout_id
       if {$format eq "plotmtv" || $format eq "plotmtv_binary"} {
 	set status [catch {exec plotmtv $fileout &} msg]
@@ -70,34 +84,28 @@ proc ::rmsdtt2::saveData { self {fileout ""} {format "tab"} {options ""}} {
 	  tk_messageBox -title "Warning" -message "Could not open plotmtv\n\nError returned:\n $msg" -type ok -parent $p
 	} 
       }
-    }
+    } else {
+      return $output
+    }    
   } else {
     puts "WARNING: SaveData_$format not implemented yet"
   }
-  
 }
 
 
 # Save data procs (postscript)
 #                  ----------
-proc ::rmsdtt2::SaveData_postscript {data keys id options} {
+proc ::rmsdtt2::SaveData_postscript {data keys options} {
   array set opt $options
-  
-  set canvas $opt(canvas).u.l.canvas.c
-
-  set ps [$canvas postscript]
-  
-  puts $id $ps
-
+  return [$opt(canvas).u.l.canvas.c postscript]
 }
 
 # Save data procs (tabular)
 #                  -------
-proc ::rmsdtt2::SaveData_tab {data keys id options} {
+proc ::rmsdtt2::SaveData_tab {data keys options} {
   array set opt $options
   
-  puts $id "mol1 frame1   mol2 frame2      rmsd"
-
+  set output "mol1 frame1   mol2 frame2      rmsd\n"
   for {set z 0} {$z < [llength $keys]} {incr z} {
     set key [lindex $keys $z]
     set indices [split $key :,]
@@ -105,13 +113,14 @@ proc ::rmsdtt2::SaveData_tab {data keys id options} {
     set j [lindex $indices 1]
     set k [lindex $indices 2]
     set l [lindex $indices 3]
-    puts $id [format "%4d %6d   %4d %6d   $opt(dataformat)" $i $j $k $l [lindex $data $z]]
+    append output [format "%4d %6d   %4d %6d   $opt(dataformat)\n" $i $j $k $l [lindex $data $z]]
   }
+  return $output
 }
 
 # Save data procs (matrix)
 #                  ------
-proc ::rmsdtt2::SaveData_matrix {data keys id options} {
+proc ::rmsdtt2::SaveData_matrix {data keys options} {
   array set opt $options
 
   #puts "DEBUG: [array get opt]"
@@ -129,26 +138,28 @@ proc ::rmsdtt2::SaveData_matrix {data keys id options} {
     }
   }
 
+  set output ""
   foreach i $opt(mol1) {
     foreach j [lindex $opt(frame1) [lsearch -exact $opt(mol1) $i]] {
       foreach k $opt(mol2) {
 	foreach l [lindex $opt(frame2) [lsearch -exact $opt(mol2) $k]] {
-	  puts -nonewline $id [format " $opt(dataformat)" $values($i:$j,$k:$l)]
+	  append output [format " $opt(dataformat)" $values($i:$j,$k:$l)]
 	}
       }
-      puts $id ""
+      append output "\n"
     }
   }
+  return $output
 }
 
 # Save data procs (plotmtv)
 #                  -------
-proc ::rmsdtt2::SaveData_plotmtv_binary {data keys id options} {
+proc ::rmsdtt2::SaveData_plotmtv_binary {data keys options} {
   lappend options binary 1
-  [namespace current]::SaveData_plotmtv $data $keys $id $options
+  return [[namespace current]::SaveData_plotmtv $data $keys $options]
 }
 
-proc ::rmsdtt2::SaveData_plotmtv {data keys id options} {
+proc ::rmsdtt2::SaveData_plotmtv {data keys options} {
   array set opt $options
 
   #puts "DEBUG: [array get opt]"
@@ -181,30 +192,32 @@ proc ::rmsdtt2::SaveData_plotmtv {data keys id options} {
     }
   }
 
-  puts $id "$ DATA=CONTOUR"
-  puts $id "#% contours = ( 10 20 30 40 50 60 70 80 95 100 )"
-  puts $id "% contfill"
-  puts $id "% toplabel = \"Pairwise RMSD\""
-  puts $id "% ymin=0 ymax=$ny"
-  puts $id "% xmin=0 xmax=$nx"
-  puts $id "% nx=$nx ny=$ny"
+  set output "$ DATA=CONTOUR\n"
+  append output "#% contours = ( 10 20 30 40 50 60 70 80 95 100 )\n"
+  append output "% contfill\n"
+  append output "% toplabel = \"Pairwise RMSD\"\n"
+  append output "% ymin=0 ymax=$ny\n"
+  append output "% xmin=0 xmax=$nx\n"
+  append output "% nx=$nx ny=$ny\n"
 
   if {[info exists opt(binary)]} {
-    puts $id "% BINARY"
-    puts $id [binary format "d[llength $vals]" [eval list $vals]]
+    append output "% BINARY\n"
+    append output [binary format "d[llength $vals]" [eval list $vals]]
+    append output "\n"
   } else {
     set columns 0
     for {set z 0} {$z < [llength $vals]} {incr z} {
       set columns [expr $columns + 1]
       #puts "$z [lindex $vals $z]"
-      puts -nonewline $id [format "  $opt(dataformat)" [lindex $vals $z]]
+      append output [format "  $opt(dataformat)" [lindex $vals $z]]
       if {$columns > 9} {
 	set columns 0
-	puts $id ""
+	append output "\n"
       }
     }
-    puts $id ""
+    append output "\n"
   }
 
-  puts $id "$ END"
+  append output "$ END\n"
+  return $output
 }
