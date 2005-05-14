@@ -35,7 +35,7 @@
 
 package provide rmsdtt2 2.0
 
-proc rmsdtt2::SaveDataBrowse {self} {
+proc rmsdtt2::SaveDataBrowse {self {format "tab"}} {
   set typeList {
     {"Data Files" ".dat .txt .out"}
     {"Postscript Files" ".ps"}
@@ -48,7 +48,7 @@ proc rmsdtt2::SaveDataBrowse {self} {
     return;
   }
   
-  [namespace current]::saveData $self $file [set ${self}::save_format]
+  [namespace current]::saveData $self $file $format]
 }
 
 
@@ -56,7 +56,7 @@ proc rmsdtt2::SaveDataBrowse {self} {
 #                  -------
 proc ::rmsdtt2::saveData { self {fileout ""} {format "tab"} {options ""}} {
   array set opt $options
-  
+
   if {[llength [info procs "SaveData_$format"]]} {
     if {$fileout != ""} {
       #puts "DEBUG: using file \"$fileout\" for output"

@@ -106,7 +106,7 @@ proc rmsdtt2::init {} {
 
   menubutton $w.menubar.help -text "Help" -underline 0 -menu $w.menubar.help.menu -width 4
   menu $w.menubar.help.menu -tearoff no
-  $w.menubar.help.menu add command -label "About" -command [namespace current]::about
+  $w.menubar.help.menu add command -label "About" -command [namespace current]::help_about
   pack $w.menubar.help -side right
 
 #  menubutton $w.menubar.debug -text "Debug" -underline 0 -menu $w.menubar.debug.menu -width 4
@@ -340,10 +340,10 @@ proc rmsdtt2::UpdateGUI {} {
 }
 
 
-proc rmsdtt2::about { } {
-    set vn [package present rmsdtt2]
-    tk_messageBox -title "About rmsdtt2 $vn"  -parent .rmsdtt2 -message \
-"rmsdtt2 version $vn
+proc rmsdtt2::help_about { {parent .rmsdtt2} } {
+  set vn [package present rmsdtt2]
+  tk_messageBox -title "About rmsdtt2 $vn"  -parent $parent -message \
+    "rmsdtt2 version $vn
 
 Copyright (C) Luis Gracia <lug2002@med.cornell.edu> 
 

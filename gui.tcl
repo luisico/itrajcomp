@@ -63,6 +63,29 @@ proc rmsdtt2::NewPlot {self} {
     set p [toplevel ".${self}_plot"]
     wm title $p "$self $type"
     
+    # Menu
+    frame $p.menubar -relief raised -bd 2
+    pack $p.menubar -padx 1 -fill x
+    
+    menubutton $p.menubar.file -text "File" -underline 0 -menu $p.menubar.file.menu -width 4
+    menu $p.menubar.file.menu -tearoff no
+    $p.menubar.file.menu add command -label "Save" -command ""
+    $p.menubar.file.menu add cascade -label "Save As..." -menu $p.menubar.file.menu.saveas
+    menu $p.menubar.file.menu.saveas
+    foreach as $save_format_list {
+      $p.menubar.file.menu.saveas add command -label $as -command "[namespace parent]::SaveDataBrowse $self $as"
+    }
+    $p.menubar.file.menu add command -label "View" -command "[namespace parent]::ViewData $self"
+    $p.menubar.file.menu add command -label "Destroy" -command "[namespace parent]::Destroy $self"
+    pack $p.menubar.file -side left
+    
+    menubutton $p.menubar.help -text "Help" -underline 0 -menu $p.menubar.help.menu -width 4
+    menu $p.menubar.help.menu -tearoff no
+    $p.menubar.help.menu add command -label "Keybindings" -command "[namespace parent]::help_keys $self"
+    $p.menubar.help.menu add command -label "About" -command "[namespace parent]::help_about $p"
+    pack $p.menubar.help -side right
+
+    # Main area
     frame $p.u -relief raised -bd 2
     frame $p.l
     pack $p.u -side top -expand yes -fill both -pady 10
@@ -254,24 +277,6 @@ proc rmsdtt2::NewPlot {self} {
       pack $p.l.l.cluster.rthres_label $p.l.l.cluster.rthres $p.l.l.cluster.ncrit_label $p.l.l.cluster.ncrit $p.l.l.cluster.graphics $p.l.l.cluster.bt -side left 
     }
     
-    # Save button
-    frame $p.l.l.save
-    button $p.l.l.save.b -text "Save Data" -command "[namespace parent]::SaveDataBrowse $self"
-    label $p.l.l.save.l -text "Format:"
-    eval tk_optionMenu $p.l.l.save.m [namespace current]::save_format $save_format_list
-
-    pack $p.l.l.save -side left
-    pack $p.l.l.save.b $p.l.l.save.l $p.l.l.save.m -side left
-
-    # View button
-    button $p.l.l.view -text "View Data" -command "[namespace parent]::ViewData $self"
-    pack $p.l.l.view -side left
-
-
-    # Destroy button
-    button $p.l.l.destroy -text "Destroy" -command "[namespace parent]::Destroy $self"
-    pack $p.l.l.destroy -side right
-
     set grid 10
     [namespace parent]::Graph $self
   }
@@ -600,4 +605,21 @@ proc rmsdtt2::Destroy {self} {
   [namespace current]::MapClear $self
   catch {destroy [set ${self}::p]}
   [namespace current]::Objdelete $self
+}
+
+
+proc rmsdtt2::help_keys { self } {
+  set vn [package present rmsdtt2]
+  tk_messageBox -title "Keybindings in rmsdtt2 $vn"  -parent [set ${self}::p] -message \
+    "rmsdtt2 version $vn Keybindings
+
+Mouse-1    Select/Deselect one point.
+Mouse-2    Shows data for point when Sticky is on.
+Mouse-3    Selects all points with <= value within the data of the column
+Shift-B1   Selects all points with <= value.
+Control-B1 Selects all points with >= value.
+
+Copyright (C) Luis Gracia <lug2002@med.cornell.edu> 
+
+"
 }
