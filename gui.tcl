@@ -61,28 +61,35 @@ proc rmsdtt2::NewPlot {self} {
     
 
     set p [toplevel ".${self}_plot"]
-    wm title $p "$self $type"
+
+    set title "$self: $type"
+    if {$type eq "contacts"} {
+      set title "$title cutoff=$cutoff"
+    } elseif {$type eq "hbonds"} {
+      set title "$title cutoff=$cutoff angle=$angle"
+    }
+    wm title $p $title
     
     # Menu
     frame $p.menubar -relief raised -bd 2
     pack $p.menubar -padx 1 -fill x
     
-    menubutton $p.menubar.file -text "File" -underline 0 -menu $p.menubar.file.menu -width 4
+    menubutton $p.menubar.file -text "File" -menu $p.menubar.file.menu -width 4 -underline 0
     menu $p.menubar.file.menu -tearoff no
-    $p.menubar.file.menu add command -label "Save" -command ""
-    $p.menubar.file.menu add cascade -label "Save As..." -menu $p.menubar.file.menu.saveas
+    #$p.menubar.file.menu add command -label "Save" -command "" -underline 0
+    $p.menubar.file.menu add cascade -label "Save As..." -menu $p.menubar.file.menu.saveas -underline 0
     menu $p.menubar.file.menu.saveas
     foreach as $save_format_list {
       $p.menubar.file.menu.saveas add command -label $as -command "[namespace parent]::SaveDataBrowse $self $as"
     }
-    $p.menubar.file.menu add command -label "View" -command "[namespace parent]::ViewData $self"
-    $p.menubar.file.menu add command -label "Destroy" -command "[namespace parent]::Destroy $self"
+    $p.menubar.file.menu add command -label "View" -command "[namespace parent]::ViewData $self" -underline 0
+    $p.menubar.file.menu add command -label "Destroy" -command "[namespace parent]::Destroy $self" -underline 0
     pack $p.menubar.file -side left
     
-    menubutton $p.menubar.help -text "Help" -underline 0 -menu $p.menubar.help.menu -width 4
+    menubutton $p.menubar.help -text "Help" -menu $p.menubar.help.menu -width 4 -underline 0
     menu $p.menubar.help.menu -tearoff no
-    $p.menubar.help.menu add command -label "Keybindings" -command "[namespace parent]::help_keys $self"
-    $p.menubar.help.menu add command -label "About" -command "[namespace parent]::help_about $p"
+    $p.menubar.help.menu add command -label "Keybindings" -command "[namespace parent]::help_keys $self" -underline 0
+    $p.menubar.help.menu add command -label "About" -command "[namespace parent]::help_about $p" -underline 0
     pack $p.menubar.help -side right
 
     # Main area
@@ -190,14 +197,14 @@ proc rmsdtt2::NewPlot {self} {
     frame $p.l.l.info -relief ridge -bd 4
     pack $p.l.l.info -side top -expand yes -fill x 
 
-    label $p.l.l.info.type -text "$type" -font [list fixed 10 bold]
+    label $p.l.l.info.type -text "$type" -font [list Helvetica 8 bold]
     pack $p.l.l.info.type -side left
 
     frame $p.l.l.info.sel
     pack $p.l.l.info.sel -side left
 
     foreach x [list 1 2] {
-      label $p.l.l.info.sel.e$x -text "[set sel$x]" -relief sunken -bd 1
+      label $p.l.l.info.sel.e$x -text "[set sel$x]" -relief sunken -bd 1 -font [list Helvetica 8]
       pack $p.l.l.info.sel.e$x -side left -expand yes -fill x
     }
     
@@ -205,14 +212,14 @@ proc rmsdtt2::NewPlot {self} {
       contacts {
 	frame $p.l.l.info.other
 	pack $p.l.l.info.other -side left
-	label $p.l.l.info.other.cutoff -text "Cutoff: $cutoff"
+	label $p.l.l.info.other.cutoff -text "Cutoff: $cutoff" -font [list Helvetica 8]
 	pack $p.l.l.info.other.cutoff -side left
       }
       hbonds {
 	frame $p.l.l.info.other
 	pack $p.l.l.info.other -side left
-	label $p.l.l.info.other.cutoff_l -text "Cutoff: $cutoff" 
-	label $p.l.l.info.other.angle_l -text "Angle: $angle"
+	label $p.l.l.info.other.cutoff_l -text "Cutoff: $cutoff" -font [list Helvetica 8]
+	label $p.l.l.info.other.angle_l -text "Angle: $angle" -font [list Helvetica 8]
 	pack $p.l.l.info.other.cutoff $p.l.l.info.other.angle -side left
       }
     }
@@ -221,13 +228,14 @@ proc rmsdtt2::NewPlot {self} {
     frame $p.l.l.rep -relief ridge -bd 4
     pack $p.l.l.rep -side top -expand yes -fill x 
 
-    label $p.l.l.rep.l -text "Representation:"
-    pack $p.l.l.rep.l -side top -anchor w
+    button $p.l.l.rep.but -text "Update\nRepresen-\ntation" -font [list Helvetica 8] -command "[namespace parent]::UpdateSelection $self"
+    pack $p.l.l.rep.but -side left
+
     foreach x [list 1] {
       frame $p.l.l.rep.disp$x
       pack $p.l.l.rep.disp$x -side left
 
-      text $p.l.l.rep.disp$x.e -exportselection yes -height 3 -width 25 -wrap word
+      text $p.l.l.rep.disp$x.e -exportselection yes -height 2 -width 25 -wrap word -font [list Helvetica 8]
       $p.l.l.rep.disp$x.e insert end [set sel$x]
       pack $p.l.l.rep.disp$x.e -side top -anchor w
 
@@ -258,9 +266,6 @@ proc rmsdtt2::NewPlot {self} {
       
       pack $p.l.l.rep.disp$x.style.s $p.l.l.rep.disp$x.style.c $p.l.l.rep.disp$x.style.id -side left
     }
-
-    button $p.l.l.rep.but -text "Update\nVMD" -command "[namespace parent]::UpdateSelection $self"
-    pack $p.l.l.rep.but -side left
 
 
     if {$type eq "rms"} {
@@ -320,8 +325,9 @@ proc rmsdtt2::Graph {self} {
 	    
 	    $plot bind $key <Enter> "[namespace parent]::ShowPoint $self $key $data($key) 1"
 	    $plot bind $key <B1-ButtonRelease> "[namespace parent]::MapPoint $self $key $data($key)" 
-	    $plot bind $key <B2-ButtonRelease> "[namespace parent]::ShowPoint $self $key $data($key) 0"
-	    $plot bind $key <B3-ButtonRelease> "[namespace parent]::MapCluster1 $self $key"
+	    $plot bind $key <B2-ButtonRelease> "[namespace parent]::MapCluster1 $self $key"
+	    $plot bind $key <Shift-B2-ButtonRelease> "[namespace parent]::MapCluster1 $self $key 1"
+	    $plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster1 $self $key 2"
 	    $plot bind $key <Shift-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $data($key) 1"
 	    $plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $data($key) 0"
 	    incr count
@@ -452,7 +458,7 @@ proc rmsdtt2::MapPoint {self key data} {
 }
 
 
-proc rmsdtt2::MapCluster1 {self key} {
+proc rmsdtt2::MapCluster1 {self key {mod 0}} {
   variable add_rep
 
   set keys [set ${self}::keys]
@@ -461,50 +467,59 @@ proc rmsdtt2::MapCluster1 {self key} {
   array set data [array get ${self}::data]
 
   set indices [split $key ,:]
-  set i [lindex $indices 0]
-  set j [lindex $indices 1]
-  set ref1 "$i:$j"
+  
 
   [namespace current]::MapClear $self
 
-  [namespace current]::AddRep $self $ref1
-  foreach mykey [array names data $ref1,*] {
-    set indices [split $mykey ,:]
-    set k [lindex $indices 2]
-    set l [lindex $indices 3]
-    if {$type eq "rms"} {
-      if {$data($mykey) <= $data($key)} {
-	set color black
-	$plot itemconfigure $mykey -outline $color
-	set ${self}::add_rep($mykey) 1
-	[namespace current]::AddRep $self $k:$l
-      }
-    } else {
-      if {$data($mykey) >= $data($key)} {
-	set color black
-	$plot itemconfigure $mykey -outline $color
-	set ${self}::add_rep($mykey) 1
-	[namespace current]::AddRep $self $k:$l
+  if {!$mod || $mod == 1} {
+    set ref "[lindex $indices 0]:[lindex $indices 1]"
+    [namespace current]::AddRep $self $ref
+    foreach mykey [array names data $ref,*] {
+      set indices [split $mykey ,:]
+      set k [lindex $indices 2]
+      set l [lindex $indices 3]
+      if {$type eq "rms"} {
+	if {$data($mykey) <= $data($key)} {
+	  set color black
+	  $plot itemconfigure $mykey -outline $color
+	  set ${self}::add_rep($mykey) 1
+	  [namespace current]::AddRep $self $k:$l
+	}
+      } else {
+	if {$data($mykey) >= $data($key)} {
+	  set color black
+	  $plot itemconfigure $mykey -outline $color
+	  set ${self}::add_rep($mykey) 1
+	  [namespace current]::AddRep $self $k:$l
+	}
       }
     }
   }
-  foreach mykey [array names data *,$ref1] {
-    set indices [split $mykey ,:]
-    set k [lindex $indices 0]
-    set l [lindex $indices 1]
-    if {$type eq "rms"} {
-      if {$data($mykey) <= $data($key)} {
-	set color black
-	$plot itemconfigure $mykey -outline $color
-	set ${self}::add_rep($mykey) 1
-	[namespace current]::AddRep $self $k:$l
-      }
+  if {!$mod || $mod == 2} {
+    if {$mod} {
+      set ref "[lindex $indices 2]:[lindex $indices 3]"
     } else {
-      if {$data($mykey) >= $data($key)} {
-	set color black
-	$plot itemconfigure $mykey -outline $color
-	set ${self}::add_rep($mykey) 1
-	[namespace current]::AddRep $self $k:$l
+      set ref "[lindex $indices 0]:[lindex $indices 1]"
+    }
+    [namespace current]::AddRep $self $ref
+    foreach mykey [array names data *,$ref] {
+      set indices [split $mykey ,:]
+      set k [lindex $indices 0]
+      set l [lindex $indices 1]
+      if {$type eq "rms"} {
+	if {$data($mykey) <= $data($key)} {
+	  set color black
+	  $plot itemconfigure $mykey -outline $color
+	  set ${self}::add_rep($mykey) 1
+	  [namespace current]::AddRep $self $k:$l
+	}
+      } else {
+	if {$data($mykey) >= $data($key)} {
+	  set color black
+	  $plot itemconfigure $mykey -outline $color
+	  set ${self}::add_rep($mykey) 1
+	  [namespace current]::AddRep $self $k:$l
+	}
       }
     }
   }
@@ -613,11 +628,12 @@ proc rmsdtt2::help_keys { self } {
   tk_messageBox -title "Keybindings in rmsdtt2 $vn"  -parent [set ${self}::p] -message \
     "rmsdtt2 version $vn Keybindings
 
-Mouse-1    Select/Deselect one point.
-Mouse-2    Shows data for point when Sticky is on.
-Mouse-3    Selects all points with <= value within the data of the column
-Shift-B1   Selects all points with <= value.
-Control-B1 Selects all points with >= value.
+B1        Select/Deselect one point.
+B2        Selects all points with <= value within the data of the column
+Shift-B2  Selects all points with <= value within the column
+Ctrl-B2   Selects all points with <= value within the row
+Shift-B3  Selects all points with <= value.
+Ctrl-B3   Selects all points with >= value.
 
 Copyright (C) Luis Gracia <lug2002@med.cornell.edu> 
 
