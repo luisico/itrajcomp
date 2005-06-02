@@ -95,6 +95,9 @@ proc rmsdtt2::init {} {
   variable cutoff 5.0
   variable angle 30.0
 
+  variable labstype "Dihedrals"
+  variable labsnum 
+
   # Menu
   frame $w.menubar -relief raised -bd 2
   pack $w.menubar -padx 1 -fill x
@@ -152,7 +155,7 @@ proc rmsdtt2::init {} {
   #--
   frame $w.mols.mol1.a -relief ridge -bd 2
   label $w.mols.mol1.a.title -text "Atom selection:"
-  text $w.mols.mol1.a.sel -exportselection yes -height 5 -width 30 -wrap word
+  text $w.mols.mol1.a.sel -exportselection yes -height 5 -width 25 -wrap word
   $w.mols.mol1.a.sel insert end "all"
   radiobutton $w.mols.mol1.a.no -text "None"      -variable [namespace current]::selmod1 -value "no"
   radiobutton $w.mols.mol1.a.bb -text "Backbone"  -variable [namespace current]::selmod1 -value "bb"
@@ -218,7 +221,7 @@ proc rmsdtt2::init {} {
   #--
   frame $w.mols.mol2.a -relief ridge -bd 2
   label $w.mols.mol2.a.title -text "Atom selection:"
-  text $w.mols.mol2.a.sel -exportselection yes -height 5 -width 30 -wrap word
+  text $w.mols.mol2.a.sel -exportselection yes -height 5 -width 25 -wrap word
   $w.mols.mol2.a.sel insert end "all"
   radiobutton $w.mols.mol2.a.no -text "None"      -variable [namespace current]::selmod2 -value "no"
   radiobutton $w.mols.mol2.a.bb -text "Backbone"  -variable [namespace current]::selmod2 -value "bb"
@@ -272,24 +275,42 @@ proc rmsdtt2::init {} {
   #--
 
  
-  # Calculation
+  # Calculation options
   #--
   frame $w.calc -relief ridge -bd 4
-  label $w.calc.label -text "Calculation:"
+  pack $w.calc -side left -expand yes -fill x
 
-  radiobutton $w.calc.rms      -text "Rmsd"      -variable [namespace current]::calctype -value "rms"      -command [namespace current]::UpdateGUI
-  radiobutton $w.calc.contacts -text "Contacts" -variable [namespace current]::calctype -value "contacts" -command [namespace current]::UpdateGUI
-  radiobutton $w.calc.hbonds   -text "Hbonds"   -variable [namespace current]::calctype -value "hbonds"   -command [namespace current]::UpdateGUI
+  frame $w.calc.u
+  pack $w.calc.u -side top -anchor nw
+  label $w.calc.u.label -text "Calculation:"
 
-  label $w.calc.cutoff_l -text "Cutoff:"
-  entry $w.calc.cutoff -width 5 -textvariable [namespace current]::cutoff
-  label $w.calc.angle_l -text "Angle:"
-  entry $w.calc.angle  -width 5 -textvariable [namespace current]::angle
+  radiobutton $w.calc.u.rmsd     -text "Rmsd"     -variable [namespace current]::calctype -value "rms"      -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.u.contacts -text "Contacts" -variable [namespace current]::calctype -value "contacts" -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.u.hbonds   -text "Hbonds"   -variable [namespace current]::calctype -value "hbonds"   -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.u.labels   -text "Labels"   -variable [namespace current]::calctype -value "labels"   -command [namespace current]::UpdateGUI
+  pack $w.calc.u.label $w.calc.u.rmsd $w.calc.u.contacts $w.calc.u.hbonds $w.calc.u.labels -side left
+
+  frame $w.calc.d
+  label $w.calc.d.label -text "Options:"
+  pack $w.calc.d -side left
+  label $w.calc.d.cutoff_l -text "Cutoff:"
+  entry $w.calc.d.cutoff -width 5 -textvariable [namespace current]::cutoff
+  label $w.calc.d.angle_l -text "Angle:"
+  entry $w.calc.d.angle  -width 5 -textvariable [namespace current]::angle
+
+  label $w.calc.d.labs_l -text "Labels:"
+  menubutton $w.calc.d.labs_t -text "Type" -menu $w.calc.d.labs_t.m -textvariable [namespace current]::labstype -relief raised
+  menu $w.calc.d.labs_t.m
+  foreach entry [list Bonds Angles Dihedrals] {
+    $w.calc.d.labs_t.m add radiobutton -label $entry -variable [namespace current]::labstype -value $entry -command "[namespace current]::UpdateLabels"
+  }
+
+  menubutton $w.calc.d.labs_n -text "Labels" -menu $w.calc.d.labs_n.m -textvariable [namespace current]::labsnum -relief raised
+  menu $w.calc.d.labs_n.m
+
+  pack $w.calc.d.label $w.calc.d.cutoff_l $w.calc.d.cutoff $w.calc.d.angle_l $w.calc.d.angle $w.calc.d.labs_l $w.calc.d.labs_t $w.calc.d.labs_n -side left
 
   button $w.calc.new -text "New object" -command "[namespace current]::CreateObject"
-
-  pack $w.calc -side left -expand yes -fill x
-  pack $w.calc.label $w.calc.rms $w.calc.contacts $w.calc.hbonds $w.calc.cutoff_l $w.calc.cutoff $w.calc.angle_l $w.calc.angle -side left
   pack $w.calc.new -side right
   #--
 
@@ -297,6 +318,41 @@ proc rmsdtt2::init {} {
 
 }
 
+
+proc rmsdtt2::UpdateLabels {} {
+  variable w
+  variable labstype
+  variable labsnum
+
+  set labels [label list $labstype]
+  set n [llength $labels]
+  $w.calc.d.labs_n.m delete 0 end
+  if {$n == 0} {
+    $w.calc.d.labs_n   config -state disable
+    set labsnum "Empty"
+  } else {
+    $w.calc.d.labs_n   config -state normal
+    set nat [expr [llength [lindex $labels 0]] -2]
+    set labsnum 0
+    for {set i 0} {$i < $n} {incr i} {
+      set label "$i ("
+      for {set j 0} {$j < $nat} {incr j} {
+	set mol   [lindex [lindex [lindex $labels $i] $j] 0]
+	set index [lindex [lindex [lindex $labels $i] $j] 1]
+	set at [atomselect $mol "index $index"]
+	set name    [$at get name]
+	set resid   [$at get resid]
+	set resname [$at get resid]
+	append label "$mol-$resname$resid-$name"
+	if {$j < [expr $nat-1]} {
+	  append label ", "
+	}
+      }
+      append label ")"
+      $w.calc.d.labs_n.m add radiobutton -label $label -variable [namespace current]::labsnum -value $i
+    }
+  }
+}
 
 proc rmsdtt2::UpdateGUI {} {
   variable w
@@ -316,24 +372,29 @@ proc rmsdtt2::UpdateGUI {} {
     $widget config -state $state
   }
 
+  $w.calc.d.cutoff_l config -state disable
+  $w.calc.d.cutoff   config -state disable
+  $w.calc.d.angle_l  config -state disable
+  $w.calc.d.angle    config -state disable
+  $w.calc.d.labs_l   config -state disable
+  $w.calc.d.labs_t   config -state disable
+  $w.calc.d.labs_n   config -state disable
+
   switch $calctype {
     contacts {
-      $w.calc.cutoff_l config -state normal
-      $w.calc.cutoff   config -state normal
-      $w.calc.angle_l  config -state disable
-      $w.calc.angle    config -state disable
+      $w.calc.d.cutoff_l config -state normal
+      $w.calc.d.cutoff   config -state normal
     }
     hbonds {
-      $w.calc.cutoff_l config -state normal
-      $w.calc.cutoff   config -state normal
-      $w.calc.angle_l  config -state normal
-      $w.calc.angle    config -state normal
+      $w.calc.d.cutoff_l config -state normal
+      $w.calc.d.cutoff   config -state normal
+      $w.calc.d.angle_l  config -state normal
+      $w.calc.d.angle    config -state normal
     }
-    default {
-      $w.calc.cutoff_l config -state disable
-      $w.calc.cutoff   config -state disable
-      $w.calc.angle_l  config -state disable
-      $w.calc.angle    config -state disable
+    labels {
+      $w.calc.d.labs_l   config -state normal
+      $w.calc.d.labs_t   config -state normal
+      $w.calc.d.labs_n   config -state normal
     }
   }
 
@@ -414,6 +475,8 @@ proc rmsdtt2::CreateObject {} {
   variable calctype
   variable cutoff
   variable angle
+  variable labstype
+  variable labsnum
 
   if {$samemols} {
     set mol2_def $mol1_def
@@ -447,6 +510,9 @@ proc rmsdtt2::CreateObject {} {
     }
     hbonds {
       lappend defaults cutoff $cutoff angle $angle
+    }
+    labels {
+      lappend defaults labstype $labstype labsnum $labsnum
     }
   }
   set r [eval [namespace current]::Objnew ":auto" $defaults]
