@@ -107,8 +107,9 @@ proc rmsdtt2::contacts { self } {
     foreach key $keys {
       lappend vals $data($key)
     }
-    
+  
   }
+  return 0
 }
 
 

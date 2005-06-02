@@ -131,7 +131,8 @@ proc rmsdtt2::rms { self } {
     foreach key $keys {
       lappend vals $data($key)
     }
-    
+
   }
+  return 0
 }
 

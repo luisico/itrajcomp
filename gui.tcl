@@ -58,15 +58,22 @@ proc rmsdtt2::NewPlot {self} {
     variable rep_colorid1  0
     variable highlight    0.2
     variable save_format  tab
-    
+    variable labstype
+    variable labsnum
 
     set p [toplevel ".${self}_plot"]
 
     set title "$self: $type"
-    if {$type eq "contacts"} {
-      set title "$title cutoff=$cutoff"
-    } elseif {$type eq "hbonds"} {
-      set title "$title cutoff=$cutoff angle=$angle"
+    switch $type {
+      contacts {
+	set title "$title cutoff=$cutoff"
+      }
+      hbonds {
+	set title "$title cutoff=$cutoff angle=$angle"
+      }
+      labels {
+	set title "$title type=$labstype"
+      }
     }
     wm title $p $title
     
@@ -210,17 +217,19 @@ proc rmsdtt2::NewPlot {self} {
     
     switch $type {
       contacts {
-	frame $p.l.l.info.other
+	label $p.l.l.info.other -text "Cutoff: $cutoff" -font [list Helvetica 8]
 	pack $p.l.l.info.other -side left
-	label $p.l.l.info.other.cutoff -text "Cutoff: $cutoff" -font [list Helvetica 8]
-	pack $p.l.l.info.other.cutoff -side left
       }
       hbonds {
-	frame $p.l.l.info.other
+	label $p.l.l.info.other -text "Cutoff: $cutoff; Angle: $angle" -font [list Helvetica 8]
 	pack $p.l.l.info.other -side left
-	label $p.l.l.info.other.cutoff_l -text "Cutoff: $cutoff" -font [list Helvetica 8]
-	label $p.l.l.info.other.angle_l -text "Angle: $angle" -font [list Helvetica 8]
-	pack $p.l.l.info.other.cutoff $p.l.l.info.other.angle -side left
+      }
+      labels {
+	for {set i 0} {$i < [llength $labsnum]} {incr i} {
+	  if {$lab == 1} {lappend labs [lindex $labsnum $i]}
+	}
+	label $p.l.l.info.other -text "Type: $labstype; Labels: $labs" -font [list Helvetica 8]
+	pack $p.l.l.info.other -side left
       }
     }
     

@@ -96,7 +96,8 @@ proc rmsdtt2::init {} {
   variable angle 30.0
 
   variable labstype "Dihedrals"
-  variable labsnum 
+  variable labsnum_array
+  variable labsnum
 
   # Menu
   frame $w.menubar -relief raised -bd 2
@@ -287,7 +288,7 @@ proc rmsdtt2::init {} {
   radiobutton $w.calc.u.rmsd     -text "Rmsd"     -variable [namespace current]::calctype -value "rms"      -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.contacts -text "Contacts" -variable [namespace current]::calctype -value "contacts" -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.hbonds   -text "Hbonds"   -variable [namespace current]::calctype -value "hbonds"   -command [namespace current]::UpdateGUI
-  radiobutton $w.calc.u.labels   -text "Labels"   -variable [namespace current]::calctype -value "labels"   -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.u.labels   -text "Labels"   -variable [namespace current]::calctype -value "labels"   -command "[namespace current]::UpdateGUI; [namespace current]::UpdateLabels"
   pack $w.calc.u.label $w.calc.u.rmsd $w.calc.u.contacts $w.calc.u.hbonds $w.calc.u.labels -side left
 
   frame $w.calc.d
@@ -304,8 +305,8 @@ proc rmsdtt2::init {} {
   foreach entry [list Bonds Angles Dihedrals] {
     $w.calc.d.labs_t.m add radiobutton -label $entry -variable [namespace current]::labstype -value $entry -command "[namespace current]::UpdateLabels"
   }
-
-  menubutton $w.calc.d.labs_n -text "Labels" -menu $w.calc.d.labs_n.m -textvariable [namespace current]::labsnum -relief raised
+#  menubutton $w.calc.d.labs_n -text "Labels" -menu $w.calc.d.labs_n.m -textvariable [namespace current]::labsnum -relief raised
+  menubutton $w.calc.d.labs_n -text "Labels" -menu $w.calc.d.labs_n.m -relief raised
   menu $w.calc.d.labs_n.m
 
   pack $w.calc.d.label $w.calc.d.cutoff_l $w.calc.d.cutoff $w.calc.d.angle_l $w.calc.d.angle $w.calc.d.labs_l $w.calc.d.labs_t $w.calc.d.labs_n -side left
@@ -315,25 +316,22 @@ proc rmsdtt2::init {} {
   #--
 
   [namespace current]::UpdateGUI
-
 }
 
 
 proc rmsdtt2::UpdateLabels {} {
   variable w
   variable labstype
+  variable labsnum_array
   variable labsnum
 
   set labels [label list $labstype]
   set n [llength $labels]
   $w.calc.d.labs_n.m delete 0 end
-  if {$n == 0} {
-    $w.calc.d.labs_n   config -state disable
-    set labsnum "Empty"
-  } else {
+  array unset labsnum_array
+  if {$n > 0} {
     $w.calc.d.labs_n   config -state normal
     set nat [expr [llength [lindex $labels 0]] -2]
-    set labsnum 0
     for {set i 0} {$i < $n} {incr i} {
       set label "$i ("
       for {set j 0} {$j < $nat} {incr j} {
@@ -349,10 +347,26 @@ proc rmsdtt2::UpdateLabels {} {
 	}
       }
       append label ")"
-      $w.calc.d.labs_n.m add radiobutton -label $label -variable [namespace current]::labsnum -value $i
+      $w.calc.d.labs_n.m add checkbutton -label $label -variable [namespace current]::labsnum_array($i) -command "[namespace current]::UpdateLabelsVals $i"
     }
   }
+
+  if {[info exists labsnum]} {
+    unset labsnum
+  }
+  foreach x [array names labsnum_array ] {
+    lappend labsnum $labsnum_array($x)
+  }
 }
+
+
+proc rmsdtt2::UpdateLabelsVals {i} {
+  variable labsnum_array
+  variable labsnum
+  
+  set labsnum [lreplace $labsnum $i $i $labsnum_array($i)]
+}
+
 
 proc rmsdtt2::UpdateGUI {} {
   variable w
@@ -519,7 +533,11 @@ proc rmsdtt2::CreateObject {} {
 
 #  [namespace current]::Objdump $r
   [namespace current]::Status "Calculating $calctype ..."
-  [namespace current]::$calctype $r
+  set err [[namespace current]::$calctype $r]
+  if {$err} {
+    [namespace current]::Objdelete $r
+    return 1
+  }
   [namespace current]::Status "Creating graph for $r ..."
   [namespace current]::NewPlot $r
 #  [namespace current]::ClearStatus

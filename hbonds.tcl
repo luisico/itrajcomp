@@ -116,6 +116,7 @@ proc rmsdtt2::hbonds { self } {
     }
     
   }
+  return 0
 }
 
 
