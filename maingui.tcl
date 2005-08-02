@@ -103,12 +103,17 @@ proc rmsdtt2::init {} {
   frame $w.menubar -relief raised -bd 2
   pack $w.menubar -padx 1 -fill x
 
-  menubutton $w.menubar.options -text "Options" -underline 0 -menu $w.menubar.options.menu -width 4
+  menubutton $w.menubar.options -text "Options" -underline 0 -menu $w.menubar.options.menu
   menu $w.menubar.options.menu -tearoff no
   $w.menubar.options.menu add checkbutton -label "Progress bar" -variable [namespace current]::options(progress) -command "[namespace current]::ProgressBar 0 0"
   pack $w.menubar.options -side left
 
-  menubutton $w.menubar.help -text "Help" -underline 0 -menu $w.menubar.help.menu -width 4
+  menubutton $w.menubar.combine -text "Combine" -underline 0 -menu $w.menubar.combine.menu
+  menu $w.menubar.combine.menu -tearoff no
+  $w.menubar.combine.menu add command -label "Combine" -command "[namespace current]::Combine"
+  pack $w.menubar.combine -side left
+
+  menubutton $w.menubar.help -text "Help" -underline 0 -menu $w.menubar.help.menu
   menu $w.menubar.help.menu -tearoff no
   $w.menubar.help.menu add command -label "About" -command [namespace current]::help_about
   pack $w.menubar.help -side right
@@ -158,7 +163,7 @@ proc rmsdtt2::init {} {
   label $w.mols.mol1.a.title -text "Atom selection:"
   text $w.mols.mol1.a.sel -exportselection yes -height 5 -width 25 -wrap word
   $w.mols.mol1.a.sel insert end "all"
-  radiobutton $w.mols.mol1.a.no -text "None"      -variable [namespace current]::selmod1 -value "no"
+  radiobutton $w.mols.mol1.a.no -text "All"      -variable [namespace current]::selmod1 -value "no"
   radiobutton $w.mols.mol1.a.bb -text "Backbone"  -variable [namespace current]::selmod1 -value "bb"
   radiobutton $w.mols.mol1.a.tr -text "Trace"     -variable [namespace current]::selmod1 -value "tr"
   radiobutton $w.mols.mol1.a.sc -text "Sidechain" -variable [namespace current]::selmod1 -value "sc"
@@ -224,7 +229,7 @@ proc rmsdtt2::init {} {
   label $w.mols.mol2.a.title -text "Atom selection:"
   text $w.mols.mol2.a.sel -exportselection yes -height 5 -width 25 -wrap word
   $w.mols.mol2.a.sel insert end "all"
-  radiobutton $w.mols.mol2.a.no -text "None"      -variable [namespace current]::selmod2 -value "no"
+  radiobutton $w.mols.mol2.a.no -text "All"      -variable [namespace current]::selmod2 -value "no"
   radiobutton $w.mols.mol2.a.bb -text "Backbone"  -variable [namespace current]::selmod2 -value "bb"
   radiobutton $w.mols.mol2.a.tr -text "Trace"     -variable [namespace current]::selmod2 -value "tr"
   radiobutton $w.mols.mol2.a.sc -text "Sidechain" -variable [namespace current]::selmod2 -value "sc"
@@ -541,4 +546,80 @@ proc rmsdtt2::CreateObject {} {
   [namespace current]::Status "Creating graph for $r ..."
   [namespace current]::NewPlot $r
 #  [namespace current]::ClearStatus
+}
+
+
+proc rmsdtt2::Combine {} {
+  variable c
+  set debug 0
+
+  set c [toplevel .rmsdttcomb]
+  wm title $c "RMSD Trajectory Tool Combine"
+  wm iconname $c "RMSDTT" 
+  wm resizable $c 1 0
+
+  frame $c.obj
+  pack $c.obj -side top -anchor w
+  label $c.obj.title -text "Objects:"
+  pack $c.obj.title -side top -anchor w
+
+  frame $c.obj.list
+  pack $c.obj.list -side top -anchor w
+  listbox $c.obj.list.l -selectmode extended -exportselection no -height 5 -width 20 -yscrollcommand "$c.obj.list.scy set"
+  scrollbar $c.obj.list.scy -orient vertical -command "$c.obj.list.l yview"
+  pack $c.obj.list.l -side left -anchor w 
+  pack $c.obj.list.scy -side left -anchor w -fill y
+
+  frame $c.formula
+  pack $c.formula -side top -anchor w
+  label $c.formula.l -text "Formula:"
+  entry $c.formula.e -textvariable [namespace current]::formula
+  pack $c.formula.l $c.formula.e -side left -expand yes -fill x
+
+  button $c.combine -text "Combine" -command [namespace code {Objcombine $formula}]
+  button $c.update -text "Update" -command "[namespace current]::CombineUpdate $c.obj.list.l"
+  pack $c.combine $c.update -side top
+
+  CombineUpdate $c.obj.list.l
+}
+
+proc rmsdtt2::CombineUpdate {widget} {
+  variable combobj
+
+  $widget selection set 0 end
+  foreach i [lsort -integer -decreasing [$widget curselection]] {
+    $widget delete 0 $i
+  }
+  
+  set combobj {}
+  foreach obj [[namespace current]::Objlist] {
+    set name [namespace tail $obj]
+    set num [string trim $name {rmsdttObj}]
+    set objects($num) $name
+  }
+
+  foreach num [lsort -integer [array names objects]] {
+    set name $objects($num)
+    $widget insert end "$name"
+    lappend combobj $num
+  }
+
+}
+
+proc rmsdtt2::CombineUpdateold {widget} {
+  $widget.obj.obj1.list delete 0 end
+  $widget.obj.obj2.list delete 0 end
+  
+  foreach obj [[namespace current]::Objlist] {
+    set name [namespace tail $obj]
+    set num [string trim $name {rmsdttObj}]
+    set objects($num) $name
+  }
+
+  foreach num [lsort -integer [array names objects]] {
+    set name $objects($num)
+    $widget.obj.obj1.list add radiobutton -label "$name" -variable [namespace current]::obj1 -value $name
+    $widget.obj.obj2.list add radiobutton -label "$name" -variable [namespace current]::obj2 -value $name
+  }
+
 }

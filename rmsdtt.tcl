@@ -104,7 +104,7 @@ proc rmsdtt2::Objdump {self} {
 }
 
 proc rmsdtt2::Objlist {} {
-  puts [namespace children [namespace current]]
+  return [namespace children [namespace current]]
 }
 
 proc rmsdtt2::Objclean {} {
@@ -124,3 +124,107 @@ proc rmsdtt2::Objclean {} {
 # }
 
 
+proc rmsdtt2::Objcombine { formula } {
+  variable combobj
+
+  #puts "FORMULA: $formula"
+  set line $formula
+  regsub -all {\$(\d+)} $formula {$d(\1)} formula
+  #puts "FORMULA: $formula"
+  #puts "OBJECTS: $combobj"
+
+  while { [regexp {\$(\d+)(.*)} $line junk obj line] } {
+    set self($obj) "rmsdttObj$obj"
+    lappend selflist $obj
+  }
+  set s0 [lindex $selflist 0]
+
+  if {[llength [array names self]] == 0} {
+    puts "No objects in formula"
+    return
+  }
+
+  foreach s [array names self] {
+    set mol1($s)       [set $self($s)::mol1]
+    set mol2($s)       [set $self($s)::mol2]
+    set frame1($s)     [set $self($s)::frame1]
+    set frame2($s)     [set $self($s)::frame2]
+    set sel1($s)       [set $self($s)::sel1]
+    set sel2($s)       [set $self($s)::sel2]
+    set type($s)       [set $self($s)::type]
+    set dataformat($s) [set $self($s)::dataformat]
+    set keys($s)       [set $self($s)::keys]
+    set data($s)       [set $self($s)::vals]
+  }
+  
+  # ToDo: check more things, like data has same format
+  foreach check [list "type"] {
+    set test [set $self($s0)::$check]
+    for {set i 1} {$i < [llength $selflist]} {incr i} {
+      if {[set $self([lindex $selflist $i])::$check] != $test} {
+	tk_messageBox -title "Warning" -message "$check is not the same among the objects, cannot combine objects" -type ok
+	return
+      }
+    }
+  }
+
+  set test [llength [set $self($s0)::keys]]
+  for {set i 1} {$i < [llength $selflist]} {incr i} {
+    if {[llength [set $self([lindex $selflist $i])::keys]] != $test} {
+      tk_messageBox -title "Warning" -message "length of objects is not the same, cannot combine objects" -type ok
+      return
+    }
+  }
+
+  # By now parameters for combined object come from object with smaller number
+  set defaults [list mol1 $mol1($s0) frame1 $frame1($s0) mol2 $mol2($s0) frame2 $frame2($s0) sel1 $sel1($s0) sel2 $sel2($s0) rep_sel1 "all" type "combination" dataformat $dataformat($s0)]
+  set r [eval [namespace current]::Objnew ":auto" $defaults]
+  
+  set zu 1
+  for {set z 0} {$z < [llength $keys($s0)]} {incr z} {
+    set key [lindex $keys($s0) $z]
+    set indices [split $key :,]
+    set i [lindex $indices 0]
+    set j [lindex $indices 1]
+    set k [lindex $indices 2]
+    set l [lindex $indices 3]
+    foreach s [array names self] {
+      set d($s) [lindex $data($s) $z]
+    }
+    set result [expr $formula]
+    if {$zu} {
+      set min $result
+      set max $result
+      set zu 0
+    }
+    if {$result > $max} {
+      set max $result
+    }
+    if {$result < $min} {
+      set min $result
+    }
+    set ${r}::data($i:$j,$k:$l) $result
+    puts -nonewline [format "%4d %6d   %4d %6d" $i $j $k $l]
+    foreach s $selflist {
+      puts -nonewline [format " %8.3f" $d($s)]
+    }
+    puts [format "   = %8.3f" $result]
+  }
+  set ${r}::min $min
+  set ${r}::max $max
+
+  namespace eval [namespace current]::${r}:: {
+    variable min
+    variable max
+    variable data
+    variable keys
+    variable vals
+    set keys [lsort -dictionary [array names data]]
+    foreach key $keys {
+      lappend vals $data($key)
+    }
+  }
+
+  [namespace current]::NewPlot $r
+
+}

@@ -72,6 +72,7 @@ proc ::rmsdtt2::saveData { self {fileout ""} {format "tab"} {options ""}} {
     set opt(frame2) [set ${self}::frame2]
     set opt(dataformat) [set ${self}::dataformat]
     set opt(canvas) [set ${self}::p]
+    set opt(type) [set ${self}::type]
 
     set output [SaveData_$format [set ${self}::vals] [set ${self}::keys] [array get opt]]
 
@@ -105,7 +106,7 @@ proc ::rmsdtt2::SaveData_postscript {data keys options} {
 proc ::rmsdtt2::SaveData_tab {data keys options} {
   array set opt $options
   
-  set output "mol1 frame1   mol2 frame2      rmsd\n"
+  set output [format "%4s %6s   %4s %6s   %[string index $opt(dataformat) 1]s\n" "mol1" "frame1" "mol2" "frame2" $opt(type)]
   for {set z 0} {$z < [llength $keys]} {incr z} {
     set key [lindex $keys $z]
     set indices [split $key :,]
@@ -195,7 +196,7 @@ proc ::rmsdtt2::SaveData_plotmtv {data keys options} {
   set output "$ DATA=CONTOUR\n"
   append output "#% contours = ( 10 20 30 40 50 60 70 80 95 100 )\n"
   append output "% contfill\n"
-  append output "% toplabel = \"Pairwise RMSD\"\n"
+  append output "% toplabel = \"$opt(type)\"\n"
   append output "% ymin=0 ymax=$ny\n"
   append output "% xmin=0 xmax=$nx\n"
   append output "% nx=$nx ny=$ny\n"

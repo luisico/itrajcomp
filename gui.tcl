@@ -63,6 +63,8 @@ proc rmsdtt2::NewPlot {self} {
 
     set p [toplevel ".${self}_plot"]
 
+    wm protocol $p WM_DELETE_WINDOW "[namespace parent]::Destroy $self"
+
     set title "$self: $type"
     switch $type {
       contacts {
@@ -134,7 +136,7 @@ proc rmsdtt2::NewPlot {self} {
     entry $p.u.l.info.keys_entry2 -width 7 -textvariable [namespace current]::info_key2
     pack $p.u.l.info.keys_label $p.u.l.info.keys_entry1 $p.u.l.info.keys_entry2 -side left
     
-    label $p.u.l.info.rmsd_label -text "RMSD:"
+    label $p.u.l.info.rmsd_label -text "Value:"
     entry $p.u.l.info.rmsd_entry -width 8 -textvariable [namespace current]::info_value
     pack $p.u.l.info.rmsd_label $p.u.l.info.rmsd_entry -side left
 
@@ -245,7 +247,7 @@ proc rmsdtt2::NewPlot {self} {
       pack $p.l.l.rep.disp$x -side left
 
       text $p.l.l.rep.disp$x.e -exportselection yes -height 2 -width 25 -wrap word -font [list Helvetica 8]
-      $p.l.l.rep.disp$x.e insert end [set sel$x]
+      $p.l.l.rep.disp$x.e insert end [set rep_sel$x]
       pack $p.l.l.rep.disp$x.e -side top -anchor w
 
       frame $p.l.l.rep.disp$x.style
@@ -293,6 +295,8 @@ proc rmsdtt2::NewPlot {self} {
     
     set grid 10
     [namespace parent]::Graph $self
+
+
   }
 }
 
@@ -355,7 +359,7 @@ proc rmsdtt2::ViewData {self} {
   set r [toplevel ".${self}_raw"]
   wm title $r "View $self"
   
-  text $r.data -exportselection yes -width 80 -xscrollcommand "$r.xs set" -yscrollcommand "$r.ys set"
+  text $r.data -exportselection yes -width 80 -xscrollcommand "$r.xs set" -yscrollcommand "$r.ys set" -font [list courier]
   scrollbar $r.xs -orient horizontal -command "$r.data xview"
   scrollbar $r.ys -orient vertical   -command "$r.data yview"
   
@@ -364,6 +368,7 @@ proc rmsdtt2::ViewData {self} {
   pack $r.data -side right -expand yes -fill both
   
   set opt(dataformat) [set ${self}::dataformat]
+  set opt(type) [set ${self}::type]
   $r.data insert end [SaveData_tab [set ${self}::vals] [set ${self}::keys] [array get opt]]
 }
 
@@ -648,3 +653,6 @@ Copyright (C) Luis Gracia <lug2002@med.cornell.edu>
 
 "
 }
+
+
+
