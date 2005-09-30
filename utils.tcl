@@ -96,7 +96,7 @@ proc rmsdtt2::ParseMols { mols idlist {sort 1} } {
 }  
 
 
-proc rmsdtt2::ParseFrames { frames mols skip idlist} {
+proc rmsdtt2::ParseFrames { frames mols skip idlist } {
   set final {}
   foreach mol $mols {
     set list {}

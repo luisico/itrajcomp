@@ -50,6 +50,7 @@ proc rmsdtt2::rms { self } {
     variable min
     variable max
     variable dataformat "%8.4f"
+    variable diagonal
     
     # Combined list of molecules involved
     set mol_all [[namespace parent]::CombineMols $mol1 $mol2]
@@ -82,6 +83,11 @@ proc rmsdtt2::rms { self } {
       foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
 	foreach k $mol2 {
 	  foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
+	    if {$diagonal} {
+	      if {$i != $k || $j != $l} {
+		continue
+	      }
+	    }
 	    if {[info exists foo($k:$l,$i:$j)]} {
 	      continue
 	    } else {
@@ -103,12 +109,16 @@ proc rmsdtt2::rms { self } {
 	foreach k $mol2 {
 	  set s2 [atomselect $k $sel2]
 	  foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
-	    $s2 frame $l
+	    if {$diagonal && $j != $l} {
+	      continue
+	    }
 	    if {[info exists data($k:$l,$i:$j)]} {
 #	      set data($i:$j,$k:$l) $data($k:$l,$i:$j)
 	      continue
 	    } else {
+	      $s2 frame $l
 	      set data($i:$j,$k:$l) [measure rmsd $s1 $s2]
+#	      puts "$i $j $k $l $data($i:$j,$k:$l)"
 	      incr count
 	      [namespace parent]::ProgressBar $count $maxkeys
 	      if {$z} {

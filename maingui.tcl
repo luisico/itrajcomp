@@ -89,6 +89,7 @@ proc rmsdtt2::init {} {
   variable selmod2 "no"
 
   variable samemols 0
+  variable diagonal 0
 
   variable calctype "rms"
   
@@ -146,8 +147,14 @@ proc rmsdtt2::init {} {
   pack $w.mols -side top -expand yes -fill x
   #--
   
-  checkbutton $w.mols.same -text "Same selections" -variable [namespace current]::samemols -command [namespace current]::UpdateGUI
-  pack $w.mols.same -side top
+  frame $w.mols.opts
+  pack $w.mols.opts -side top -expand yes -fill x
+
+  checkbutton $w.mols.opts.same -text "Same selections" -variable [namespace current]::samemols -command [namespace current]::UpdateGUI
+  pack $w.mols.opts.same -side left
+
+  checkbutton $w.mols.opts.diagonal -text "Only diagonal" -variable [namespace current]::diagonal
+  pack $w.mols.opts.diagonal -side left
 
   # SET1
   #--
@@ -491,6 +498,8 @@ proc rmsdtt2::CreateObject {} {
   variable selmod2
 
   variable samemols
+  variable diagonal
+
   variable calctype
   variable cutoff
   variable angle
@@ -522,7 +531,7 @@ proc rmsdtt2::CreateObject {} {
   set sel1 [ParseSel [$w.mols.mol1.a.sel get 1.0 end] $selmod1]
   set sel2 [ParseSel [$w.mols.mol2.a.sel get 1.0 end] $selmod2]
 
-  set defaults [list mol1 $mol1 frame1 $frame1 mol2 $mol2 frame2 $frame2 sel1 $sel1 sel2 $sel2 rep_sel1 $sel1 type $calctype]
+  set defaults [list mol1 $mol1 frame1 $frame1 mol2 $mol2 frame2 $frame2 sel1 $sel1 sel2 $sel2 rep_sel1 $sel1 type $calctype diagonal $diagonal]
   switch $calctype {
     contacts {
       lappend defaults cutoff $cutoff

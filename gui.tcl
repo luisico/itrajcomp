@@ -228,7 +228,7 @@ proc rmsdtt2::NewPlot {self} {
       }
       labels {
 	for {set i 0} {$i < [llength $labsnum]} {incr i} {
-	  if {$lab == 1} {lappend labs [lindex $labsnum $i]}
+	  if {[lindex $labsnum $i] == 1} {lappend labs [lindex $labsnum $i]}
 	}
 	label $p.l.l.info.other -text "Type: $labstype; Labels: $labs" -font [list Helvetica 8]
 	pack $p.l.l.info.other -side left

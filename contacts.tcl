@@ -50,6 +50,7 @@ proc rmsdtt2::contacts { self } {
     variable min
     variable max
     variable dataformat "%4i"
+    variable diagonal
     variable cutoff
     
     # Calculate max numbers of iteractions
@@ -58,6 +59,11 @@ proc rmsdtt2::contacts { self } {
       foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
 	foreach k $mol2 {
 	  foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
+	    if {$diagonal} {
+	      if {$i != $k || $j != $l} {
+		continue
+	      }
+	    }
 	    if {[info exists foo($k:$l,$i:$j)]} {
 	      continue
 	    } else {
@@ -79,11 +85,14 @@ proc rmsdtt2::contacts { self } {
 	foreach k $mol2 {
 	  set s2 [atomselect $k $sel2]
 	  foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
-	    $s2 frame $l
+	    if {$diagonal && $j != $l} {
+	      continue
+	    }
 	    if {[info exists data($k:$l,$i:$j)]} {
 #	      set data($i:$j,$k:$l) $data($k:$l,$i:$j)
 	      continue
 	    } else {
+	      $s2 frame $l
 	      set data($i:$j,$k:$l) [llength [lindex [measure contacts $cutoff $s1 $s2] 0]]
 	      incr count
 	      [namespace parent]::ProgressBar $count $maxkeys

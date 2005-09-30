@@ -48,7 +48,7 @@ proc rmsdtt2::SaveDataBrowse {self {format "tab"}} {
     return;
   }
   
-  [namespace current]::saveData $self $file $format]
+  [namespace current]::saveData $self $file $format
 }
 
 
