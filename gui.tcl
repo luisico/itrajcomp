@@ -279,19 +279,19 @@ proc rmsdtt2::NewPlot {self} {
     }
 
 
-    if {$type eq "rms"} {
-      # Clustering
-      frame $p.l.l.cluster -relief ridge -bd 2
-      pack $p.l.l.cluster -side top
+#     if {$type eq "rms"} {
+#       # Clustering
+#       frame $p.l.l.cluster -relief ridge -bd 2
+#       pack $p.l.l.cluster -side top
       
-      label $p.l.l.cluster.rthres_label -text "r(thres,rel):"
-      entry $p.l.l.cluster.rthres -width 5 -textvariable [namespace current]::r_thres_rel
-      label $p.l.l.cluster.ncrit_label -text "N(crit,rel):"
-      entry $p.l.l.cluster.ncrit -width 5 -textvariable [namespace current]::N_crit_rel
-      checkbutton $p.l.l.cluster.graphics -text "Graphics" -variable [namespace current]::clustering_graphics
-      button $p.l.l.cluster.bt -text "Cluster" -command "[namespace parent]::Cluster $self"
-      pack $p.l.l.cluster.rthres_label $p.l.l.cluster.rthres $p.l.l.cluster.ncrit_label $p.l.l.cluster.ncrit $p.l.l.cluster.graphics $p.l.l.cluster.bt -side left 
-    }
+#       label $p.l.l.cluster.rthres_label -text "r(thres,rel):"
+#       entry $p.l.l.cluster.rthres -width 5 -textvariable [namespace current]::r_thres_rel
+#       label $p.l.l.cluster.ncrit_label -text "N(crit,rel):"
+#       entry $p.l.l.cluster.ncrit -width 5 -textvariable [namespace current]::N_crit_rel
+#       checkbutton $p.l.l.cluster.graphics -text "Graphics" -variable [namespace current]::clustering_graphics
+#       button $p.l.l.cluster.bt -text "Cluster" -command "[namespace parent]::Cluster $self"
+#       pack $p.l.l.cluster.rthres_label $p.l.l.cluster.rthres $p.l.l.cluster.ncrit_label $p.l.l.cluster.ncrit $p.l.l.cluster.graphics $p.l.l.cluster.bt -side left 
+#     }
     
     set grid 10
     [namespace parent]::Graph $self
