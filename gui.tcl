@@ -175,7 +175,7 @@ proc rmsdtt2::NewPlot {self} {
     set reg [expr double($max-$min)/$lb_n]
     for {set i 0} {$i <= $lb_n} {incr i} {
       $scale create line 15 $y $rg_w $y
-      if {$type eq "rms" || $type eq "labels"} { 
+      if {$type eq "rms" || $type eq "relrms" || $type eq "labels"} { 
 	$scale create text [expr $rg_w+1] $y -text [format "%4.2f" $val] -anchor w -font [list helvetica 6 normal] -tag "line$val"
 	$scale bind "line$val" <Shift-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 1"
 	$scale bind "line$val" <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 0"
