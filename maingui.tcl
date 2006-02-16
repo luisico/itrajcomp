@@ -95,6 +95,7 @@ proc rmsdtt2::init {} {
   
   variable cutoff 5.0
   variable angle 30.0
+  variable reltype 1
 
   variable labstype "Dihedrals"
   variable labsnum_array
@@ -298,10 +299,11 @@ proc rmsdtt2::init {} {
   label $w.calc.u.label -text "Calculation:"
 
   radiobutton $w.calc.u.rmsd     -text "Rmsd"     -variable [namespace current]::calctype -value "rms"      -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.u.relrms   -text "RelRms"   -variable [namespace current]::calctype -value "relrms"   -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.contacts -text "Contacts" -variable [namespace current]::calctype -value "contacts" -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.hbonds   -text "Hbonds"   -variable [namespace current]::calctype -value "hbonds"   -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.labels   -text "Labels"   -variable [namespace current]::calctype -value "labels"   -command "[namespace current]::UpdateGUI; [namespace current]::UpdateLabels"
-  pack $w.calc.u.label $w.calc.u.rmsd $w.calc.u.contacts $w.calc.u.hbonds $w.calc.u.labels -side left
+  pack $w.calc.u.label $w.calc.u.rmsd $w.calc.u.relrms $w.calc.u.contacts $w.calc.u.hbonds $w.calc.u.labels -side left
 
   frame $w.calc.d
   label $w.calc.d.label -text "Options:"
@@ -310,6 +312,8 @@ proc rmsdtt2::init {} {
   entry $w.calc.d.cutoff -width 5 -textvariable [namespace current]::cutoff
   label $w.calc.d.angle_l -text "Angle:"
   entry $w.calc.d.angle  -width 5 -textvariable [namespace current]::angle
+  label $w.calc.d.reltype_l -text "Reltype:"
+  entry $w.calc.d.reltype  -width 2 -textvariable [namespace current]::reltype
 
   label $w.calc.d.labs_l -text "Labels:"
   menubutton $w.calc.d.labs_t -text "Type" -menu $w.calc.d.labs_t.m -textvariable [namespace current]::labstype -relief raised
@@ -321,7 +325,7 @@ proc rmsdtt2::init {} {
   menubutton $w.calc.d.labs_n -text "Labels" -menu $w.calc.d.labs_n.m -relief raised
   menu $w.calc.d.labs_n.m
 
-  pack $w.calc.d.label $w.calc.d.cutoff_l $w.calc.d.cutoff $w.calc.d.angle_l $w.calc.d.angle $w.calc.d.labs_l $w.calc.d.labs_t $w.calc.d.labs_n -side left
+  pack $w.calc.d.label $w.calc.d.cutoff_l $w.calc.d.cutoff $w.calc.d.angle_l $w.calc.d.angle $w.calc.d.reltype_l $w.calc.d.reltype $w.calc.d.labs_l $w.calc.d.labs_t $w.calc.d.labs_n -side left
 
   button $w.calc.new -text "New object" -command "[namespace current]::CreateObject"
   pack $w.calc.new -side right
@@ -398,15 +402,23 @@ proc rmsdtt2::UpdateGUI {} {
     $widget config -state $state
   }
 
-  $w.calc.d.cutoff_l config -state disable
-  $w.calc.d.cutoff   config -state disable
-  $w.calc.d.angle_l  config -state disable
-  $w.calc.d.angle    config -state disable
-  $w.calc.d.labs_l   config -state disable
-  $w.calc.d.labs_t   config -state disable
-  $w.calc.d.labs_n   config -state disable
+  $w.calc.d.cutoff_l  config -state disable
+  $w.calc.d.cutoff    config -state disable
+  $w.calc.d.angle_l   config -state disable
+  $w.calc.d.angle     config -state disable
+  $w.calc.d.reltype_l config -state disable
+  $w.calc.d.reltype   config -state disable
+  $w.calc.d.labs_l    config -state disable
+  $w.calc.d.labs_t    config -state disable
+  $w.calc.d.labs_n    config -state disable
 
   switch $calctype {
+    relrms {
+      $w.calc.d.cutoff_l config -state normal
+      $w.calc.d.cutoff   config -state normal
+      $w.calc.d.reltype_l config -state normal
+      $w.calc.d.reltype  config -state normal
+    }
     contacts {
       $w.calc.d.cutoff_l config -state normal
       $w.calc.d.cutoff   config -state normal
@@ -503,6 +515,7 @@ proc rmsdtt2::CreateObject {} {
   variable calctype
   variable cutoff
   variable angle
+  variable reltype
   variable labstype
   variable labsnum
 
@@ -533,6 +546,10 @@ proc rmsdtt2::CreateObject {} {
 
   set defaults [list mol1 $mol1 frame1 $frame1 mol2 $mol2 frame2 $frame2 sel1 $sel1 sel2 $sel2 rep_sel1 $sel1 type $calctype diagonal $diagonal]
   switch $calctype {
+    relrms {
+      lappend defaults cutoff $cutoff
+      lappend defaults reltype $reltype
+    }
     contacts {
       lappend defaults cutoff $cutoff
     }
