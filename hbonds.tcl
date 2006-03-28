@@ -49,7 +49,8 @@ proc rmsdtt2::hbonds { self } {
     variable data
     variable min
     variable max
-    variable dataformat "%4i"
+    variable format_data "%4i"
+    variable format_key "%3d %3d"
     variable cutoff
     variable angle
     

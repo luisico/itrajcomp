@@ -118,6 +118,7 @@ proc rmsdtt2::init {} {
   menubutton $w.menubar.help -text "Help" -underline 0 -menu $w.menubar.help.menu
   menu $w.menubar.help.menu -tearoff no
   $w.menubar.help.menu add command -label "About" -command [namespace current]::help_about
+  $w.menubar.help.menu add command -label "Help..." -command "vmd_open_url http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/rmsdtt2/index.html"
   pack $w.menubar.help -side right
 
 #  menubutton $w.menubar.debug -text "Debug" -underline 0 -menu $w.menubar.debug.menu -width 4
@@ -299,11 +300,14 @@ proc rmsdtt2::init {} {
   label $w.calc.u.label -text "Calculation:"
 
   radiobutton $w.calc.u.rmsd     -text "Rmsd"     -variable [namespace current]::calctype -value "rms"      -command [namespace current]::UpdateGUI
-  radiobutton $w.calc.u.relrms   -text "RelRms"   -variable [namespace current]::calctype -value "relrms"   -command [namespace current]::UpdateGUI
+#  radiobutton $w.calc.u.covar    -text "Covar"    -variable [namespace current]::calctype -value "covar"    -command [namespace current]::UpdateGUI
+#  radiobutton $w.calc.u.relrms   -text "RelRms"   -variable [namespace current]::calctype -value "relrms"   -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.contacts -text "Contacts" -variable [namespace current]::calctype -value "contacts" -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.hbonds   -text "Hbonds"   -variable [namespace current]::calctype -value "hbonds"   -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.labels   -text "Labels"   -variable [namespace current]::calctype -value "labels"   -command "[namespace current]::UpdateGUI; [namespace current]::UpdateLabels"
-  pack $w.calc.u.label $w.calc.u.rmsd $w.calc.u.relrms $w.calc.u.contacts $w.calc.u.hbonds $w.calc.u.labels -side left
+  pack $w.calc.u.label $w.calc.u.rmsd -side left
+#  pack $w.calc.u.covar $w.calc.u.relrms -side left
+  pack $w.calc.u.contacts $w.calc.u.hbonds $w.calc.u.labels -side left
 
   frame $w.calc.d
   label $w.calc.d.label -text "Options:"

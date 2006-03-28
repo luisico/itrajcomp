@@ -70,7 +70,8 @@ proc ::rmsdtt2::saveData { self {fileout ""} {format "tab"} {options ""}} {
     set opt(mol2) [set ${self}::mol2]
     set opt(frame1) [set ${self}::frame1]
     set opt(frame2) [set ${self}::frame2]
-    set opt(dataformat) [set ${self}::dataformat]
+    set opt(format_data) [set ${self}::format_data]
+    set opt(format_key) [set ${self}::format_key]
     set opt(canvas) [set ${self}::p]
     set opt(type) [set ${self}::type]
 
@@ -106,7 +107,7 @@ proc ::rmsdtt2::SaveData_postscript {data keys options} {
 proc ::rmsdtt2::SaveData_tab {data keys options} {
   array set opt $options
   
-  set output [format "%4s %6s   %4s %6s   %[string index $opt(dataformat) 1]s\n" "mol1" "frame1" "mol2" "frame2" $opt(type)]
+  set output [format "%4s %6s   %4s %6s   %[string index $opt(format_data) 1]s\n" "mol1" "frame1" "mol2" "frame2" $opt(type)]
   for {set z 0} {$z < [llength $keys]} {incr z} {
     set key [lindex $keys $z]
     set indices [split $key :,]
@@ -114,7 +115,7 @@ proc ::rmsdtt2::SaveData_tab {data keys options} {
     set j [lindex $indices 1]
     set k [lindex $indices 2]
     set l [lindex $indices 3]
-    append output [format "%4d %6d   %4d %6d   $opt(dataformat)\n" $i $j $k $l [lindex $data $z]]
+    append output [format "%4d %6d   %4d %6d   $opt(format_data)\n" $i $j $k $l [lindex $data $z]]
   }
   return $output
 }
@@ -144,7 +145,7 @@ proc ::rmsdtt2::SaveData_matrix {data keys options} {
     foreach j [lindex $opt(frame1) [lsearch -exact $opt(mol1) $i]] {
       foreach k $opt(mol2) {
 	foreach l [lindex $opt(frame2) [lsearch -exact $opt(mol2) $k]] {
-	  append output [format " $opt(dataformat)" $values($i:$j,$k:$l)]
+	  append output [format " $opt(format_data)" $values($i:$j,$k:$l)]
 	}
       }
       append output "\n"
@@ -210,7 +211,7 @@ proc ::rmsdtt2::SaveData_plotmtv {data keys options} {
     for {set z 0} {$z < [llength $vals]} {incr z} {
       set columns [expr $columns + 1]
       #puts "$z [lindex $vals $z]"
-      append output [format "  $opt(dataformat)" [lindex $vals $z]]
+      append output [format "  $opt(format_data)" [lindex $vals $z]]
       if {$columns > 9} {
 	set columns 0
 	append output "\n"

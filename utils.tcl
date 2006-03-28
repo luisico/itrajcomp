@@ -83,16 +83,33 @@ proc rmsdtt2::ParseMols { mols idlist {sort 1} } {
   }
   if {[set indices [lsearch -all $mols "top"]] > -1} {
     foreach i $indices {
-      set mols [lreplace $mols $i $i [molinfo top]]
+      lset mols $i [molinfo top]
     }
   }
   if {[lsearch $mols "act"] > -1} {
     set mols [[namespace current]::GetActive]
   }
-  if {$sort} {
-    set mols [lsort -unique $mols]
+  if {[set indices [lsearch -all $mols "to"]] > -1} {
+    foreach i $indices {
+      set a [expr [lindex $mols [expr $i-1]] + 1]
+      set b [expr [lindex $mols [expr $i+1]] - 1]
+      set mols [lreplace $mols $i $i]
+      for {set r $b} {$r >= $a} {set r [expr $r-1]} {
+	set mols [linsert $mols $i $r]
+      }
+    }
   }
-  return $mols
+  if {$sort} {
+    set mols [lsort -unique -integer $mols]
+  }
+  
+  for {set i 0} {$i < [llength $mols]} {incr i} {
+    if {[lsearch [molinfo list] [lindex $mols $i]] > -1} {
+      lappend valid_mols [lindex $mols $i]
+    }
+  }
+
+  return $valid_mols
 }  
 
 
@@ -107,16 +124,26 @@ proc rmsdtt2::ParseFrames { frames mols skip idlist } {
     } elseif {$frames == "cur"} {
       set list [molinfo $mol get frame]
     } elseif {$frames == "id"} {
+      if {[set indices [lsearch -all $idlist "to"]] > -1} {
+	foreach i $indices {
+	  set a [expr [lindex $idlist [expr $i-1]] + 1]
+	  set b [expr [lindex $idlist [expr $i+1]] - 1]
+	  set idlist [lreplace $idlist $i $i]
+	  for {set r $b} {$r >= $a} {set r [expr $r-1]} {
+	    set idlist [linsert $idlist $i $r]
+	  }
+	}
+      }
       set list $idlist
     } else {
+      set nframes [molinfo $mol get numframes]
       set list $frames
       foreach f $list {
-	if {$f >= [molinfo $mol get numframes]} {
+	if {$f >= $nframes} {
 	  puts "Frame ref $f for mol $mol is out of range"
 	  return -code return
 	}
       }
-
     }
     
     if {$skip} {

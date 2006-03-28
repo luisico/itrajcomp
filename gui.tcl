@@ -47,6 +47,8 @@ proc rmsdtt2::NewPlot {self} {
     variable info_key2
     variable info_value
     variable info_sticky  0
+    variable map_add 0
+    variable map_del 0
     variable p
     variable plot
     variable r_thres_rel  0.5
@@ -95,6 +97,11 @@ proc rmsdtt2::NewPlot {self} {
     $p.menubar.file.menu add command -label "Destroy" -command "[namespace parent]::Destroy $self" -underline 0
     pack $p.menubar.file -side left
     
+    menubutton $p.menubar.analysis -text "Analysis" -menu $p.menubar.analysis.menu -width 5 -underline 0
+    menu $p.menubar.analysis.menu -tearoff no
+    $p.menubar.analysis.menu add command -label "Descriptive" -command "[namespace parent]::StatDescriptive $self" -underline 0
+    pack $p.menubar.analysis -side left
+
     menubutton $p.menubar.help -text "Help" -menu $p.menubar.help.menu -width 4 -underline 0
     menu $p.menubar.help.menu -tearoff no
     $p.menubar.help.menu add command -label "Keybindings" -command "[namespace parent]::help_keys $self" -underline 0
@@ -142,6 +149,12 @@ proc rmsdtt2::NewPlot {self} {
 
     checkbutton $p.u.l.info.sticky -text "Sticky" -variable [namespace current]::info_sticky
     pack $p.u.l.info.sticky -side left
+
+    checkbutton $p.u.l.info.mapadd -text "Add" -variable [namespace current]::map_add -command "set [namespace current]::map_del 0"
+    pack $p.u.l.info.mapadd -side left
+
+    checkbutton $p.u.l.info.mapdel -text "Del" -variable [namespace current]::map_del -command "set [namespace current]::map_add 0"
+    pack $p.u.l.info.mapdel -side left
 
 #    label $p.u.l.info.high_label -text "Highlight:"
 #    entry $p.u.l.info.high_entry -width 3 -textvariable [namespace current]::highlight
@@ -294,8 +307,11 @@ proc rmsdtt2::NewPlot {self} {
 #     }
     
     set grid 10
-    [namespace parent]::Graph $self
-
+    if {$type eq "covar"} {
+      [namespace parent]::Graph2 $self
+    } else {
+      [namespace parent]::Graph $self
+    }
 
   }
 }
@@ -336,13 +352,15 @@ proc rmsdtt2::Graph {self} {
 	    #puts "$i $j -> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
 	    $plot create rectangle $x $y [expr $x+$grid] [expr $y+$grid] -fill $colors($key) -outline $colors($key) -tag $key -width $width
 	    
-	    $plot bind $key <Enter> "[namespace parent]::ShowPoint $self $key $data($key) 1"
-	    $plot bind $key <B1-ButtonRelease> "[namespace parent]::MapPoint $self $key $data($key)" 
-	    $plot bind $key <B2-ButtonRelease> "[namespace parent]::MapCluster1 $self $key"
-	    $plot bind $key <Shift-B2-ButtonRelease> "[namespace parent]::MapCluster1 $self $key 1"
-	    $plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster1 $self $key 2"
-	    $plot bind $key <Shift-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $data($key) 1"
-	    $plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $data($key) 0"
+	    $plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
+	    $plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
+	    $plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key 0 0"
+	    $plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key 0 1"
+	    $plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key 0 -1"
+	    $plot bind $key <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $key 0"
+	    $plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $key 1"
+	    $plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $key -1"
+
 	    incr count
 	    [namespace parent]::ProgressBar $count $maxkeys
 	  }
@@ -367,9 +385,46 @@ proc rmsdtt2::ViewData {self} {
   pack $r.ys -side right -fill y
   pack $r.data -side right -expand yes -fill both
   
-  set opt(dataformat) [set ${self}::dataformat]
+  set opt(format_data) [set ${self}::format_data]
+  set opt(format_key) [set ${self}::format_key]
   set opt(type) [set ${self}::type]
   $r.data insert end [SaveData_tab [set ${self}::vals] [set ${self}::keys] [array get opt]]
+}
+
+
+proc rmsdtt2::StatDescriptive {self} {
+  
+  array set data [array get ${self}::data]
+  set format_data [set ${self}::format_data]
+
+  # Mean
+  set mean 0.0
+  foreach mykey [array names data] {
+    #puts "$mykey $data($mykey)"
+    set mean [expr $mean + $data($mykey)]
+  }
+  set mean [expr $mean / double([array size data] - 1)]
+
+  # Std
+  set sd 0.0
+  foreach mykey [array names data] {
+    #puts "$mykey $data($mykey)"
+    set temp [expr $data($mykey) - $mean]
+    set sd [expr $sd + $temp*$temp]
+  }
+  set sd [expr sqrt($sd / double([array size data] - 1))]
+
+  set mean [format "$format_data" $mean]
+  set sd [format "$format_data" $sd]
+
+  tk_messageBox -title "$self Stats"  -parent [set ${self}::p] -message \
+    "Descriptive statistics
+----------------------
+Mean: $mean
+ Std: $sd
+
+"
+
 }
 
 
@@ -440,35 +495,165 @@ proc rmsdtt2::ShowPoint {self key val stick} {
   set j [lindex $indices 1]
   set k [lindex $indices 2]
   set l [lindex $indices 3]
-  set ${self}::info_key1 [format "%3d %3d" $i $j]
-  set ${self}::info_key2 [format "%3d %3d" $k $l]
-  set ${self}::info_value [format "[set ${self}::dataformat]" $val]
+  set ${self}::info_key1 [format "[set ${self}::format_key]" $i $j]
+  set ${self}::info_key2 [format "[set ${self}::format_key]" $k $l]
+  set ${self}::info_value [format "[set ${self}::format_data]" $val]
 }
 
 
-proc rmsdtt2::MapPoint {self key data} {
-  set plot [set ${self}::plot]
-  set add_rep [set ${self}::add_rep($key)]
-  
+proc rmsdtt2::MapAdd {self key {check 0}} {
   set indices [split $key ,]
   set key1 [lindex $indices 0]
   set key2 [lindex $indices 1]
   
-  if {$add_rep == 0 } {
-    set color black
-    [namespace current]::AddRep $self $key1
-    [namespace current]::AddRep $self $key2
-    set add_rep 1
-  } else {
-    set color [set ${self}::colors($key)]
-    [namespace current]::DelRep $self $key1
-    [namespace current]::DelRep $self $key2
-    set add_rep 0
+  set add_rep [set ${self}::add_rep($key)]
+  if {$add_rep == 1} {
+    return
   }
-  $plot itemconfigure $key -outline $color
 
-  set ${self}::add_rep($key) $add_rep
+  if {$check && $key1 == $key2} {
+    return
+  }
+  
+  set plot [set ${self}::plot]
+  $plot itemconfigure $key -outline black
+  set ${self}::add_rep($key) 1
+  [namespace current]::AddRep $self $key1
+  [namespace current]::AddRep $self $key2
+}
+
+proc rmsdtt2::MapDel {self key {check 0}} {
+  set indices [split $key ,]
+  set key1 [lindex $indices 0]
+  set key2 [lindex $indices 1]
+
+  set add_rep [set ${self}::add_rep($key)]
+  if {$add_rep == 0} {
+    return
+  }
+  if {$check && $key1 == $key2} {
+    return
+  }
+  
+  set plot [set ${self}::plot]
+  set color [set ${self}::colors($key)]
+  $plot itemconfigure $key -outline $color
+  set ${self}::add_rep($key) 0
+  [namespace current]::DelRep $self $key1
+  [namespace current]::DelRep $self $key2
+
+}
+
+proc rmsdtt2::MapPoint {self key data {mod 0}} {
+  set add_rep [set ${self}::add_rep($key)]
+  
+  if {$add_rep == 0 || $mod} {
+    [namespace current]::MapAdd $self $key
+    set mod 1
+  }
+  if {$add_rep == 1 && !$mod} {
+    [namespace current]::MapDel $self $key
+  }
+
   [namespace current]::ShowPoint $self $key $data 0
+  #[namespace current]::RepList $self
+}
+
+
+proc rmsdtt2::MapCluster3 {self key {mod1 0} {mod2 0}} {
+  variable add_rep
+
+  set keys [set ${self}::keys]
+  set plot [set ${self}::plot]
+  set map_add [set ${self}::map_add]
+  set map_del [set ${self}::map_del]
+  array set data [array get ${self}::data]
+
+  set indices [split $key ,]
+  
+  if {!$map_add && !$map_del} {
+    [namespace current]::MapClear $self
+    set map_add 1
+  }
+
+  # Column
+  if {!$mod1 || $mod1 == 1} {
+    set ref [lindex $indices 0]
+    foreach mykey [array names data $ref,*] {
+      if {$mod2 == 0} {
+	if {$map_add} {
+	  [namespace current]::MapAdd $self $mykey
+	} else {
+	  [namespace current]::MapDel $self $mykey
+	}
+      } elseif {$mod2 == 1} {
+	if {$data($mykey) <= $data($key)} {
+	  if {$map_add} {
+	    [namespace current]::MapAdd $self $mykey
+	  } else {
+	    [namespace current]::MapDel $self $mykey
+	  }
+	}
+      } elseif {$mod2 == -1} {
+	if {$data($mykey) >= $data($key)} {
+	  if {$map_add} {
+	    [namespace current]::MapAdd $self $mykey
+	  } else {
+	    [namespace current]::MapDel $self $mykey
+	  }
+	}
+      }
+    }
+  }
+
+  # Row
+  if {!$mod1 || $mod1 == 2} {
+    if {$mod1 == 2} {
+      set ref [lindex $indices 1]
+    } else {
+      set ref [lindex $indices 0]
+    }
+    foreach mykey [array names data *,$ref] {
+      if {$mod2 == 0} {
+	if {$map_add} {
+	  if {!$mod1} {
+	    [namespace current]::MapAdd $self $mykey 1
+	  }
+	} else {
+	  if {!$mod1} {
+	    [namespace current]::MapDel $self $mykey 1
+	  }
+	}
+      } elseif {$mod2 == 1} {
+	if {$data($mykey) <= $data($key)} {
+	  if {$map_add} {
+	    if {!$mod1} {
+	      [namespace current]::MapAdd $self $mykey 1
+	    }
+	  } else {
+	    if {!$mod1} {
+	      [namespace current]::MapDel $self $mykey 1
+	    }
+	  }
+	}
+      } elseif {$mod2 == -1} {
+	if {$data($mykey) >= $data($key)} {
+	  if {$map_add} {
+	    if {!$mod1} {
+	      [namespace current]::MapAdd $self $mykey 1
+	    }
+	  } else {
+	    if {!$mod1} {
+	      [namespace current]::MapDel $self $mykey 1
+	    }
+	  }
+	}
+      }
+    }
+  }
+
+  [namespace current]::ShowPoint $self $key $data($key) 0
+  #[namespace current]::RepList $self
 }
 
 
@@ -481,8 +666,7 @@ proc rmsdtt2::MapCluster1 {self key {mod 0}} {
   array set data [array get ${self}::data]
 
   set indices [split $key ,:]
-  
-
+  set val $data($key)
   [namespace current]::MapClear $self
 
   if {!$mod || $mod == 1} {
@@ -493,14 +677,14 @@ proc rmsdtt2::MapCluster1 {self key {mod 0}} {
       set k [lindex $indices 2]
       set l [lindex $indices 3]
       if {$type eq "rms"} {
-	if {$data($mykey) <= $data($key)} {
+	if {$data($mykey) <= $val} {
 	  set color black
 	  $plot itemconfigure $mykey -outline $color
 	  set ${self}::add_rep($mykey) 1
 	  [namespace current]::AddRep $self $k:$l
 	}
       } else {
-	if {$data($mykey) >= $data($key)} {
+	if {$data($mykey) >= $val} {
 	  set color black
 	  $plot itemconfigure $mykey -outline $color
 	  set ${self}::add_rep($mykey) 1
@@ -521,14 +705,14 @@ proc rmsdtt2::MapCluster1 {self key {mod 0}} {
       set k [lindex $indices 0]
       set l [lindex $indices 1]
       if {$type eq "rms"} {
-	if {$data($mykey) <= $data($key)} {
+	if {$data($mykey) <= $val} {
 	  set color black
 	  $plot itemconfigure $mykey -outline $color
 	  set ${self}::add_rep($mykey) 1
 	  [namespace current]::AddRep $self $k:$l
 	}
       } else {
-	if {$data($mykey) >= $data($key)} {
+	if {$data($mykey) >= $val} {
 	  set color black
 	  $plot itemconfigure $mykey -outline $color
 	  set ${self}::add_rep($mykey) 1
@@ -542,16 +726,18 @@ proc rmsdtt2::MapCluster1 {self key {mod 0}} {
 }
 
 
-proc rmsdtt2::MapCluster2 {self val mode} {
+proc rmsdtt2::MapCluster2 {self key {mod2 0}} {
   set plot [set ${self}::plot]
   array set data [array get ${self}::data]
+
+  set val $data($key)
 
   [namespace current]::MapClear $self
   foreach mykey [set ${self}::keys] {
     set indices [split $mykey ,]
     set key1 [lindex $indices 0]
     set key2 [lindex $indices 1]
-    if {$mode} {
+    if {!$mod2 || $mod2 == 1} {
       if {$data($mykey) >= $val} {
 	set color black
 	$plot itemconfigure $mykey -outline $color
@@ -559,7 +745,8 @@ proc rmsdtt2::MapCluster2 {self val mode} {
 	[namespace current]::AddRep $self $key2
 	set ${self}::add_rep($mykey) 1
       }
-    } else {
+    }
+    if {!$mod2 || $mod2 == -1} {
       if {$data($mykey) <= $val} {
 	set color black
 	$plot itemconfigure $mykey -outline $color
@@ -590,6 +777,8 @@ proc rmsdtt2::MapClear {self} {
       set ${self}::rep_num($key) 0
     }
   }
+  #[namespace current]::RepList $self
+  
 }
 
 
@@ -639,20 +828,105 @@ proc rmsdtt2::Destroy {self} {
 
 proc rmsdtt2::help_keys { self } {
   set vn [package present rmsdtt2]
-  tk_messageBox -title "Keybindings in rmsdtt2 $vn"  -parent [set ${self}::p] -message \
-    "rmsdtt2 version $vn Keybindings
 
-B1        Select/Deselect one point.
-B2        Selects all points with <= value within the data of the column
-Shift-B2  Selects all points with <= value within the column
-Ctrl-B2   Selects all points with <= value within the row
-Shift-B3  Selects all points with <= value.
-Ctrl-B3   Selects all points with >= value.
+  set r [toplevel ".${self}_keybindings"]
+  wm title $r "Keybindings in rmsdtt2 $vn"
+  text $r.data -exportselection yes -width 80 -font [list helvetica 10]
+  pack $r.data -side right -expand yes -fill both
+  $r.data insert end "rmsdtt2 v$vn Keybindings\n\n" title
+  $r.data insert end "B1\t" button
+  $r.data insert end "Select/Deselect one point.\n"
+  $r.data insert end "Shift-B1\t" button
+  $r.data insert end "Selects all points in column/row of data.\n"
+  $r.data insert end "Shift-B2\t" button
+  $r.data insert end "Selects all points in column/row with values => than data clicked.\n"
+  $r.data insert end "Shift-B3\t" button
+  $r.data insert end "Selects all points in column/row with values <= than data clicked.\n"
+  $r.data insert end "Ctrl-B1\t" button
+  $r.data insert end "Selects all points.\n"
+  $r.data insert end "Ctrl-B2\t" button
+  $r.data insert end "Selects all points with values => than data clicked.\n"
+  $r.data insert end "Ctrl-B3\t" button
+  $r.data insert end "Selects all points with values <= than data clicked.\n\n\n"
+  $r.data insert end "Copyright (C) Luis Gracia <lug2002@med.cornell.edu>\n"
 
-Copyright (C) Luis Gracia <lug2002@med.cornell.edu> 
+  $r.data tag configure title -font [list helvetica 12 bold]
+  $r.data tag configure button -font [list helvetica 10 bold]
 
-"
 }
 
 
 
+
+proc rmsdtt2::Graph2 {self} {
+  namespace eval [namespace current]::${self}:: {
+    variable add_rep
+    variable rep_list
+    variable rep_num
+    variable colors
+
+    puts "GRAPH"
+    set atn [[atomselect [lindex $mol_all 0] $sel1] get index]
+    set natn [llength $atn]
+
+    set maxkeys [llength $keys]
+    set count 0
+    
+    set offx 0
+    set offy 0
+    set width 3
+    for {set i 0} {$i < $natn} {incr i} {
+      set key1 "$i:"
+      set rep_list($key1) {}
+      set rep_num($key1) 0
+      set offy 0
+      for {set k 0} {$k < $natn} {incr k} {
+	set key2 "$k:"
+	set rep_list($key2) {}
+	set rep_num($key2) 0
+	set key "$key1,$key2"
+	if {![info exists data($key)]} continue
+	set x [expr ($i+$offx)*($grid+$width)]
+	set y [expr ($k+$offy)*($grid+$width)]
+	set add_rep($key) 0
+	set colors($key) [[namespace parent]::ColorScale $max $min $data($key) 1.0]
+	#puts "$key -> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
+	$plot create rectangle $x $y [expr $x+$grid] [expr $y+$grid] -fill $colors($key) -outline $colors($key) -tag $key -width $width
+	
+	$plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
+	$plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
+	$plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key 0 0"
+	$plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key 0 1"
+	$plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key 0 -1"
+	$plot bind $key <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $key 0"
+	$plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $key 1"
+	$plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $key -1"
+
+	incr count
+	[namespace parent]::ProgressBar $count $maxkeys
+      }
+      set offy [expr $offy+$k]
+      
+    }
+    set offx [expr $offx+$i]
+    
+  }
+}
+
+
+proc rmsdtt2::RepList {self} {
+  array set rep_list [array get ${self}::rep_list]
+  array set add_rep [array get ${self}::add_rep]
+  array set rep_num [array get ${self}::rep_num]
+
+  foreach key [lsort [array names rep_list]] {
+    puts "rep_list: $key $rep_list($key)"
+  }
+  foreach key [lsort [array names rep_num]] {
+    puts "rep_num: $key $rep_num($key)"
+  }
+  foreach key [lsort [array names add_rep]] {
+    puts "add_rep: $key $add_rep($key)"
+  }
+  puts "-----"
+}

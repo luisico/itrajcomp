@@ -49,9 +49,10 @@ proc rmsdtt2::rms { self } {
     variable data
     variable min
     variable max
-    variable dataformat "%8.4f"
+    variable format_data "%8.4f"
+    variable format_key "%3d %3d"
     variable diagonal
-    
+
     # Combined list of molecules involved
     set mol_all [[namespace parent]::CombineMols $mol1 $mol2]
     #puts "DEBUG: mol_all = $mol_all"

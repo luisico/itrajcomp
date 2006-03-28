@@ -49,7 +49,8 @@ proc rmsdtt2::labels { self } {
     variable data
     variable min
     variable max
-    variable dataformat "%8.4f"
+    variable format_data "%8.4f"
+    variable format_key "%3d %3d"
     variable diagonal
     variable labstype
     variable labsnum

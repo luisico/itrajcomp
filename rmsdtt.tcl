@@ -152,7 +152,8 @@ proc rmsdtt2::Objcombine { formula } {
     set sel1($s)       [set $self($s)::sel1]
     set sel2($s)       [set $self($s)::sel2]
     set type($s)       [set $self($s)::type]
-    set dataformat($s) [set $self($s)::dataformat]
+    set format_data($s) [set $self($s)::format_data]
+    set format_key($s) [set $self($s)::format_key]
     set keys($s)       [set $self($s)::keys]
     set data($s)       [set $self($s)::vals]
   }
@@ -177,7 +178,7 @@ proc rmsdtt2::Objcombine { formula } {
   }
 
   # By now parameters for combined object come from object with smaller number
-  set defaults [list mol1 $mol1($s0) frame1 $frame1($s0) mol2 $mol2($s0) frame2 $frame2($s0) sel1 $sel1($s0) sel2 $sel2($s0) rep_sel1 "all" type "combination" dataformat $dataformat($s0)]
+  set defaults [list mol1 $mol1($s0) frame1 $frame1($s0) mol2 $mol2($s0) frame2 $frame2($s0) sel1 $sel1($s0) sel2 $sel2($s0) rep_sel1 "all" type "combination" format_data $format_data($s0) format_key $format_key($s0)]
   set r [eval [namespace current]::Objnew ":auto" $defaults]
   
   set zu 1
