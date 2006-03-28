@@ -3,9 +3,16 @@
 version=$1
 echo "Packing version ${version:?}"
 
+plugin=rmsdtt2
+dir=$plugin
+tar=$plugin-v$version.tgz
+
 cd ../
 
-tar cvf rmsdtt2-v$version.tar rmsdtt2/pkgIndex.tcl rmsdta2t/contacts.tcl rmsdtt2/gui.tcl rmsdtt2/hbonds.tcl rmsdtt2/labels.tcl rmsdtt2/maingui.tcl rmsdtt2/rms.tcl rmsdtt2/rmsdtt.tcl rmsdtt2/save.tcl rmsdtt2/utils.tcl rmsdtt2/README.txt 
+tar zcvf $tar $dir/pkgIndex.tcl $dir/contacts.tcl $dir/gui.tcl $dir/hbonds.tcl $dir/labels.tcl $dir/maingui.tcl $dir/rms.tcl $dir/rmsdtt.tcl $dir/save.tcl $dir/utils.tcl $dir/README.txt
 
-mv rmsdtt2-v$version.tar rmsdtt2/versions
-cd rmsdtt2
+
+mv $tar $dir/versions
+chmod go+rX $dir/versions/$tar
+cd $dir
+
