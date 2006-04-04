@@ -1,41 +1,35 @@
 #
-#             RMSD Trajectory Tool
+#         iTrajComp v1.0
 #
-# A GUI interface for RMSD alignment and analysis
+# interactive Trajectory Comparison
 #
+# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 
 # Author
 # ------
 #      Luis Gracia, PhD
-#      Weill Medical College, Cornel University, NY
+#      Department of Physiology & Biophysics
+#      Weill Medical College of Cornell University
+#      1300 York Avenue, Box 75
+#      New York, NY 10021
 #      lug2002@med.cornell.edu
 
 # Description
 # -----------
-# This is re-write of the rmsdtt 1.0 plugin from scratch. The idea behind this
-# re-write is that the rmsdtt plugin (base on the rmsd tool plugin) was not
-# suitable to analysis of trajectories.
+# 
 
-# Installation
+# Documentation
 # ------------
-# To add this pluging to the VMD extensions menu you can either:
-# a) add this to your .vmdrc:
-#    vmd_install_extension rmsdtt2 rmsdtt2_tk_cb "WMC PhysBio/RMSDTT2"
-#
-# b) add this to your .vmdrc
-#    if { [catch {package require rmsdtt2} msg] } {
-#      puts "VMD RMSDTT2 package could not be loaded:\n$msg"
-#    } elseif { [catch {menu tk register "rmsdtt2" rmsdtt2} msg] } {
-#      puts "VMD RMSDTT2 could not be started:\n$msg"
-#    }
+#      The documentation can be found in the README.txt file and
+#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 
 # utils.tcl
 #    Utility functions.
 
 
-package provide rmsdtt2 2.0
+package provide itrajcomp 1.0
 
-proc rmsdtt2::AddRep1 {i j sel style color} {
+proc itrajcomp::AddRep1 {i j sel style color} {
   variable w
   mol rep $style
   mol selection $sel
@@ -47,7 +41,7 @@ proc rmsdtt2::AddRep1 {i j sel style color} {
 }
 
 
-proc rmsdtt2::AddRep2 {i j k l sel} {
+proc itrajcomp::AddRep2 {i j k l sel} {
   variable w
   mol rep Lines 2
   mol selection $sel
@@ -62,19 +56,19 @@ proc rmsdtt2::AddRep2 {i j k l sel} {
 }
 
 
-proc rmsdtt2::DelRep1 {name i} {
+proc itrajcomp::DelRep1 {name i} {
   mol delrep [mol repindex $i $name] $i
 }
 
 
-proc rmsdtt2::DelRep2 {name i k} {
+proc itrajcomp::DelRep2 {name i k} {
   mol delrep [mol repindex $i [lindex $name 0]] $i
   mol delrep [mol repindex $k [lindex $name 1]] $k
   #puts "delete [lindex $name 0]:[lindex $name 1]"
 }
 
 
-proc rmsdtt2::ParseMols { mols idlist {sort 1} } {
+proc itrajcomp::ParseMols { mols idlist {sort 1} } {
   if {$mols eq "id"} {
     set mols $idlist
   }
@@ -113,7 +107,7 @@ proc rmsdtt2::ParseMols { mols idlist {sort 1} } {
 }  
 
 
-proc rmsdtt2::ParseFrames { frames mols skip idlist } {
+proc itrajcomp::ParseFrames { frames mols skip idlist } {
   set final {}
   foreach mol $mols {
     set list {}
@@ -160,7 +154,7 @@ proc rmsdtt2::ParseFrames { frames mols skip idlist } {
 }
 
 
-proc rmsdtt2::CombineMols { args } {
+proc itrajcomp::CombineMols { args } {
   set mols {}
   foreach i $args {
     foreach j $i {
@@ -171,7 +165,7 @@ proc rmsdtt2::CombineMols { args } {
 }
 
 
-proc rmsdtt2::Mean { values } {
+proc itrajcomp::Mean { values } {
   set tot 0.0
   foreach n $values {
     set tot [expr $tot+$n]
@@ -182,7 +176,7 @@ proc rmsdtt2::Mean { values } {
 }
 
 
-proc rmsdtt2::GetKeys { rms_values sort mol_ref mol_tar } {
+proc itrajcomp::GetKeys { rms_values sort mol_ref mol_tar } {
   upvar $rms_values values
   
   if {$mol_ref == "all" && $mol_tar == "all"} {
@@ -207,7 +201,7 @@ proc rmsdtt2::GetKeys { rms_values sort mol_ref mol_tar } {
 }
 
 
-proc rmsdtt2::GetActive {} {
+proc itrajcomp::GetActive {} {
   set active {}
   foreach i [molinfo list] {
     if { [molinfo $i get active] } {
@@ -218,7 +212,7 @@ proc rmsdtt2::GetActive {} {
 }
 
 
-proc rmsdtt2::ParseSel {orig selmod} {
+proc itrajcomp::ParseSel {orig selmod} {
   regsub -all "\#.*?\n" $orig  ""  temp1
   regsub -all "\n"      $temp1 " " temp2
   regsub -all " *$"     $temp2 ""  temp3
@@ -244,7 +238,7 @@ proc rmsdtt2::ParseSel {orig selmod} {
 }
 
 
-proc rmsdtt2::wlist {{W .}} {
+proc itrajcomp::wlist {{W .}} {
    set list [list $W]
    foreach w [winfo children $W] {
      set list [concat $list [wlist $w]]
@@ -253,7 +247,7 @@ proc rmsdtt2::wlist {{W .}} {
 }
 
 
-proc rmsdtt2::ColorScale {max min i l} {
+proc itrajcomp::ColorScale {max min i l} {
   if {$max == 0} {
     set max 1.0
   }
@@ -271,7 +265,7 @@ proc rmsdtt2::ColorScale {max min i l} {
 }
 
 
-proc rmsdtt2::hls2rgb {h l s} {
+proc itrajcomp::hls2rgb {h l s} {
   #http://wiki.tcl.tk/666
   # h, l and s are floats between 0.0 and 1.0, ditto for r, g and b
   # h = 0   => red

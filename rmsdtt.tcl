@@ -1,54 +1,48 @@
 #
-#             RMSD Trajectory Tool
+#         iTrajComp v1.0
 #
-# A GUI interface for RMSD alignment and analysis
+# interactive Trajectory Comparison
 #
+# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 
 # Author
 # ------
 #      Luis Gracia, PhD
-#      Weill Medical College, Cornel University, NY
+#      Department of Physiology & Biophysics
+#      Weill Medical College of Cornell University
+#      1300 York Avenue, Box 75
+#      New York, NY 10021
 #      lug2002@med.cornell.edu
 
 # Description
 # -----------
-# This is re-write of the rmsdtt 1.0 plugin from scratch. The idea behind this
-# re-write is that the rmsdtt plugin (base on the rmsd tool plugin) was not
-# suitable to analysis of trajectories.
+# 
 
-# Installation
+# Documentation
 # ------------
-# To add this pluging to the VMD extensions menu you can either:
-# a) add this to your .vmdrc:
-#    vmd_install_extension rmsdtt2 rmsdtt2_tk_cb "WMC PhysBio/RMSDTT2"
-#
-# b) add this to your .vmdrc
-#    if { [catch {package require rmsdtt2} msg] } {
-#      puts "VMD RMSDTT2 package could not be loaded:\n$msg"
-#    } elseif { [catch {menu tk register "rmsdtt2" rmsdtt2} msg] } {
-#      puts "VMD RMSDTT2 could not be started:\n$msg"
-#    }
+#      The documentation can be found in the README.txt file and
+#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 
-# rmsdtt.tcl
-#    Definition of the rmsdtt object" and main methods.
+# object.tcl
+#    Definition of the itrajcomp object and main methods.
 
 
-package provide rmsdtt2 2.0
+package provide itrajcomp 1.0
 
-namespace eval rmsdtt2 {
+namespace eval itrajcomp {
 }
 
-proc rmsdtt2::Objnew {{self ":auto"} args} {
-  variable rmsdttObjId
+proc itrajcomp::Objnew {{self ":auto"} args} {
+  variable itcObjId
   if {[info command $self] != ""} {error "$self exists"}
   if {$self == ":auto"} {
-    if {![info exists rmsdttObjId]} {
-      set rmsdttObjId -1
+    if {![info exists itcObjId]} {
+      set itcObjId -1
     }
-    set self "rmsdttObj[incr rmsdttObjId]"
+    set self "itcObj[incr itcObjId]"
   }
   
-#  interp alias {} $self: {} namespace eval ::rmsdtt2::$self
+#  interp alias {} $self: {} namespace eval ::itrajcomp::$self
   array set defaults {
     mol1 0 frame1 0 mol2 0 frame2 0
     sel1 all sel2 all
@@ -63,7 +57,7 @@ proc rmsdtt2::Objnew {{self ":auto"} args} {
   return $self
 }
 
-proc rmsdtt2::Objdelete {self} {
+proc itrajcomp::Objdelete {self} {
   if {[info command [namespace current]::del] != ""} {[namespace current]::del $self}
   namespace delete [namespace current]::$self
 #  interp alias {} $self {} {}
@@ -71,21 +65,21 @@ proc rmsdtt2::Objdelete {self} {
   uplevel 1 "catch {unset $self}" ;# remove caller's reference
 }
 
-proc rmsdtt2::Objdispatch {self {cmd Objmethods} args} {
+proc itrajcomp::Objdispatch {self {cmd Objmethods} args} {
   uplevel 1 [list [namespace current]::$cmd $self] $args
 }
 
-proc rmsdtt2::Objmethods {self} {
+proc itrajcomp::Objmethods {self} {
   set prefix [namespace current]::${self}::
   string map [list $prefix ""] [info commands $prefix*]
 }
 
-proc rmsdtt2::Objvars {self} {
+proc itrajcomp::Objvars {self} {
   set prefix [namespace current]::${self}::
   string map [list $prefix ""] [info vars $prefix*]
 }
 
-proc rmsdtt2::Objdump {self} {
+proc itrajcomp::Objdump {self} {
   puts "$self:"
   set prefix [namespace current]::${self}::
 
@@ -103,28 +97,28 @@ proc rmsdtt2::Objdump {self} {
 
 }
 
-proc rmsdtt2::Objlist {} {
+proc itrajcomp::Objlist {} {
   return [namespace children [namespace current]]
 }
 
-proc rmsdtt2::Objclean {} {
+proc itrajcomp::Objclean {} {
   foreach self [namespace children [namespace current]] {
     [namespace current]::Objdelete [string trimleft $self [namespace current]]
   }
 }
-# proc rmsdtt2::set {self args} {
+# proc itrajcomp::set {self args} {
 #   set key [lindex $args 0]
 #   set val [lrange $args 1 end]
-#   set ::rmsdtt2::${self}::$key $val
+#   set ::itrajcomp::${self}::$key $val
 # }
 
-# proc rmsdtt2::get {self args} {
+# proc itrajcomp::get {self args} {
 #   set key [lindex $args 0]
-#   return ::rmsdtt2::${self}::$key
+#   return ::itrajcomp::${self}::$key
 # }
 
 
-proc rmsdtt2::Objcombine { formula } {
+proc itrajcomp::Objcombine { formula } {
   variable combobj
 
   #puts "FORMULA: $formula"
@@ -134,7 +128,7 @@ proc rmsdtt2::Objcombine { formula } {
   #puts "OBJECTS: $combobj"
 
   while { [regexp {\$(\d+)(.*)} $line junk obj line] } {
-    set self($obj) "rmsdttObj$obj"
+    set self($obj) "itcObj$obj"
     lappend selflist $obj
   }
   set s0 [lindex $selflist 0]

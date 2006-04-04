@@ -1,41 +1,35 @@
 #
-#             RMSD Trajectory Tool
+#         iTrajComp v1.0
 #
-# A GUI interface for RMSD alignment and analysis
+# interactive Trajectory Comparison
 #
+# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 
 # Author
 # ------
 #      Luis Gracia, PhD
-#      Weill Medical College, Cornel University, NY
+#      Department of Physiology & Biophysics
+#      Weill Medical College of Cornell University
+#      1300 York Avenue, Box 75
+#      New York, NY 10021
 #      lug2002@med.cornell.edu
 
 # Description
 # -----------
-# This is re-write of the rmsdtt 1.0 plugin from scratch. The idea behind this
-# re-write is that the rmsdtt plugin (base on the rmsd tool plugin) was not
-# suitable to analysis of trajectories.
+# 
 
-# Installation
+# Documentation
 # ------------
-# To add this pluging to the VMD extensions menu you can either:
-# a) add this to your .vmdrc:
-#    vmd_install_extension rmsdtt2 rmsdtt2_tk_cb "WMC PhysBio/RMSDTT2"
-#
-# b) add this to your .vmdrc
-#    if { [catch {package require rmsdtt2} msg] } {
-#      puts "VMD RMSDTT2 package could not be loaded:\n$msg"
-#    } elseif { [catch {menu tk register "rmsdtt2" rmsdtt2} msg] } {
-#      puts "VMD RMSDTT2 could not be started:\n$msg"
-#    }
+#      The documentation can be found in the README.txt file and
+#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 
 # save.tcl
 #    Functions to save the data to external files.
 
 
-package provide rmsdtt2 2.0
+package provide itrajcomp 1.0
 
-proc rmsdtt2::SaveDataBrowse {self {format "tab"}} {
+proc itrajcomp::SaveDataBrowse {self {format "tab"}} {
   set typeList {
     {"Data Files" ".dat .txt .out"}
     {"Postscript Files" ".ps"}
@@ -54,7 +48,7 @@ proc rmsdtt2::SaveDataBrowse {self {format "tab"}} {
 
 # Save data procs (general)
 #                  -------
-proc ::rmsdtt2::saveData { self {fileout ""} {format "tab"} {options ""}} {
+proc ::itrajcomp::saveData { self {fileout ""} {format "tab"} {options ""}} {
   array set opt $options
 
   if {[llength [info procs "SaveData_$format"]]} {
@@ -97,14 +91,14 @@ proc ::rmsdtt2::saveData { self {fileout ""} {format "tab"} {options ""}} {
 
 # Save data procs (postscript)
 #                  ----------
-proc ::rmsdtt2::SaveData_postscript {data keys options} {
+proc ::itrajcomp::SaveData_postscript {data keys options} {
   array set opt $options
   return [$opt(canvas).u.l.canvas.c postscript]
 }
 
 # Save data procs (tabular)
 #                  -------
-proc ::rmsdtt2::SaveData_tab {data keys options} {
+proc ::itrajcomp::SaveData_tab {data keys options} {
   array set opt $options
   
   set output [format "%4s %6s   %4s %6s   %[string index $opt(format_data) 1]s\n" "mol1" "frame1" "mol2" "frame2" $opt(type)]
@@ -122,7 +116,7 @@ proc ::rmsdtt2::SaveData_tab {data keys options} {
 
 # Save data procs (matrix)
 #                  ------
-proc ::rmsdtt2::SaveData_matrix {data keys options} {
+proc ::itrajcomp::SaveData_matrix {data keys options} {
   array set opt $options
 
   #puts "DEBUG: [array get opt]"
@@ -156,12 +150,12 @@ proc ::rmsdtt2::SaveData_matrix {data keys options} {
 
 # Save data procs (plotmtv)
 #                  -------
-proc ::rmsdtt2::SaveData_plotmtv_binary {data keys options} {
+proc ::itrajcomp::SaveData_plotmtv_binary {data keys options} {
   lappend options binary 1
   return [[namespace current]::SaveData_plotmtv $data $keys $options]
 }
 
-proc ::rmsdtt2::SaveData_plotmtv {data keys options} {
+proc ::itrajcomp::SaveData_plotmtv {data keys options} {
   array set opt $options
 
   #puts "DEBUG: [array get opt]"

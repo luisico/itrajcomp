@@ -1,42 +1,36 @@
 #
-#             RMSD Trajectory Tool
+#         iTrajComp v1.0
 #
-# A GUI interface for RMSD alignment and analysis
+# interactive Trajectory Comparison
 #
+# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 
 # Author
 # ------
 #      Luis Gracia, PhD
-#      Weill Medical College, Cornel University, NY
+#      Department of Physiology & Biophysics
+#      Weill Medical College of Cornell University
+#      1300 York Avenue, Box 75
+#      New York, NY 10021
 #      lug2002@med.cornell.edu
 
 # Description
 # -----------
-# This is re-write of the rmsdtt 1.0 plugin from scratch. The idea behind this
-# re-write is that the rmsdtt plugin (base on the rmsd tool plugin) was not
-# suitable to analysis of trajectories.
+# 
 
-# Installation
+# Documentation
 # ------------
-# To add this pluging to the VMD extensions menu you can either:
-# a) add this to your .vmdrc:
-#    vmd_install_extension rmsdtt2 rmsdtt2_tk_cb "WMC PhysBio/RMSDTT2"
-#
-# b) add this to your .vmdrc
-#    if { [catch {package require rmsdtt2} msg] } {
-#      puts "VMD RMSDTT2 package could not be loaded:\n$msg"
-#    } elseif { [catch {menu tk register "rmsdtt2" rmsdtt2} msg] } {
-#      puts "VMD RMSDTT2 could not be started:\n$msg"
-#    }
+#      The documentation can be found in the README.txt file and
+#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 
 # maingui.tcl
-#    Main GUI for the rmsdtt2 plugin.
+#    Main GUI for the iTrajComp plugin.
 
 
-package provide rmsdtt2 2.0
+package provide itrajcomp 2.0
 
-namespace eval rmsdtt2 {
-  namespace export rms init
+namespace eval itrajcomp {
+  namespace export rmsd init
   
   global env
   variable w
@@ -51,25 +45,25 @@ namespace eval rmsdtt2 {
   }
 }
 
-proc rmsdtt2_tk_cb {} {
-  ::rmsdtt2::init
-  return $rmsdtt2::w
+proc itrajcomp_tk_cb {} {
+  ::itrajcomp::init
+  return $itrajcomp::w
 }
 
-proc rmsdtt2::init {} {
+proc itrajcomp::init {} {
   variable w
 
   # If already initialized, just turn on
-  if { [winfo exists .rmsdtt2] } {
+  if { [winfo exists .itrajcomp] } {
     wm deiconify $w
     return
   }
   
   # Create the main window
-  set w [toplevel .rmsdtt2]
+  set w [toplevel .itrajcomp]
 #  catch {destroy $w}
-  wm title $w "RMSD Trajectory Tool"
-  wm iconname $w "RMSDTT" 
+  wm title $w "iTrajComp"
+  wm iconname $w "iTrajComp" 
   wm resizable $w 1 0
 
   variable mol1_def   top
@@ -91,7 +85,7 @@ proc rmsdtt2::init {} {
   variable samemols 0
   variable diagonal 0
 
-  variable calctype "rms"
+  variable calctype "rmsd"
   
   variable cutoff 5.0
   variable angle 30.0
@@ -118,13 +112,8 @@ proc rmsdtt2::init {} {
   menubutton $w.menubar.help -text "Help" -underline 0 -menu $w.menubar.help.menu
   menu $w.menubar.help.menu -tearoff no
   $w.menubar.help.menu add command -label "About" -command [namespace current]::help_about
-  $w.menubar.help.menu add command -label "Help..." -command "vmd_open_url http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/rmsdtt2/index.html"
+  $w.menubar.help.menu add command -label "Help..." -command "vmd_open_url http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp/index.html"
   pack $w.menubar.help -side right
-
-#  menubutton $w.menubar.debug -text "Debug" -underline 0 -menu $w.menubar.debug.menu -width 4
-#  menu $w.menubar.debug.menu -tearoff no
-#  $w.menubar.debug.menu add command -label "Reload packages" -command [source /home/luis/vmdplugins/rmsdtt/gui.tcl]
-#  pack $w.menubar.debug -side right
 
   # Status line
   #--
@@ -299,7 +288,7 @@ proc rmsdtt2::init {} {
   pack $w.calc.u -side top -anchor nw
   label $w.calc.u.label -text "Calculation:"
 
-  radiobutton $w.calc.u.rmsd     -text "Rmsd"     -variable [namespace current]::calctype -value "rms"      -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.u.rmsd     -text "Rmsd"     -variable [namespace current]::calctype -value "rmsd"      -command [namespace current]::UpdateGUI
 #  radiobutton $w.calc.u.covar    -text "Covar"    -variable [namespace current]::calctype -value "covar"    -command [namespace current]::UpdateGUI
 #  radiobutton $w.calc.u.relrms   -text "RelRms"   -variable [namespace current]::calctype -value "relrms"   -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.contacts -text "Contacts" -variable [namespace current]::calctype -value "contacts" -command [namespace current]::UpdateGUI
@@ -339,7 +328,7 @@ proc rmsdtt2::init {} {
 }
 
 
-proc rmsdtt2::UpdateLabels {} {
+proc itrajcomp::UpdateLabels {} {
   variable w
   variable labstype
   variable labsnum_array
@@ -380,7 +369,7 @@ proc rmsdtt2::UpdateLabels {} {
 }
 
 
-proc rmsdtt2::UpdateLabelsVals {i} {
+proc itrajcomp::UpdateLabelsVals {i} {
   variable labsnum_array
   variable labsnum
   
@@ -388,7 +377,7 @@ proc rmsdtt2::UpdateLabelsVals {i} {
 }
 
 
-proc rmsdtt2::UpdateGUI {} {
+proc itrajcomp::UpdateGUI {} {
   variable w
   variable samemols
   variable calctype
@@ -443,10 +432,10 @@ proc rmsdtt2::UpdateGUI {} {
 }
 
 
-proc rmsdtt2::help_about { {parent .rmsdtt2} } {
-  set vn [package present rmsdtt2]
-  tk_messageBox -title "About rmsdtt2 $vn"  -parent $parent -message \
-    "rmsdtt2 version $vn
+proc itrajcomp::help_about { {parent .itrajcomp} } {
+  set vn [package present itrajcomp]
+  tk_messageBox -title "iTrajComp v$vn - About"  -parent $parent -message \
+    "iTrajComp v$vn
 
 Copyright (C) Luis Gracia <lug2002@med.cornell.edu> 
 
@@ -454,7 +443,7 @@ Copyright (C) Luis Gracia <lug2002@med.cornell.edu>
 }
 
 
-proc rmsdtt2::ProgressBar {num max} {
+proc itrajcomp::ProgressBar {num max} {
   variable w
   variable options
 
@@ -483,7 +472,7 @@ proc rmsdtt2::ProgressBar {num max} {
 }
 
 
-proc rmsdtt2::Status {txt} {
+proc itrajcomp::Status {txt} {
   variable w
   $w.status.info itemconfigure txt -text $txt
   update idletasks
@@ -491,13 +480,13 @@ proc rmsdtt2::Status {txt} {
 }
 
 
-proc rmsdtt2::ClearStatus {} {
+proc itrajcomp::ClearStatus {} {
   after 1000 "[namespace current]::Status {}"
   after 1000 "[namespace current]::ProgressBar 1 0"
 }
 
 
-proc rmsdtt2::CreateObject {} {
+proc itrajcomp::CreateObject {} {
   variable w
   variable mol1_def
   variable frame1_def
@@ -579,13 +568,13 @@ proc rmsdtt2::CreateObject {} {
 }
 
 
-proc rmsdtt2::Combine {} {
+proc itrajcomp::Combine {} {
   variable c
   set debug 0
 
-  set c [toplevel .rmsdttcomb]
-  wm title $c "RMSD Trajectory Tool Combine"
-  wm iconname $c "RMSDTT" 
+  set c [toplevel .itrajcompcomb]
+  wm title $c "iTrajComp - Combine"
+  wm iconname $c "iTrajComp" 
   wm resizable $c 1 0
 
   frame $c.obj
@@ -613,7 +602,7 @@ proc rmsdtt2::Combine {} {
   CombineUpdate $c.obj.list.l
 }
 
-proc rmsdtt2::CombineUpdate {widget} {
+proc itrajcomp::CombineUpdate {widget} {
   variable combobj
 
   $widget selection set 0 end
@@ -624,7 +613,7 @@ proc rmsdtt2::CombineUpdate {widget} {
   set combobj {}
   foreach obj [[namespace current]::Objlist] {
     set name [namespace tail $obj]
-    set num [string trim $name {rmsdttObj}]
+    set num [string trim $name {itcObj}]
     set objects($num) $name
   }
 
@@ -636,13 +625,13 @@ proc rmsdtt2::CombineUpdate {widget} {
 
 }
 
-proc rmsdtt2::CombineUpdateold {widget} {
+proc itrajcomp::CombineUpdateold {widget} {
   $widget.obj.obj1.list delete 0 end
   $widget.obj.obj2.list delete 0 end
   
   foreach obj [[namespace current]::Objlist] {
     set name [namespace tail $obj]
-    set num [string trim $name {rmsdttObj}]
+    set num [string trim $name {itcObj}]
     set objects($num) $name
   }
 

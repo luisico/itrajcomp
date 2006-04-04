@@ -1,41 +1,35 @@
 #
-#             RMSD Trajectory Tool
+#         iTrajComp v1.0
 #
-# A GUI interface for RMSD alignment and analysis
+# interactive Trajectory Comparison
 #
+# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 
 # Author
 # ------
 #      Luis Gracia, PhD
-#      Weill Medical College, Cornel University, NY
+#      Department of Physiology & Biophysics
+#      Weill Medical College of Cornell University
+#      1300 York Avenue, Box 75
+#      New York, NY 10021
 #      lug2002@med.cornell.edu
 
 # Description
 # -----------
-# This is re-write of the rmsdtt 1.0 plugin from scratch. The idea behind this
-# re-write is that the rmsdtt plugin (base on the rmsd tool plugin) was not
-# suitable to analysis of trajectories.
+# 
 
-# Installation
+# Documentation
 # ------------
-# To add this pluging to the VMD extensions menu you can either:
-# a) add this to your .vmdrc:
-#    vmd_install_extension rmsdtt2 rmsdtt2_tk_cb "WMC PhysBio/RMSDTT2"
-#
-# b) add this to your .vmdrc
-#    if { [catch {package require rmsdtt2} msg] } {
-#      puts "VMD RMSDTT2 package could not be loaded:\n$msg"
-#    } elseif { [catch {menu tk register "rmsdtt2" rmsdtt2} msg] } {
-#      puts "VMD RMSDTT2 could not be started:\n$msg"
-#    }
+#      The documentation can be found in the README.txt file and
+#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 
 # gui.tcl
-#    GUI for the rmsdtt2 objects.
+#    GUI for iTrajComp objects.
 
 
-package provide rmsdtt2 2.0
+package provide itrajcomp 1.0
 
-proc rmsdtt2::NewPlot {self} {
+proc itrajcomp::NewPlot {self} {
   namespace eval [namespace current]::${self}:: {
 
     set rep_style_list [list Lines Bonds DynamicBonds HBonds Points VDW CPK Licorice Trace Tube Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Dotted Solvent]
@@ -188,7 +182,7 @@ proc rmsdtt2::NewPlot {self} {
     set reg [expr double($max-$min)/$lb_n]
     for {set i 0} {$i <= $lb_n} {incr i} {
       $scale create line 15 $y $rg_w $y
-      if {$type eq "rms" || $type eq "relrms" || $type eq "labels"} { 
+      if {$type eq "rmsd" || $type eq "relrms" || $type eq "labels"} { 
 	$scale create text [expr $rg_w+1] $y -text [format "%4.2f" $val] -anchor w -font [list helvetica 6 normal] -tag "line$val"
 	$scale bind "line$val" <Shift-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 1"
 	$scale bind "line$val" <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 0"
@@ -292,7 +286,7 @@ proc rmsdtt2::NewPlot {self} {
     }
 
 
-#     if {$type eq "rms"} {
+#     if {$type eq "rmsd"} {
 #       # Clustering
 #       frame $p.l.l.cluster -relief ridge -bd 2
 #       pack $p.l.l.cluster -side top
@@ -317,7 +311,7 @@ proc rmsdtt2::NewPlot {self} {
 }
 
 
-proc rmsdtt2::Graph {self} {
+proc itrajcomp::Graph {self} {
   namespace eval [namespace current]::${self}:: {
     variable add_rep
     variable rep_list
@@ -373,7 +367,7 @@ proc rmsdtt2::Graph {self} {
 }
 
 
-proc rmsdtt2::ViewData {self} {
+proc itrajcomp::ViewData {self} {
   set r [toplevel ".${self}_raw"]
   wm title $r "View $self"
   
@@ -392,7 +386,7 @@ proc rmsdtt2::ViewData {self} {
 }
 
 
-proc rmsdtt2::StatDescriptive {self} {
+proc itrajcomp::StatDescriptive {self} {
   
   array set data [array get ${self}::data]
   set format_data [set ${self}::format_data]
@@ -428,7 +422,7 @@ Mean: $mean
 }
 
 
-proc rmsdtt2::Zoom {self zoom} {
+proc itrajcomp::Zoom {self zoom} {
   set grid [set ${self}::grid]
   set plot [set ${self}::plot]
 
@@ -448,7 +442,7 @@ proc rmsdtt2::Zoom {self zoom} {
 }
 
 
-proc rmsdtt2::AddRep {self key} {
+proc itrajcomp::AddRep {self key} {
   set p [set ${self}::p]
   set rep_style1 [set ${self}::rep_style1]
   set rep_color1 [set ${self}::rep_color1]
@@ -475,7 +469,7 @@ proc rmsdtt2::AddRep {self key} {
 }
 
 
-proc rmsdtt2::DelRep {self key} {
+proc itrajcomp::DelRep {self key} {
   set rep_num [set ${self}::rep_num($key)]
   incr rep_num -1
   #puts "del $key = $rep_num"
@@ -487,7 +481,7 @@ proc rmsdtt2::DelRep {self key} {
 }
 
 
-proc rmsdtt2::ShowPoint {self key val stick} {
+proc itrajcomp::ShowPoint {self key val stick} {
   if {[set ${self}::info_sticky] && $stick} return
   
   set indices [split $key ,:]
@@ -501,7 +495,7 @@ proc rmsdtt2::ShowPoint {self key val stick} {
 }
 
 
-proc rmsdtt2::MapAdd {self key {check 0}} {
+proc itrajcomp::MapAdd {self key {check 0}} {
   set indices [split $key ,]
   set key1 [lindex $indices 0]
   set key2 [lindex $indices 1]
@@ -522,7 +516,7 @@ proc rmsdtt2::MapAdd {self key {check 0}} {
   [namespace current]::AddRep $self $key2
 }
 
-proc rmsdtt2::MapDel {self key {check 0}} {
+proc itrajcomp::MapDel {self key {check 0}} {
   set indices [split $key ,]
   set key1 [lindex $indices 0]
   set key2 [lindex $indices 1]
@@ -544,7 +538,7 @@ proc rmsdtt2::MapDel {self key {check 0}} {
 
 }
 
-proc rmsdtt2::MapPoint {self key data {mod 0}} {
+proc itrajcomp::MapPoint {self key data {mod 0}} {
   set add_rep [set ${self}::add_rep($key)]
   
   if {$add_rep == 0 || $mod} {
@@ -560,7 +554,7 @@ proc rmsdtt2::MapPoint {self key data {mod 0}} {
 }
 
 
-proc rmsdtt2::MapCluster3 {self key {mod1 0} {mod2 0}} {
+proc itrajcomp::MapCluster3 {self key {mod1 0} {mod2 0}} {
   variable add_rep
 
   set keys [set ${self}::keys]
@@ -657,7 +651,7 @@ proc rmsdtt2::MapCluster3 {self key {mod1 0} {mod2 0}} {
 }
 
 
-proc rmsdtt2::MapCluster1 {self key {mod 0}} {
+proc itrajcomp::MapCluster1 {self key {mod 0}} {
   variable add_rep
 
   set keys [set ${self}::keys]
@@ -676,7 +670,7 @@ proc rmsdtt2::MapCluster1 {self key {mod 0}} {
       set indices [split $mykey ,:]
       set k [lindex $indices 2]
       set l [lindex $indices 3]
-      if {$type eq "rms"} {
+      if {$type eq "rmsd"} {
 	if {$data($mykey) <= $val} {
 	  set color black
 	  $plot itemconfigure $mykey -outline $color
@@ -704,7 +698,7 @@ proc rmsdtt2::MapCluster1 {self key {mod 0}} {
       set indices [split $mykey ,:]
       set k [lindex $indices 0]
       set l [lindex $indices 1]
-      if {$type eq "rms"} {
+      if {$type eq "rmsd"} {
 	if {$data($mykey) <= $val} {
 	  set color black
 	  $plot itemconfigure $mykey -outline $color
@@ -726,7 +720,7 @@ proc rmsdtt2::MapCluster1 {self key {mod 0}} {
 }
 
 
-proc rmsdtt2::MapCluster2 {self key {mod2 0}} {
+proc itrajcomp::MapCluster2 {self key {mod2 0}} {
   set plot [set ${self}::plot]
   array set data [array get ${self}::data]
 
@@ -759,7 +753,7 @@ proc rmsdtt2::MapCluster2 {self key {mod2 0}} {
 }
 
 
-proc rmsdtt2::MapClear {self} {
+proc itrajcomp::MapClear {self} {
   set plot [set ${self}::plot]
   
   foreach key [set ${self}::keys] {
@@ -782,7 +776,7 @@ proc rmsdtt2::MapClear {self} {
 }
 
 
-proc rmsdtt2::UpdateSelection {self} {
+proc itrajcomp::UpdateSelection {self} {
   set p [set ${self}::p]
   set rep_style1 [set ${self}::rep_style1]
   set rep_color1 [set ${self}::rep_color1]
@@ -819,21 +813,21 @@ proc rmsdtt2::UpdateSelection {self} {
 }
 
 
-proc rmsdtt2::Destroy {self} {
+proc itrajcomp::Destroy {self} {
   [namespace current]::MapClear $self
   catch {destroy [set ${self}::p]}
   [namespace current]::Objdelete $self
 }
 
 
-proc rmsdtt2::help_keys { self } {
-  set vn [package present rmsdtt2]
+proc itrajcomp::help_keys { self } {
+  set vn [package present itrajcomp]
 
   set r [toplevel ".${self}_keybindings"]
-  wm title $r "Keybindings in rmsdtt2 $vn"
+  wm title $r "iTrajComp - Keybindings $vn"
   text $r.data -exportselection yes -width 80 -font [list helvetica 10]
   pack $r.data -side right -expand yes -fill both
-  $r.data insert end "rmsdtt2 v$vn Keybindings\n\n" title
+  $r.data insert end "iTrajComp v$vn Keybindings\n\n" title
   $r.data insert end "B1\t" button
   $r.data insert end "Select/Deselect one point.\n"
   $r.data insert end "Shift-B1\t" button
@@ -858,7 +852,7 @@ proc rmsdtt2::help_keys { self } {
 
 
 
-proc rmsdtt2::Graph2 {self} {
+proc itrajcomp::Graph2 {self} {
   namespace eval [namespace current]::${self}:: {
     variable add_rep
     variable rep_list
@@ -914,7 +908,7 @@ proc rmsdtt2::Graph2 {self} {
 }
 
 
-proc rmsdtt2::RepList {self} {
+proc itrajcomp::RepList {self} {
   array set rep_list [array get ${self}::rep_list]
   array set add_rep [array get ${self}::add_rep]
   array set rep_num [array get ${self}::rep_num]
