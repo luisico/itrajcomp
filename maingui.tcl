@@ -27,7 +27,7 @@
 #    Main GUI for the iTrajComp plugin.
 
 
-package provide itrajcomp 2.0
+package provide itrajcomp 1.0
 
 namespace eval itrajcomp {
   namespace export rmsd init

@@ -29,7 +29,7 @@ Installation
 
 2. Add the following to your .vmdrc startup file or create one
    (for unix the path should be $HOME/.vmdrc, and for windows %USERPROFILE%\vmd.rc):
-   For VMD 1.8.3 and up (for VMD 1.8.2 and down, please update to 1.8.3 ;-) )
+   For VMD 1.8.3 and up (for VMD 1.8.2 and down, please update to last VMD version ;-) )
 
      lappend auto_path [file join $env(HOME) vmdplugins]
      vmd_install_extension itrajcomp itrajcomp_tk_cb "WMC PhysBio/iTrajComp"
