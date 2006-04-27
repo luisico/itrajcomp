@@ -86,6 +86,7 @@ proc itrajcomp::init {} {
   variable diagonal 0
 
   variable calctype "rmsd"
+  variable align 0
   
   variable cutoff 5.0
   variable angle 30.0
@@ -301,6 +302,7 @@ proc itrajcomp::init {} {
   frame $w.calc.d
   label $w.calc.d.label -text "Options:"
   pack $w.calc.d -side left
+  checkbutton $w.calc.d.align -text "align" -variable [namespace current]::align
   label $w.calc.d.cutoff_l -text "Cutoff:"
   entry $w.calc.d.cutoff -width 5 -textvariable [namespace current]::cutoff
   label $w.calc.d.angle_l -text "Angle:"
@@ -318,7 +320,7 @@ proc itrajcomp::init {} {
   menubutton $w.calc.d.labs_n -text "Labels" -menu $w.calc.d.labs_n.m -relief raised
   menu $w.calc.d.labs_n.m
 
-  pack $w.calc.d.label $w.calc.d.cutoff_l $w.calc.d.cutoff $w.calc.d.angle_l $w.calc.d.angle $w.calc.d.reltype_l $w.calc.d.reltype $w.calc.d.labs_l $w.calc.d.labs_t $w.calc.d.labs_n -side left
+  pack $w.calc.d.label $w.calc.d.align $w.calc.d.cutoff_l $w.calc.d.cutoff $w.calc.d.angle_l $w.calc.d.angle $w.calc.d.reltype_l $w.calc.d.reltype $w.calc.d.labs_l $w.calc.d.labs_t $w.calc.d.labs_n -side left
 
   button $w.calc.new -text "New object" -command "[namespace current]::CreateObject"
   pack $w.calc.new -side right
@@ -395,6 +397,7 @@ proc itrajcomp::UpdateGUI {} {
     $widget config -state $state
   }
 
+  $w.calc.d.align     config -state disable
   $w.calc.d.cutoff_l  config -state disable
   $w.calc.d.cutoff    config -state disable
   $w.calc.d.angle_l   config -state disable
@@ -406,6 +409,9 @@ proc itrajcomp::UpdateGUI {} {
   $w.calc.d.labs_n    config -state disable
 
   switch $calctype {
+    rmsd {
+      $w.calc.d.align config -state normal
+    }
     relrms {
       $w.calc.d.cutoff_l config -state normal
       $w.calc.d.cutoff   config -state normal
@@ -506,6 +512,7 @@ proc itrajcomp::CreateObject {} {
   variable diagonal
 
   variable calctype
+  variable align
   variable cutoff
   variable angle
   variable reltype
@@ -539,6 +546,9 @@ proc itrajcomp::CreateObject {} {
 
   set defaults [list mol1 $mol1 frame1 $frame1 mol2 $mol2 frame2 $frame2 sel1 $sel1 sel2 $sel2 rep_sel1 $sel1 type $calctype diagonal $diagonal]
   switch $calctype {
+    rmsd {
+      lappend defaults align $align
+    }
     relrms {
       lappend defaults cutoff $cutoff
       lappend defaults reltype $reltype

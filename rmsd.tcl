@@ -46,7 +46,7 @@ proc itrajcomp::rmsd { self } {
     variable format_data "%8.4f"
     variable format_key "%3d %3d"
     variable diagonal
-
+    variable align
     # Combined list of molecules involved
     set mol_all [[namespace parent]::CombineMols $mol1 $mol2]
     #puts "DEBUG: mol_all = $mol_all"
@@ -99,8 +99,14 @@ proc itrajcomp::rmsd { self } {
     set count 0
     foreach i $mol1 {
       set s1 [atomselect $i $sel1]
+      if {$align} {
+	set move_sel [atomselect $i "all"]
+      }
       foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
 	$s1 frame $j
+	if {$align} {
+	  $move_sel frame $j
+	}
 	foreach k $mol2 {
 	  set s2 [atomselect $k $sel2]
 	  foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
@@ -112,6 +118,10 @@ proc itrajcomp::rmsd { self } {
 	      continue
 	    } else {
 	      $s2 frame $l
+	      if {$align} {
+		set tmatrix [measure fit $s1 $s2]
+		$move_sel move $tmatrix
+	      }
 	      set data($i:$j,$k:$l) [measure rmsd $s1 $s2]
 #	      puts "$i $j $k $l $data($i:$j,$k:$l)"
 	      incr count
