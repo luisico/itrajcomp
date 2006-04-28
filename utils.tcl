@@ -290,3 +290,54 @@ proc itrajcomp::hls2rgb {h l s} {
   set b [expr {(($b-1)*$s+1)*$l}]
   return [list $r $g $b]
 }
+
+
+proc itrajcomp::CheckNatoms {mol1 sel1 {mol2 ""} {sel2 ""}} {
+  foreach i $mol1 {
+    set natoms($i) [[atomselect $i $sel1 frame 0] num]
+  }
+  
+  if {$mol2 != ""} {
+    foreach i $mol2 {
+      set natoms($i) [[atomselect $i $sel2 frame 0] num]
+    }
+    set mol_all [[namespace current]::CombineMols $mol1 $mol2]
+  } else {
+    set mol_all $mol1
+  }
+
+  foreach i $mol_all {
+    foreach j $mol_all {
+      if {$i < $j} {
+	if {$natoms($i) != $natoms($j)} {
+	  tk_messageBox -title "Warning " -message "Selections differ for molecules $i ($natoms($i)) and $j ($natoms($j))" -parent .itrajcomp
+	  return -1
+	}
+      }
+    }
+  }
+  
+#  return $natoms([lindex $mol_all 0])
+  return $mol_all
+}
+
+
+proc itrajcomp::ParseKey {self key} {
+  set type [set ${self}::type]
+  set indices [split $key :]
+
+  switch $type {
+    covar {
+      set m [lindex [set ${self}::mol_all] 0]
+      set f 0:[expr [molinfo $m get numframes]-1]
+      set s "index [lindex $indices 0]"
+    }
+    default {
+      lassign $indices m f
+      set p [set ${self}::p]
+      set s [[namespace current]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
+    }
+  }
+
+  return [list $m $f $s]
+}

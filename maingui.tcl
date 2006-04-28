@@ -290,13 +290,14 @@ proc itrajcomp::init {} {
   label $w.calc.u.label -text "Calculation:"
 
   radiobutton $w.calc.u.rmsd     -text "Rmsd"     -variable [namespace current]::calctype -value "rmsd"      -command [namespace current]::UpdateGUI
-#  radiobutton $w.calc.u.covar    -text "Covar"    -variable [namespace current]::calctype -value "covar"    -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.u.covar    -text "Covar"    -variable [namespace current]::calctype -value "covar"    -command [namespace current]::UpdateGUI
 #  radiobutton $w.calc.u.relrms   -text "RelRms"   -variable [namespace current]::calctype -value "relrms"   -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.contacts -text "Contacts" -variable [namespace current]::calctype -value "contacts" -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.hbonds   -text "Hbonds"   -variable [namespace current]::calctype -value "hbonds"   -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.labels   -text "Labels"   -variable [namespace current]::calctype -value "labels"   -command "[namespace current]::UpdateGUI; [namespace current]::UpdateLabels"
   pack $w.calc.u.label $w.calc.u.rmsd -side left
-#  pack $w.calc.u.covar $w.calc.u.relrms -side left
+  pack $w.calc.u.covar -side left
+# pack $w.calc.u.relrms -side left
   pack $w.calc.u.contacts $w.calc.u.hbonds $w.calc.u.labels -side left
 
   frame $w.calc.d
@@ -389,13 +390,7 @@ proc itrajcomp::UpdateGUI {} {
   } else {
     set state "normal"
   }
-  
-  foreach widget [[namespace current]::wlist $w.mols.mol2] {
-    if {[winfo class $widget] eq "Frame"} {
-      continue
-    }
-    $widget config -state $state
-  }
+  [namespace current]::UpdateSel $state
 
   $w.calc.d.align     config -state disable
   $w.calc.d.cutoff_l  config -state disable
@@ -411,6 +406,9 @@ proc itrajcomp::UpdateGUI {} {
   switch $calctype {
     rmsd {
       $w.calc.d.align config -state normal
+    }
+    covar {
+      [namespace current]::UpdateSel "disable"
     }
     relrms {
       $w.calc.d.cutoff_l config -state normal
@@ -435,6 +433,17 @@ proc itrajcomp::UpdateGUI {} {
     }
   }
 
+}
+
+
+proc itrajcomp::UpdateSel {state} {
+  variable w
+  foreach widget [[namespace current]::wlist $w.mols.mol2] {
+    if {[winfo class $widget] eq "Frame"} {
+      continue
+    }
+    $widget config -state $state
+  }
 }
 
 
@@ -544,7 +553,7 @@ proc itrajcomp::CreateObject {} {
   set sel1 [ParseSel [$w.mols.mol1.a.sel get 1.0 end] $selmod1]
   set sel2 [ParseSel [$w.mols.mol2.a.sel get 1.0 end] $selmod2]
 
-  set defaults [list mol1 $mol1 frame1 $frame1 mol2 $mol2 frame2 $frame2 sel1 $sel1 sel2 $sel2 rep_sel1 $sel1 type $calctype diagonal $diagonal]
+  set defaults [list mol1 $mol1 frame1 $frame1 mol2 $mol2 frame2 $frame2 sel1 $sel1 sel2 $sel2 rep_sel1 $sel1 type $calctype diagonal $diagonal mol1_def $mol1_def mol2_def $mol2_def frame1_def $frame1_def frame2_def $frame2_def]
   switch $calctype {
     rmsd {
       lappend defaults align $align

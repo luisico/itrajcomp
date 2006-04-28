@@ -47,29 +47,11 @@ proc itrajcomp::rmsd { self } {
     variable format_key "%3d %3d"
     variable diagonal
     variable align
-    # Combined list of molecules involved
-    set mol_all [[namespace parent]::CombineMols $mol1 $mol2]
-    #puts "DEBUG: mol_all = $mol_all"
-    #puts "DEBUG: refs = [llength $mol1]; targets = [llength $mol2]; all = [llength $mol_all]"
-    
-    # Get number of atoms for each molecule only once
-    foreach i $mol1 {
-      set natoms($i) [[atomselect $i $sel1 frame 0] num]
-    }
-    foreach i $mol2 {
-      set natoms($i) [[atomselect $i $sel2 frame 0] num]
-    }
-    
-    # Check number of atoms in selections
-    foreach i $mol_all {
-      foreach j $mol_all {
-	if {$i < $j} {
-	  if {$natoms($i) != $natoms($j)} {
-	    tk_messageBox -title "Warning " -message "Selections differ for molecules $i ($natoms($i)) and $j ($natoms($j))" -parent .itrajcomp
-	    return -code return
-	  }
-	}
-      }
+
+    # Check number of atoms in selections, and combined list of molecules
+    set mol_all [[namespace parent]::CheckNatoms $mol1 $sel1 $mol2 $sel2]
+    if {$mol_all == -1} {
+      return -code return
     }
     
     # Calculate max numbers of iteractions

@@ -183,11 +183,11 @@ proc itrajcomp::NewPlot {self} {
     for {set i 0} {$i <= $lb_n} {incr i} {
       $scale create line 15 $y $rg_w $y
       if {$type eq "rmsd" || $type eq "relrms" || $type eq "labels"} { 
-	$scale create text [expr $rg_w+1] $y -text [format "%4.2f" $val] -anchor w -font [list helvetica 6 normal] -tag "line$val"
+	$scale create text [expr $rg_w+1] $y -text [format "%4.2f" $val] -anchor w -font [list helvetica 7 normal] -tag "line$val"
 	$scale bind "line$val" <Shift-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 1"
 	$scale bind "line$val" <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 0"
       } else {
-	$scale create text [expr $rg_w+1] $y -text [format "%4i" [expr int($val)]] -anchor w -font [list helvetica 6 normal] -tag "line$val"
+	$scale create text [expr $rg_w+1] $y -text [format "%4i" [expr int($val)]] -anchor w -font [list helvetica 7 normal] -tag "line$val"
 	$scale bind "line$val" <Shift-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 1"
 	$scale bind "line$val" <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 0"
       }
@@ -294,7 +294,7 @@ proc itrajcomp::NewPlot {self} {
 #       label $p.l.l.cluster.rthres_label -text "r(thres,rel):"
 #       entry $p.l.l.cluster.rthres -width 5 -textvariable [namespace current]::r_thres_rel
 #       label $p.l.l.cluster.ncrit_label -text "N(crit,rel):"
-#       entry $p.l.l.cluster.ncrit -width 5 -textvariable [namespace current]::N_crit_rel
+#       entry $p.l.lb.cluster.ncrit -width 5 -textvariable [namespace current]::N_crit_rel
 #       checkbutton $p.l.l.cluster.graphics -text "Graphics" -variable [namespace current]::clustering_graphics
 #       button $p.l.l.cluster.bt -text "Cluster" -command "[namespace parent]::Cluster $self"
 #       pack $p.l.l.cluster.rthres_label $p.l.l.cluster.rthres $p.l.l.cluster.ncrit_label $p.l.l.cluster.ncrit $p.l.l.cluster.graphics $p.l.l.cluster.bt -side left 
@@ -454,15 +454,17 @@ proc itrajcomp::AddRep {self key} {
   set rep_sel1 [[namespace current]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
 
   incr rep_num
-
+  
   #puts "add $key = $rep_num"
   if {$rep_num <= 1} {
-    set indices [split $key :]
     if {$rep_color1 eq "ColorID"} {
-      set rep_list [[namespace current]::AddRep1 [lindex $indices 0] [lindex $indices 1] $rep_sel1 $rep_style1 [list $rep_color1 $rep_colorid1]]
+      set color [list $rep_color1 $rep_colorid1]
     } else {
-      set rep_list [[namespace current]::AddRep1 [lindex $indices 0] [lindex $indices 1] $rep_sel1 $rep_style1 $rep_color1]
+      set color $rep_color1
     }
+    lassign [[namespace current]::ParseKey $self $key] m f s
+    set rep_list [[namespace current]::AddRep1 $m $f $s $rep_style1 $color]
+    
   }
   set ${self}::rep_list($key) $rep_list
   set ${self}::rep_num($key) $rep_num
@@ -471,11 +473,12 @@ proc itrajcomp::AddRep {self key} {
 
 proc itrajcomp::DelRep {self key} {
   set rep_num [set ${self}::rep_num($key)]
+
   incr rep_num -1
   #puts "del $key = $rep_num"
-  set indices [split $key :]
   if {$rep_num == 0} {
-    [namespace current]::DelRep1 [set ${self}::rep_list($key)] [lindex $indices 0]
+    lassign [[namespace current]::ParseKey $self $key] m f s
+    [namespace current]::DelRep1 [set ${self}::rep_list($key)] $m
   }
   set ${self}::rep_num($key) $rep_num
 }
@@ -485,10 +488,7 @@ proc itrajcomp::ShowPoint {self key val stick} {
   if {[set ${self}::info_sticky] && $stick} return
   
   set indices [split $key ,:]
-  set i [lindex $indices 0]
-  set j [lindex $indices 1]
-  set k [lindex $indices 2]
-  set l [lindex $indices 3]
+  lassign $indices i j k l
   set ${self}::info_key1 [format "[set ${self}::format_key]" $i $j]
   set ${self}::info_key2 [format "[set ${self}::format_key]" $k $l]
   set ${self}::info_value [format "[set ${self}::format_data]" $val]
@@ -497,8 +497,7 @@ proc itrajcomp::ShowPoint {self key val stick} {
 
 proc itrajcomp::MapAdd {self key {check 0}} {
   set indices [split $key ,]
-  set key1 [lindex $indices 0]
-  set key2 [lindex $indices 1]
+  lassign $indices key1 key2
   
   set add_rep [set ${self}::add_rep($key)]
   if {$add_rep == 1} {
@@ -518,8 +517,7 @@ proc itrajcomp::MapAdd {self key {check 0}} {
 
 proc itrajcomp::MapDel {self key {check 0}} {
   set indices [split $key ,]
-  set key1 [lindex $indices 0]
-  set key2 [lindex $indices 1]
+  lassign $indices key1 key2
 
   set add_rep [set ${self}::add_rep($key)]
   if {$add_rep == 0} {
@@ -729,8 +727,7 @@ proc itrajcomp::MapCluster2 {self key {mod2 0}} {
   [namespace current]::MapClear $self
   foreach mykey [set ${self}::keys] {
     set indices [split $mykey ,]
-    set key1 [lindex $indices 0]
-    set key2 [lindex $indices 1]
+    lassign $indices key1 key2
     if {!$mod2 || $mod2 == 1} {
       if {$data($mykey) >= $val} {
 	set color black
@@ -765,9 +762,8 @@ proc itrajcomp::MapClear {self} {
 
   foreach key [array names ${self}::rep_list] {
     if {[set ${self}::rep_num($key)] > 0} {
-      set indices [split $key :]
-      set i [lindex $indices 0]
-      [namespace current]::DelRep1 [set ${self}::rep_list($key)] $i
+      lassign [[namespace current]::ParseKey $self $key] m f s
+      [namespace current]::DelRep1 [set ${self}::rep_list($key)] $m
       set ${self}::rep_num($key) 0
     }
   }
@@ -783,13 +779,12 @@ proc itrajcomp::UpdateSelection {self} {
   set rep_colorid1 [set ${self}::rep_colorid1]
   
   array set rep_list [array get ${self}::rep_list]
-
+ 
   set rep_sel1 [[namespace current]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
   foreach key [array names rep_list] {
     if {[set ${self}::rep_num($key)] > 0} {
       set indices [split $key :]
-      set i [lindex $indices 0]
-      set j [lindex $indices 1]
+      lassign $indices i j
       set repname [mol repindex $i $rep_list($key)]
       mol modselect $repname $i $rep_sel1
       switch $rep_style1 {
@@ -859,9 +854,9 @@ proc itrajcomp::Graph2 {self} {
     variable rep_num
     variable colors
 
-    puts "GRAPH"
     set atn [[atomselect [lindex $mol_all 0] $sel1] get index]
     set natn [llength $atn]
+    #puts "$natn -> $atn"
 
     set maxkeys [llength $keys]
     set count 0
@@ -870,21 +865,25 @@ proc itrajcomp::Graph2 {self} {
     set offy 0
     set width 3
     for {set i 0} {$i < $natn} {incr i} {
-      set key1 "$i:"
+      set key1 "[lindex $atn $i]:"
       set rep_list($key1) {}
       set rep_num($key1) 0
       set offy 0
       for {set k 0} {$k < $natn} {incr k} {
-	set key2 "$k:"
+	set key2 "[lindex $atn $k]:"
 	set rep_list($key2) {}
 	set rep_num($key2) 0
 	set key "$key1,$key2"
-	if {![info exists data($key)]} continue
+	#puts -nonewline "$key "
+	if {![info exists data($key)]} {
+	  #puts ""
+	  continue
+	}
 	set x [expr ($i+$offx)*($grid+$width)]
 	set y [expr ($k+$offy)*($grid+$width)]
 	set add_rep($key) 0
 	set colors($key) [[namespace parent]::ColorScale $max $min $data($key) 1.0]
-	#puts "$key -> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
+	#puts "-> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
 	$plot create rectangle $x $y [expr $x+$grid] [expr $y+$grid] -fill $colors($key) -outline $colors($key) -tag $key -width $width
 	
 	$plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
