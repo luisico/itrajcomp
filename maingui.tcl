@@ -91,6 +91,7 @@ proc itrajcomp::init {} {
   variable cutoff 5.0
   variable angle 30.0
   variable reltype 1
+  variable byres 1
 
   variable labstype "Dihedrals"
   variable labsnum_array
@@ -308,8 +309,9 @@ proc itrajcomp::init {} {
   entry $w.calc.d.cutoff -width 5 -textvariable [namespace current]::cutoff
   label $w.calc.d.angle_l -text "Angle:"
   entry $w.calc.d.angle  -width 5 -textvariable [namespace current]::angle
-  label $w.calc.d.reltype_l -text "Reltype:"
-  entry $w.calc.d.reltype  -width 2 -textvariable [namespace current]::reltype
+#  label $w.calc.d.reltype_l -text "Reltype:"
+#  entry $w.calc.d.reltype  -width 2 -textvariable [namespace current]::reltype
+  checkbutton $w.calc.d.byres -text "byres" -variable [namespace current]::byres
 
   label $w.calc.d.labs_l -text "Labels:"
   menubutton $w.calc.d.labs_t -text "Type" -menu $w.calc.d.labs_t.m -textvariable [namespace current]::labstype -relief raised
@@ -321,7 +323,10 @@ proc itrajcomp::init {} {
   menubutton $w.calc.d.labs_n -text "Labels" -menu $w.calc.d.labs_n.m -relief raised
   menu $w.calc.d.labs_n.m
 
-  pack $w.calc.d.label $w.calc.d.align $w.calc.d.cutoff_l $w.calc.d.cutoff $w.calc.d.angle_l $w.calc.d.angle $w.calc.d.reltype_l $w.calc.d.reltype $w.calc.d.labs_l $w.calc.d.labs_t $w.calc.d.labs_n -side left
+  pack $w.calc.d.label $w.calc.d.align $w.calc.d.cutoff_l $w.calc.d.cutoff $w.calc.d.angle_l $w.calc.d.angle -side left
+  pack $w.calc.d.byres -side left
+#  pack $w.calc.d.reltype_l $w.calc.d.reltype -side left
+  pack $w.calc.d.labs_l $w.calc.d.labs_t $w.calc.d.labs_n -side left
 
   button $w.calc.new -text "New object" -command "[namespace current]::CreateObject"
   pack $w.calc.new -side right
@@ -397,8 +402,9 @@ proc itrajcomp::UpdateGUI {} {
   $w.calc.d.cutoff    config -state disable
   $w.calc.d.angle_l   config -state disable
   $w.calc.d.angle     config -state disable
-  $w.calc.d.reltype_l config -state disable
-  $w.calc.d.reltype   config -state disable
+#  $w.calc.d.reltype_l config -state disable
+#  $w.calc.d.reltype   config -state disable
+  $w.calc.d.byres     config -state disable
   $w.calc.d.labs_l    config -state disable
   $w.calc.d.labs_t    config -state disable
   $w.calc.d.labs_n    config -state disable
@@ -409,12 +415,13 @@ proc itrajcomp::UpdateGUI {} {
     }
     covar {
       [namespace current]::UpdateSel "disable"
+      $w.calc.d.byres config -state normal
     }
     relrms {
-      $w.calc.d.cutoff_l config -state normal
-      $w.calc.d.cutoff   config -state normal
+      $w.calc.d.cutoff_l  config -state normal
+      $w.calc.d.cutoff    config -state normal
       $w.calc.d.reltype_l config -state normal
-      $w.calc.d.reltype  config -state normal
+      $w.calc.d.reltype   config -state normal
     }
     contacts {
       $w.calc.d.cutoff_l config -state normal
@@ -525,8 +532,11 @@ proc itrajcomp::CreateObject {} {
   variable cutoff
   variable angle
   variable reltype
+  variable byres
   variable labstype
   variable labsnum
+
+  variable graphtype "frame"
 
   if {$samemols} {
     set mol2_def $mol1_def
@@ -562,6 +572,14 @@ proc itrajcomp::CreateObject {} {
       lappend defaults cutoff $cutoff
       lappend defaults reltype $reltype
     }
+    covar {
+      lappend defaults byres $byres
+      if {$byres} {
+	set graphtype "residue"
+      } else {
+	set graphtype "atom"
+      }
+    }
     contacts {
       lappend defaults cutoff $cutoff
     }
@@ -572,6 +590,8 @@ proc itrajcomp::CreateObject {} {
       lappend defaults labstype $labstype labsnum $labsnum
     }
   }
+  lappend defaults graphtype $graphtype
+
   set r [eval [namespace current]::Objnew ":auto" $defaults]
 
 #  [namespace current]::Objdump $r

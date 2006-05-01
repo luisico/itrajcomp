@@ -323,19 +323,27 @@ proc itrajcomp::CheckNatoms {mol1 sel1 {mol2 ""} {sel2 ""}} {
 
 
 proc itrajcomp::ParseKey {self key} {
-  set type [set ${self}::type]
+  set graphtype [set ${self}::graphtype]
   set indices [split $key :]
 
-  switch $type {
-    covar {
+  switch $graphtype {
+    frame {
+      lassign $indices m f
+      set p [set ${self}::p]
+      set s [[namespace current]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
+    }
+    atom {
       set m [lindex [set ${self}::mol_all] 0]
       set f 0:[expr [molinfo $m get numframes]-1]
       set s "index [lindex $indices 0]"
     }
-    default {
-      lassign $indices m f
+    residue {
+      set m [lindex [set ${self}::mol_all] 0]
+      set f 0:[expr [molinfo $m get numframes]-1]
       set p [set ${self}::p]
-      set s [[namespace current]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
+      set extra [[namespace current]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
+      set s "residue [lindex $indices 0] and ($extra)"
+      puts $s
     }
   }
 

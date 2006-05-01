@@ -19,21 +19,15 @@ proc itrajcomp::covar { self } {
     variable format_data "%8.4f"
     variable format_key "%3d %3s"
     variable diagonal
-    
+    variable byres
+    variable nregs
+
     # Check number of atoms in selections, and combined list of molecules
     set mol_all [[namespace parent]::CheckNatoms $mol1 $sel1]
     if {$mol_all == -1} {
       return -code return
     }
-    set numatoms [[atomselect [lindex $mol_all 0] $sel1 frame 0] num]
 
-    # Calculate max numbers of iterations
-    set maxkeys [expr ($numatoms*$numatoms+$numatoms)/2]
-
-    set index [[atomselect [lindex $mol_all 0] $sel1] get index]
-    set name  [[atomselect [lindex $mol_all 0] $sel1] get name]
-    set coor  [[atomselect [lindex $mol_all 0] $sel1] get {x y z}]
- 
     set not1frame 1
     foreach i $mol_all {
       if {[molinfo $i get numframes] == 1} {
@@ -108,19 +102,41 @@ proc itrajcomp::covar { self } {
       #puts "DEBUG: meas [measure rmsf $s1 first 0 last [expr [molinfo $i get numframes] -1] step 1]"
     }
     
+    if {$byres} {
+      set regs [lsort -unique -integer [[atomselect [lindex $mol_all 0] $sel1] get residue]]
+      set names {}
+      set temp {}
+      set start 0
+      foreach r $regs {
+	lappend names [lindex [[atomselect [lindex $mol_all 0] "residue $r"] get resname] 0]
+	set end [expr $start + [[atomselect [lindex $mol_all 0] "residue $r and ($sel1)"] num] -1]
+	lappend temp [vecmean [lrange $rmsf $start $end]]
+	set start [expr $end + 1]
+      }
+      set rmsf $temp
+    } else {
+      set regs  [[atomselect [lindex $mol_all 0] $sel1] get index]
+      set names [[atomselect [lindex $mol_all 0] $sel1] get name]
+    }
+    
+    set nreg [llength $regs]
+    # Calculate max numbers of iterations
+    set maxkeys [expr ($nreg*$nreg+$nreg)/2]
+
+ 
     # Calculate covariance matrix
     set z 1
     set count 0
-    for {set at1 0} {$at1 < [llength $index]} {incr at1} {
-      set i [lindex $index $at1]
-      set j [lindex $name $at1]
-      set key1 "$i:"
-      set rmsf1 [lindex $rmsf $at1]
-      for {set at2 0} {$at2 < [llength $index]} {incr at2} {
-	set k [lindex $index $at2]
-	set l [lindex $name $at2]
-	set key2 "$k:"
-	set rmsf2 [lindex $rmsf $at2]
+    for {set reg1 0} {$reg1 < $nreg} {incr reg1} {
+      set i [lindex $regs $reg1]
+      set j [lindex $names $reg1]
+      set key1 "$i:$j"
+      set rmsf1 [lindex $rmsf $reg1]
+      for {set reg2 0} {$reg2 < $nreg} {incr reg2} {
+	set k [lindex $regs $reg2]
+	set l [lindex $names $reg2]
+	set key2 "$k:$l"
+	set rmsf2 [lindex $rmsf $reg2]
 	if {[info exists data($key2,$key1)]} {
 	  continue
 	} else {

@@ -47,7 +47,7 @@ proc itrajcomp::NewPlot {self} {
     variable plot
     variable r_thres_rel  0.5
     variable N_crit_rel   0.5
-    variable grid
+    variable grid 10
     variable clustering_graphics 0
     variable rep_style1    NewRibbons
     variable rep_color1    Molecule
@@ -133,8 +133,8 @@ proc itrajcomp::NewPlot {self} {
     pack $p.u.l.info -side top -anchor nw
     
     label $p.u.l.info.keys_label -text "Keys:"
-    entry $p.u.l.info.keys_entry1 -width 7 -textvariable [namespace current]::info_key1
-    entry $p.u.l.info.keys_entry2 -width 7 -textvariable [namespace current]::info_key2
+    entry $p.u.l.info.keys_entry1 -width 8 -textvariable [namespace current]::info_key1
+    entry $p.u.l.info.keys_entry2 -width 8 -textvariable [namespace current]::info_key2
     pack $p.u.l.info.keys_label $p.u.l.info.keys_entry1 $p.u.l.info.keys_entry2 -side left
     
     label $p.u.l.info.rmsd_label -text "Value:"
@@ -300,12 +300,12 @@ proc itrajcomp::NewPlot {self} {
 #       pack $p.l.l.cluster.rthres_label $p.l.l.cluster.rthres $p.l.l.cluster.ncrit_label $p.l.l.cluster.ncrit $p.l.l.cluster.graphics $p.l.l.cluster.bt -side left 
 #     }
     
-    set grid 10
     if {$type eq "covar"} {
       [namespace parent]::Graph2 $self
     } else {
       [namespace parent]::Graph $self
     }
+    [namespace parent]::Zoom $self -5
 
   }
 }
@@ -426,17 +426,18 @@ proc itrajcomp::Zoom {self zoom} {
   set grid [set ${self}::grid]
   set plot [set ${self}::plot]
 
-  set old [expr 1.0*$grid]
-  if {$zoom == -1} {
+  if {$zoom < 0} {
     if {$grid <= 1} return
-    incr ${self}::grid -1
-  } elseif {$zoom == 1} {
+  } elseif {$zoom > 0} {
     if {$grid >= 20} return
-    incr ${self}::grid
+  } else {
+    return
   }
 
-  set grid [set ${self}::grid]
-  
+  set old [expr 1.0*$grid]
+  set grid [expr $grid + $zoom]
+  set ${self}::grid $grid
+
   set factor [expr $grid/$old]
   $plot scale all 0 0 $factor $factor
 }
@@ -780,27 +781,25 @@ proc itrajcomp::UpdateSelection {self} {
   
   array set rep_list [array get ${self}::rep_list]
  
-  set rep_sel1 [[namespace current]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
   foreach key [array names rep_list] {
     if {[set ${self}::rep_num($key)] > 0} {
-      set indices [split $key :]
-      lassign $indices i j
-      set repname [mol repindex $i $rep_list($key)]
-      mol modselect $repname $i $rep_sel1
+      lassign [[namespace current]::ParseKey $self $key] m f s
+      set repname [mol repindex $m $rep_list($key)]
+      mol modselect $repname $m $s
       switch $rep_style1 {
 	HBonds {
-	  mol modstyle  $repname $i $rep_style1 [set ${self}::cutoff] [set ${self}::angle]
+	  mol modstyle  $repname $m $rep_style1 [set ${self}::cutoff] [set ${self}::angle]
 	}
 	default {
-	  mol modstyle  $repname $i $rep_style1
+	  mol modstyle  $repname $m $rep_style1
 	}
       }
       switch $rep_color1 {
 	ColorID {
-	  mol modcolor  $repname $i $rep_color1 $rep_colorid1
+	  mol modcolor  $repname $m $rep_color1 $rep_colorid1
 	}
 	default {
-	  mol modcolor  $repname $i $rep_color1
+	  mol modcolor  $repname $m $rep_color1
 	}
       }
     }
@@ -853,10 +852,16 @@ proc itrajcomp::Graph2 {self} {
     variable rep_list
     variable rep_num
     variable colors
+    variable regs
 
-    set atn [[atomselect [lindex $mol_all 0] $sel1] get index]
-    set natn [llength $atn]
-    #puts "$natn -> $atn"
+    set nreg [llength $regs]
+    #puts "$nreg -> $regs"
+
+    foreach key $keys {
+      lassign [split $key ,:] i j k l
+      set part2($i) $j
+      set part2($k) $l
+    }
 
     set maxkeys [llength $keys]
     set count 0
@@ -864,13 +869,13 @@ proc itrajcomp::Graph2 {self} {
     set offx 0
     set offy 0
     set width 3
-    for {set i 0} {$i < $natn} {incr i} {
-      set key1 "[lindex $atn $i]:"
+    for {set i 0} {$i < $nreg} {incr i} {
+      set key1 "[lindex $regs $i]:$part2([lindex $regs $i])"
       set rep_list($key1) {}
       set rep_num($key1) 0
       set offy 0
-      for {set k 0} {$k < $natn} {incr k} {
-	set key2 "[lindex $atn $k]:"
+      for {set k 0} {$k < $nreg} {incr k} {
+	set key2 "[lindex $regs $k]:$part2([lindex $regs $k])"
 	set rep_list($key2) {}
 	set rep_num($key2) 0
 	set key "$key1,$key2"
