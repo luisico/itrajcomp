@@ -60,14 +60,11 @@ proc ::itrajcomp::saveData { self {fileout ""} {format "tab"} {options ""}} {
       set fileout_id stdout
     }
 
-    set opt(mol1) [set ${self}::mol1]
-    set opt(mol2) [set ${self}::mol2]
-    set opt(frame1) [set ${self}::frame1]
-    set opt(frame2) [set ${self}::frame2]
-    set opt(format_data) [set ${self}::format_data]
-    set opt(format_key) [set ${self}::format_key]
-    set opt(canvas) [set ${self}::p]
-    set opt(type) [set ${self}::type]
+    foreach v [[namespace current]::Objvars $self] {
+      if {[array exists ${self}::$v]} {continue}
+      #puts "$v --> [set ${self}::$v]"
+      set opt($v) [set ${self}::$v]
+    }
 
     set output [SaveData_$format [set ${self}::vals] [set ${self}::keys] [array get opt]]
 
@@ -100,8 +97,17 @@ proc ::itrajcomp::SaveData_postscript {data keys options} {
 #                  -------
 proc ::itrajcomp::SaveData_tab {data keys options} {
   array set opt $options
-  
-  set output [format "%4s %6s   %4s %6s   %[string index $opt(format_data) 1]s\n" "mol1" "frame1" "mol2" "frame2" $opt(type)]
+
+  set output ""
+  # Object info
+  foreach i [list type graphtype mol_all sel1 sel2] {
+    if {$opt($i) != ""} {
+      append output "\# $i [set opt($i)]\n"
+    }
+  }
+
+  # Data
+  append output [format "%7s %7s   %7s %7s   %[string index $opt(format_data) 1]s\n" "$opt(header1)1" "$opt(header2)1" "$opt(header1)2" "$opt(header2)2" $opt(type)]
   for {set z 0} {$z < [llength $keys]} {incr z} {
     set key [lindex $keys $z]
     set indices [split $key :,]
@@ -109,7 +115,7 @@ proc ::itrajcomp::SaveData_tab {data keys options} {
     set j [lindex $indices 1]
     set k [lindex $indices 2]
     set l [lindex $indices 3]
-    append output [format "%4d %6d   %4d %6d   $opt(format_data)\n" $i $j $k $l [lindex $data $z]]
+    append output [format "%8s %8s   %8s %8s   $opt(format_data)\n" $i $j $k $l [lindex $data $z]]
   }
   return $output
 }

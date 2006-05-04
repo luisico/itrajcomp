@@ -92,6 +92,7 @@ proc itrajcomp::init {} {
   variable angle 30.0
   variable reltype 1
   variable byres 1
+  variable normalize "expmin"
 
   variable labstype "Dihedrals"
   variable labsnum_array
@@ -100,6 +101,15 @@ proc itrajcomp::init {} {
   # Menu
   frame $w.menubar -relief raised -bd 2
   pack $w.menubar -padx 1 -fill x
+
+  menubutton $w.menubar.file -text "File" -underline 0 -menu $w.menubar.file.menu
+  menu $w.menubar.file.menu -tearoff no
+  $w.menubar.file.menu add cascade -label "Load..." -underline 0 -menu $w.menubar.file.menu.load
+  menu $w.menubar.file.menu.load -tearoff no
+  foreach as [list tab matrix plotmtv plotmtv_binary] {
+    $w.menubar.file.menu.load add command -label $as -command "[namespace current]::loadDataBrowse $as"
+  }
+  pack $w.menubar.file -side left
 
   menubutton $w.menubar.options -text "Options" -underline 0 -menu $w.menubar.options.menu
   menu $w.menubar.options.menu -tearoff no
@@ -286,6 +296,9 @@ proc itrajcomp::init {} {
   frame $w.calc -relief ridge -bd 4
   pack $w.calc -side left -expand yes -fill x
 
+  button $w.calc.new -text "New\nobject" -command "[namespace current]::CreateObject"
+  pack $w.calc.new -side left
+
   frame $w.calc.u
   pack $w.calc.u -side top -anchor nw
   label $w.calc.u.label -text "Calculation:"
@@ -305,31 +318,37 @@ proc itrajcomp::init {} {
   label $w.calc.d.label -text "Options:"
   pack $w.calc.d -side left
   checkbutton $w.calc.d.align -text "align" -variable [namespace current]::align
+
+  checkbutton $w.calc.d.byres -text "byres" -variable [namespace current]::byres
+  menubutton $w.calc.d.norm -text "Normalize" -menu $w.calc.d.norm.m -relief raised
+  menu $w.calc.d.norm.m
+  foreach entry [list none exp expmin minmax] {
+    $w.calc.d.norm.m add radiobutton -label $entry -variable [namespace current]::normalize -value $entry
+  }
+
   label $w.calc.d.cutoff_l -text "Cutoff:"
   entry $w.calc.d.cutoff -width 5 -textvariable [namespace current]::cutoff
   label $w.calc.d.angle_l -text "Angle:"
-  entry $w.calc.d.angle  -width 5 -textvariable [namespace current]::angle
+  entry $w.calc.d.angle -width 5 -textvariable [namespace current]::angle
 #  label $w.calc.d.reltype_l -text "Reltype:"
 #  entry $w.calc.d.reltype  -width 2 -textvariable [namespace current]::reltype
-  checkbutton $w.calc.d.byres -text "byres" -variable [namespace current]::byres
-
-  label $w.calc.d.labs_l -text "Labels:"
-  menubutton $w.calc.d.labs_t -text "Type" -menu $w.calc.d.labs_t.m -textvariable [namespace current]::labstype -relief raised
+  
+  #label $w.calc.d.labs_l -text "Labels:"
+  menubutton $w.calc.d.labs_t -text "Labels" -menu $w.calc.d.labs_t.m -relief raised
   menu $w.calc.d.labs_t.m
   foreach entry [list Bonds Angles Dihedrals] {
     $w.calc.d.labs_t.m add radiobutton -label $entry -variable [namespace current]::labstype -value $entry -command "[namespace current]::UpdateLabels"
   }
 #  menubutton $w.calc.d.labs_n -text "Labels" -menu $w.calc.d.labs_n.m -textvariable [namespace current]::labsnum -relief raised
-  menubutton $w.calc.d.labs_n -text "Labels" -menu $w.calc.d.labs_n.m -relief raised
+  menubutton $w.calc.d.labs_n -text "Id" -menu $w.calc.d.labs_n.m -relief raised
   menu $w.calc.d.labs_n.m
 
-  pack $w.calc.d.label $w.calc.d.align $w.calc.d.cutoff_l $w.calc.d.cutoff $w.calc.d.angle_l $w.calc.d.angle -side left
-  pack $w.calc.d.byres -side left
+  pack $w.calc.d.label $w.calc.d.align -side left
+  pack $w.calc.d.byres $w.calc.d.norm -side left
+  pack $w.calc.d.cutoff_l $w.calc.d.cutoff $w.calc.d.angle_l $w.calc.d.angle -side left
 #  pack $w.calc.d.reltype_l $w.calc.d.reltype -side left
-  pack $w.calc.d.labs_l $w.calc.d.labs_t $w.calc.d.labs_n -side left
-
-  button $w.calc.new -text "New object" -command "[namespace current]::CreateObject"
-  pack $w.calc.new -side right
+  #$w.calc.d.labs_l 
+  pack $w.calc.d.labs_t $w.calc.d.labs_n -side left
   #--
 
   [namespace current]::UpdateGUI
@@ -405,7 +424,8 @@ proc itrajcomp::UpdateGUI {} {
 #  $w.calc.d.reltype_l config -state disable
 #  $w.calc.d.reltype   config -state disable
   $w.calc.d.byres     config -state disable
-  $w.calc.d.labs_l    config -state disable
+  $w.calc.d.norm      config -state disable
+#  $w.calc.d.labs_l    config -state disable
   $w.calc.d.labs_t    config -state disable
   $w.calc.d.labs_n    config -state disable
 
@@ -416,6 +436,7 @@ proc itrajcomp::UpdateGUI {} {
     covar {
       [namespace current]::UpdateSel "disable"
       $w.calc.d.byres config -state normal
+      $w.calc.d.norm  config -state normal
     }
     relrms {
       $w.calc.d.cutoff_l  config -state normal
@@ -434,7 +455,7 @@ proc itrajcomp::UpdateGUI {} {
       $w.calc.d.angle    config -state normal
     }
     labels {
-      $w.calc.d.labs_l   config -state normal
+#      $w.calc.d.labs_l   config -state normal
       $w.calc.d.labs_t   config -state normal
       $w.calc.d.labs_n   config -state normal
     }
@@ -533,10 +554,9 @@ proc itrajcomp::CreateObject {} {
   variable angle
   variable reltype
   variable byres
+  variable normalize
   variable labstype
   variable labsnum
-
-  variable graphtype "frame"
 
   if {$samemols} {
     set mol2_def $mol1_def
@@ -563,7 +583,17 @@ proc itrajcomp::CreateObject {} {
   set sel1 [ParseSel [$w.mols.mol1.a.sel get 1.0 end] $selmod1]
   set sel2 [ParseSel [$w.mols.mol2.a.sel get 1.0 end] $selmod2]
 
-  set defaults [list mol1 $mol1 frame1 $frame1 mol2 $mol2 frame2 $frame2 sel1 $sel1 sel2 $sel2 rep_sel1 $sel1 type $calctype diagonal $diagonal mol1_def $mol1_def mol2_def $mol2_def frame1_def $frame1_def frame2_def $frame2_def]
+  set defaults [list\
+		mol1 $mol1     mol1_def $mol1_def\
+		frame1 $frame1 frame1_def $frame1_def\
+		mol2 $mol2     mol2_def $mol2_def\
+		frame2 $frame2 frame2_def $frame2_def\
+		sel1 $sel1\
+		sel2 $sel2\
+		rep_sel1 $sel1\
+		type $calctype\
+		diagonal $diagonal\
+	       ]
   switch $calctype {
     rmsd {
       lappend defaults align $align
@@ -573,12 +603,7 @@ proc itrajcomp::CreateObject {} {
       lappend defaults reltype $reltype
     }
     covar {
-      lappend defaults byres $byres
-      if {$byres} {
-	set graphtype "residue"
-      } else {
-	set graphtype "atom"
-      }
+      lappend defaults byres $byres normalize $normalize
     }
     contacts {
       lappend defaults cutoff $cutoff
@@ -590,7 +615,6 @@ proc itrajcomp::CreateObject {} {
       lappend defaults labstype $labstype labsnum $labsnum
     }
   }
-  lappend defaults graphtype $graphtype
 
   set r [eval [namespace current]::Objnew ":auto" $defaults]
 
@@ -661,7 +685,6 @@ proc itrajcomp::CombineUpdate {widget} {
     $widget insert end "$name"
     lappend combobj $num
   }
-
 }
 
 proc itrajcomp::CombineUpdateold {widget} {
@@ -679,5 +702,138 @@ proc itrajcomp::CombineUpdateold {widget} {
     $widget.obj.obj1.list add radiobutton -label "$name" -variable [namespace current]::obj1 -value $name
     $widget.obj.obj2.list add radiobutton -label "$name" -variable [namespace current]::obj2 -value $name
   }
+}
 
+proc itrajcomp::loadDataBrowse {format} {
+  set vn [package present itrajcomp]
+  if {[llength [info procs "loadData_$format"]] < 1} {
+    tk_messageBox -title "iTrajComp v$vn - Error" -parent .itrajcomp -message "loadData_$format not implemented yet"
+    return
+  }
+
+  set typeList {
+    {"Data Files" ".dat .txt .out"}
+    {"Postscript Files" ".ps"}
+    {"All files" ".*"}
+  }
+  
+  set file [tk_getOpenFile -filetypes $typeList -defaultextension ".dat" -title "Select file to open" -parent .itrajcomp]
+  
+  if { $file == "" } {
+    return;
+  }
+  
+  [namespace current]::loadData $file $format
+}
+
+proc itrajcomp::loadData {file format} {
+  if {$file == ""} {
+    return
+  }
+
+  set fid [open $file r]
+  fconfigure $fid
+
+  # Read header
+  while {![eof $fid]} {
+    gets $fid line
+    #puts "line $line"
+    regsub -all {\s\s+} $line " " line
+    regsub {^\s+}       $line ""  line
+    regsub {\s+$}       $line ""  line
+    #puts "temp $line"
+    if {[regexp {^\#\s*(\w+)\s+(.*)} $line junk key val]} {
+      #puts "$key --> $val"
+      set keys($key) $val
+      set offset [tell $fid]
+    } else {
+      seek $fid $offset
+      set data [[namespace current]::loadData_$format $fid]
+      break
+    }
+  }
+  close $fid
+  
+  set defaults [array get keys]
+  lappend defaults rep_sel1 "all"
+  switch $keys(type) {
+    covar {
+      lappend defaults format_data "%8.4f"
+      lappend defaults format_key "%3d %3s"
+    }
+    labels -
+    rmsd {
+      lappend defaults format_data "%8.4f"
+      lappend defaults format_key "%3d %3d"
+    }
+    hbonds -
+    contacts {
+      lappend defaults format_data "%4i"
+      lappend defaults format_key "%3d %3d"
+      
+    }
+
+
+      lappend defaults 
+  }
+  
+  set r [eval [namespace current]::Objnew ":auto" $defaults]
+  [namespace current]::processData $r $data
+  [namespace current]::NewPlot $r
+
+}
+
+proc itrajcomp::processData {self data} {
+  set vals {}
+  set keys {}
+  set regions {}
+  set min [lindex [lindex $data 1] 4]
+  set max $min
+  for {set i 1} {$i < [llength $data]} {incr i} {
+    set d [lindex $data $i]
+    set val [lindex $d 4]
+    set key "[lindex $d 0]:[lindex $d 1],[lindex $d 2]:[lindex $d 3]"
+    lappend vals $val
+    lappend keys $key
+    lappend regions [lindex $d 0] [lindex $d 2]
+    set temp($key) $val
+    if {$val < $min} {
+      set min $val
+    } elseif {$val > $max} {
+      set max $val
+    }
+  }
+
+  set ${self}::min $min
+  set ${self}::max $max
+  set ${self}::regions [lsort -integer -unique $regions]
+  set ${self}::keys $keys
+  set ${self}::vals $vals
+  array set ${self}::data [array get temp]
+
+}
+
+proc itrajcomp::loadData_tab {fid} {
+  # Names
+  set data {}
+  gets $fid line
+  regsub -all {\s\s+} $line " " line
+  regsub {^\s+}       $line ""  line
+  regsub {\s+$}       $line ""  line
+  lappend data [split $line { }]
+
+  # Data
+  while {![eof $fid]} {
+    gets $fid line
+    #puts "line $line"
+    if {[regexp {^$} $line junk junk]} {
+      break
+    }
+    regsub -all {\s\s+} $line " " line
+    regsub {^\s+}       $line ""  line
+    regsub {\s+$}       $line ""  line
+    #puts "temp $line"
+    lappend data [split $line { }]
+  }
+  return $data
 }

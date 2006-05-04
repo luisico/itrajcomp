@@ -36,6 +36,7 @@ proc itrajcomp::NewPlot {self} {
     set rep_color_list [list Name Type ResName ResType ResID Chain SegName Molecule Structure ColorID Beta Occupancy Mass Charge Pos User Index Backbone Throb Timestep Volume]
     set save_format_list [list tab matrix plotmtv plotmtv_binary postscript]
 
+    variable title
     variable add_rep
     variable info_key1
     variable info_key2
@@ -49,13 +50,13 @@ proc itrajcomp::NewPlot {self} {
     variable N_crit_rel   0.5
     variable grid 10
     variable clustering_graphics 0
-    variable rep_style1    NewRibbons
+    #variable rep_style1    NewRibbons
     variable rep_color1    Molecule
     variable rep_colorid1  0
     variable highlight    0.2
     variable save_format  tab
-    variable labstype
-    variable labsnum
+    #variable labstype
+    #variable labsnum
 
     set p [toplevel ".${self}_plot"]
 
@@ -101,6 +102,15 @@ proc itrajcomp::NewPlot {self} {
     $p.menubar.help.menu add command -label "Keybindings" -command "[namespace parent]::help_keys $self" -underline 0
     $p.menubar.help.menu add command -label "About" -command "[namespace parent]::help_about $p" -underline 0
     pack $p.menubar.help -side right
+
+    # Title
+    frame $p.title
+    pack $p.title -side top -fill x -expand y
+
+    label $p.title.lab -text "Title:"
+    pack $p.title.lab -side left
+    entry $p.title.title -textvariable [namespace current]::title -relief flat
+    pack $p.title.title -side left -fill x -expand y
 
     # Main area
     frame $p.u -relief raised -bd 2
@@ -172,7 +182,9 @@ proc itrajcomp::NewPlot {self} {
     set reg [expr double($max-$min)/$rg_n]
     for {set i 0} {$i <= $rg_n} {incr i} {
       set color [[namespace parent]::ColorScale $max $min $val 1.0]
-      $scale create rectangle 0 $y $rg_w [expr $y+$rg_h] -fill $color -outline $color
+      $scale create rectangle 0 $y $rg_w [expr $y+$rg_h] -fill $color -outline $color -tag "rect$val"
+      $scale bind "rect$val" <B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $val -1 1"
+      $scale bind "rect$val" <B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 1 1"
       set val [expr $val+ $reg]
       set y [expr $y+$rg_h]
     }
@@ -182,15 +194,9 @@ proc itrajcomp::NewPlot {self} {
     set reg [expr double($max-$min)/$lb_n]
     for {set i 0} {$i <= $lb_n} {incr i} {
       $scale create line 15 $y $rg_w $y
-      if {$type eq "rmsd" || $type eq "relrms" || $type eq "labels"} { 
-	$scale create text [expr $rg_w+1] $y -text [format "%4.2f" $val] -anchor w -font [list helvetica 7 normal] -tag "line$val"
-	$scale bind "line$val" <Shift-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 1"
-	$scale bind "line$val" <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 0"
-      } else {
-	$scale create text [expr $rg_w+1] $y -text [format "%4i" [expr int($val)]] -anchor w -font [list helvetica 7 normal] -tag "line$val"
-	$scale bind "line$val" <Shift-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 1"
-	$scale bind "line$val" <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 0"
-      }
+      $scale create text [expr $rg_w+1] $y -text [format $format_scale $val] -anchor w -font [list helvetica 7 normal] -tag "line$val"
+      $scale bind "line$val" <B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $val -1 1"
+      $scale bind "line$val" <B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 1 1"
       set val [expr $val+ $reg]
       set y [expr $y+$lb_h]
     }
@@ -348,12 +354,12 @@ proc itrajcomp::Graph {self} {
 	    
 	    $plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
 	    $plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
-	    $plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key 0 0"
-	    $plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key 0 1"
-	    $plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key 0 -1"
-	    $plot bind $key <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $key 0"
-	    $plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $key 1"
-	    $plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $key -1"
+	    $plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  0"
+	    $plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0 -1"
+	    $plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  1"
+	    $plot bind $key <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  0  0"
+	    $plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $key -1  0"
+	    $plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  1  0"
 
 	    incr count
 	    [namespace parent]::ProgressBar $count $maxkeys
@@ -371,7 +377,7 @@ proc itrajcomp::ViewData {self} {
   set r [toplevel ".${self}_raw"]
   wm title $r "View $self"
   
-  text $r.data -exportselection yes -width 80 -xscrollcommand "$r.xs set" -yscrollcommand "$r.ys set" -font [list courier]
+  text $r.data -exportselection yes -width 80 -xscrollcommand "$r.xs set" -yscrollcommand "$r.ys set" -font [list fixed]
   scrollbar $r.xs -orient horizontal -command "$r.data xview"
   scrollbar $r.ys -orient vertical   -command "$r.data yview"
   
@@ -379,10 +385,7 @@ proc itrajcomp::ViewData {self} {
   pack $r.ys -side right -fill y
   pack $r.data -side right -expand yes -fill both
   
-  set opt(format_data) [set ${self}::format_data]
-  set opt(format_key) [set ${self}::format_key]
-  set opt(type) [set ${self}::type]
-  $r.data insert end [SaveData_tab [set ${self}::vals] [set ${self}::keys] [array get opt]]
+  $r.data insert end [[namespace current]::saveData $self "" "tab"]
 }
 
 
@@ -719,17 +722,21 @@ proc itrajcomp::MapCluster1 {self key {mod 0}} {
 }
 
 
-proc itrajcomp::MapCluster2 {self key {mod2 0}} {
+proc itrajcomp::MapCluster2 {self key {mod1 0} {mod2 0} } {
   set plot [set ${self}::plot]
   array set data [array get ${self}::data]
 
-  set val $data($key)
+  if {$mod2} {
+    set val $key
+  } else {
+    set val $data($key)
+  }
 
   [namespace current]::MapClear $self
   foreach mykey [set ${self}::keys] {
     set indices [split $mykey ,]
     lassign $indices key1 key2
-    if {!$mod2 || $mod2 == 1} {
+    if {!$mod1 || $mod1 == 1} {
       if {$data($mykey) >= $val} {
 	set color black
 	$plot itemconfigure $mykey -outline $color
@@ -738,7 +745,7 @@ proc itrajcomp::MapCluster2 {self key {mod2 0}} {
 	set ${self}::add_rep($mykey) 1
       }
     }
-    if {!$mod2 || $mod2 == -1} {
+    if {!$mod1 || $mod1 == -1} {
       if {$data($mykey) <= $val} {
 	set color black
 	$plot itemconfigure $mykey -outline $color
@@ -827,15 +834,15 @@ proc itrajcomp::help_keys { self } {
   $r.data insert end "Shift-B1\t" button
   $r.data insert end "Selects all points in column/row of data.\n"
   $r.data insert end "Shift-B2\t" button
-  $r.data insert end "Selects all points in column/row with values => than data clicked.\n"
-  $r.data insert end "Shift-B3\t" button
   $r.data insert end "Selects all points in column/row with values <= than data clicked.\n"
+  $r.data insert end "Shift-B3\t" button
+  $r.data insert end "Selects all points in column/row with values => than data clicked.\n"
   $r.data insert end "Ctrl-B1\t" button
   $r.data insert end "Selects all points.\n"
   $r.data insert end "Ctrl-B2\t" button
-  $r.data insert end "Selects all points with values => than data clicked.\n"
+  $r.data insert end "Selects all points with values <= than data clicked.\n"
   $r.data insert end "Ctrl-B3\t" button
-  $r.data insert end "Selects all points with values <= than data clicked.\n\n\n"
+  $r.data insert end "Selects all points with values => than data clicked.\n\n\n"
   $r.data insert end "Copyright (C) Luis Gracia <lug2002@med.cornell.edu>\n"
 
   $r.data tag configure title -font [list helvetica 12 bold]
@@ -852,10 +859,10 @@ proc itrajcomp::Graph2 {self} {
     variable rep_list
     variable rep_num
     variable colors
-    variable regs
+    variable regions
 
-    set nreg [llength $regs]
-    #puts "$nreg -> $regs"
+    set nregions [llength $regions]
+    #puts "$nregions -> $regions"
 
     foreach key $keys {
       lassign [split $key ,:] i j k l
@@ -869,13 +876,13 @@ proc itrajcomp::Graph2 {self} {
     set offx 0
     set offy 0
     set width 3
-    for {set i 0} {$i < $nreg} {incr i} {
-      set key1 "[lindex $regs $i]:$part2([lindex $regs $i])"
+    for {set i 0} {$i < $nregions} {incr i} {
+      set key1 "[lindex $regions $i]:$part2([lindex $regions $i])"
       set rep_list($key1) {}
       set rep_num($key1) 0
       set offy 0
-      for {set k 0} {$k < $nreg} {incr k} {
-	set key2 "[lindex $regs $k]:$part2([lindex $regs $k])"
+      for {set k 0} {$k < $nregions} {incr k} {
+	set key2 "[lindex $regions $k]:$part2([lindex $regions $k])"
 	set rep_list($key2) {}
 	set rep_num($key2) 0
 	set key "$key1,$key2"
@@ -893,12 +900,12 @@ proc itrajcomp::Graph2 {self} {
 	
 	$plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
 	$plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
-	$plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key 0 0"
-	$plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key 0 1"
-	$plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key 0 -1"
-	$plot bind $key <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $key 0"
-	$plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $key 1"
-	$plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $key -1"
+	$plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  0"
+	$plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0 -1"
+	$plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  1"
+	$plot bind $key <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  0  0"
+	$plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $key -1  0"
+	$plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  1  0"
 
 	incr count
 	[namespace parent]::ProgressBar $count $maxkeys
