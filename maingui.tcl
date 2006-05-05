@@ -30,7 +30,7 @@
 package provide itrajcomp 1.0
 
 namespace eval itrajcomp {
-  namespace export rmsd init
+  namespace export init
   
   global env
   variable w
@@ -161,16 +161,13 @@ proc itrajcomp::init {} {
 
   # SET1
   #--
-  frame $w.mols.mol1 -relief ridge -bd 4
-  label $w.mols.mol1.title -text "Set 1"
+  labelframe $w.mols.mol1 -relief ridge -bd 4 -text "Set 1"
   pack $w.mols.mol1 -side left -anchor nw -expand yes -fill x
-  pack $w.mols.mol1.title -side top
   #--
 
   # a1
   #--
-  frame $w.mols.mol1.a -relief ridge -bd 2
-  label $w.mols.mol1.a.title -text "Atom selection:"
+  labelframe $w.mols.mol1.a -relief ridge -bd 2 -text "Atom selection"
   text $w.mols.mol1.a.sel -exportselection yes -height 5 -width 25 -wrap word
   $w.mols.mol1.a.sel insert end "all"
   radiobutton $w.mols.mol1.a.no -text "All"      -variable [namespace current]::selmod1 -value "no"
@@ -179,15 +176,13 @@ proc itrajcomp::init {} {
   radiobutton $w.mols.mol1.a.sc -text "Sidechain" -variable [namespace current]::selmod1 -value "sc"
 
   pack $w.mols.mol1.a -side bottom -expand yes -fill x
-  pack $w.mols.mol1.a.title
   pack $w.mols.mol1.a.sel -side left -expand yes -fill x
   pack $w.mols.mol1.a.no $w.mols.mol1.a.bb $w.mols.mol1.a.tr $w.mols.mol1.a.sc -side top -anchor w
   #--
 
   # m1
   #--
-  frame $w.mols.mol1.m -relief ridge -bd 2
-  label $w.mols.mol1.m.title -text "Molecules:"
+  labelframe $w.mols.mol1.m -relief ridge -bd 2 -text "Molecules"
   radiobutton $w.mols.mol1.m.all -text "All"    -variable [namespace current]::mol1_def -value "all"
   radiobutton $w.mols.mol1.m.top -text "Top"    -variable [namespace current]::mol1_def -value "top"
   radiobutton $w.mols.mol1.m.act -text "Active" -variable [namespace current]::mol1_def -value "act"
@@ -196,15 +191,13 @@ proc itrajcomp::init {} {
   entry $w.mols.mol1.m.ids.list -width 5 -textvariable [namespace current]::mol1_m_list
 
   pack $w.mols.mol1.m -side left
-  pack $w.mols.mol1.m.title -side top
   pack $w.mols.mol1.m.all $w.mols.mol1.m.top $w.mols.mol1.m.act $w.mols.mol1.m.ids -side top -anchor w 
   pack $w.mols.mol1.m.ids.r $w.mols.mol1.m.ids.list -side left
   #--
   
   # f1
   #--
-  frame $w.mols.mol1.f -relief ridge -bd 2
-  label $w.mols.mol1.f.title -text "Frames:"
+  labelframe $w.mols.mol1.f -relief ridge -bd 2 -text "Frames"
   radiobutton $w.mols.mol1.f.all -text "All"     -variable [namespace current]::frame1_def -value "all"
   radiobutton $w.mols.mol1.f.top -text "Current" -variable [namespace current]::frame1_def -value "cur"
   frame $w.mols.mol1.f.ids
@@ -215,7 +208,6 @@ proc itrajcomp::init {} {
   entry $w.mols.mol1.f.skip.e -width 3 -textvariable [namespace current]::skip1
 
   pack $w.mols.mol1.f -side left -anchor n -expand yes -fill x
-  pack $w.mols.mol1.f.title -side top
   pack $w.mols.mol1.f.all $w.mols.mol1.f.top -side top -anchor w 
   pack $w.mols.mol1.f.ids -side top -anchor w -expand yes -fill x
   pack $w.mols.mol1.f.skip -side top -anchor w 
@@ -227,16 +219,13 @@ proc itrajcomp::init {} {
 
   # SET2
   #--
-  frame $w.mols.mol2 -relief ridge -bd 4
-  label $w.mols.mol2.title -text "Set 2"
+  labelframe $w.mols.mol2 -relief ridge -bd 4 -text "Set 2"
   pack $w.mols.mol2 -expand yes -fill x -side top -anchor n
-  pack $w.mols.mol2.title -side top
   #--
 
   # a2
   #--
-  frame $w.mols.mol2.a -relief ridge -bd 2
-  label $w.mols.mol2.a.title -text "Atom selection:"
+  labelframe $w.mols.mol2.a -relief ridge -bd 2 -text "Atom selection:"
   text $w.mols.mol2.a.sel -exportselection yes -height 5 -width 25 -wrap word
   $w.mols.mol2.a.sel insert end "all"
   radiobutton $w.mols.mol2.a.no -text "All"      -variable [namespace current]::selmod2 -value "no"
@@ -245,15 +234,13 @@ proc itrajcomp::init {} {
   radiobutton $w.mols.mol2.a.sc -text "Sidechain" -variable [namespace current]::selmod2 -value "sc"
 
   pack $w.mols.mol2.a -side bottom -expand yes -fill x
-  pack $w.mols.mol2.a.title
   pack $w.mols.mol2.a.sel -side left -expand yes -fill x
   pack $w.mols.mol2.a.no $w.mols.mol2.a.bb $w.mols.mol2.a.tr $w.mols.mol2.a.sc -side top -anchor w
   #--
 
   # m2
   #--
-  frame $w.mols.mol2.m -relief ridge -bd 2
-  label $w.mols.mol2.m.title -text "Molecules:"
+  labelframe $w.mols.mol2.m -relief ridge -bd 2 -text "Molecules"
   radiobutton $w.mols.mol2.m.all -text "All"    -variable [namespace current]::mol2_def -value "all"
   radiobutton $w.mols.mol2.m.top -text "Top"    -variable [namespace current]::mol2_def -value "top"
   radiobutton $w.mols.mol2.m.act -text "Active" -variable [namespace current]::mol2_def -value "act"
@@ -262,15 +249,13 @@ proc itrajcomp::init {} {
   entry $w.mols.mol2.m.ids.list -width 5 -textvariable [namespace current]::mol2_m_list
 
   pack $w.mols.mol2.m -side left
-  pack $w.mols.mol2.m.title -side top
   pack $w.mols.mol2.m.all $w.mols.mol2.m.top $w.mols.mol2.m.act $w.mols.mol2.m.ids -side top -anchor w 
   pack $w.mols.mol2.m.ids.r $w.mols.mol2.m.ids.list -side left
   #--
   
   # f2
   #--
-  frame $w.mols.mol2.f -relief ridge -bd 2
-  label $w.mols.mol2.f.title -text "Frames:"
+  labelframe $w.mols.mol2.f -relief ridge -bd 2 -text "Frames"
   radiobutton $w.mols.mol2.f.all -text "All"     -variable [namespace current]::frame2_def -value "all"
   radiobutton $w.mols.mol2.f.top -text "Current" -variable [namespace current]::frame2_def -value "cur"
   frame $w.mols.mol2.f.ids
@@ -281,7 +266,6 @@ proc itrajcomp::init {} {
   entry $w.mols.mol2.f.skip.e -width 3 -textvariable [namespace current]::skip2
 
   pack $w.mols.mol2.f -side left -anchor n -expand yes -fill x
-  pack $w.mols.mol2.f.title -side top
   pack $w.mols.mol2.f.all $w.mols.mol2.f.top -side top -anchor w 
   pack $w.mols.mol2.f.ids -side top -anchor w -expand yes -fill x
   pack $w.mols.mol2.f.skip -side top -anchor w 
@@ -293,7 +277,7 @@ proc itrajcomp::init {} {
  
   # Calculation options
   #--
-  frame $w.calc -relief ridge -bd 4
+  labelframe $w.calc -relief ridge -bd 4 -text "Calculation"
   pack $w.calc -side left -expand yes -fill x
 
   button $w.calc.new -text "New\nobject" -command "[namespace current]::CreateObject"
@@ -301,16 +285,15 @@ proc itrajcomp::init {} {
 
   frame $w.calc.u
   pack $w.calc.u -side top -anchor nw
-  label $w.calc.u.label -text "Calculation:"
 
-  radiobutton $w.calc.u.rmsd     -text "Rmsd"     -variable [namespace current]::calctype -value "rmsd"      -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.u.rmsd     -text "Rmsd"     -variable [namespace current]::calctype -value "rmsd"     -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.covar    -text "Covar"    -variable [namespace current]::calctype -value "covar"    -command [namespace current]::UpdateGUI
+  radiobutton $w.calc.u.dist     -text "Dist"     -variable [namespace current]::calctype -value "dist"     -command [namespace current]::UpdateGUI
 #  radiobutton $w.calc.u.relrms   -text "RelRms"   -variable [namespace current]::calctype -value "relrms"   -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.contacts -text "Contacts" -variable [namespace current]::calctype -value "contacts" -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.hbonds   -text "Hbonds"   -variable [namespace current]::calctype -value "hbonds"   -command [namespace current]::UpdateGUI
   radiobutton $w.calc.u.labels   -text "Labels"   -variable [namespace current]::calctype -value "labels"   -command "[namespace current]::UpdateGUI; [namespace current]::UpdateLabels"
-  pack $w.calc.u.label $w.calc.u.rmsd -side left
-  pack $w.calc.u.covar -side left
+  pack $w.calc.u.rmsd $w.calc.u.covar $w.calc.u.dist -side left
 # pack $w.calc.u.relrms -side left
   pack $w.calc.u.contacts $w.calc.u.hbonds $w.calc.u.labels -side left
 
@@ -433,6 +416,7 @@ proc itrajcomp::UpdateGUI {} {
     rmsd {
       $w.calc.d.align config -state normal
     }
+    dist -
     covar {
       [namespace current]::UpdateSel "disable"
       $w.calc.d.byres config -state normal
@@ -467,7 +451,7 @@ proc itrajcomp::UpdateGUI {} {
 proc itrajcomp::UpdateSel {state} {
   variable w
   foreach widget [[namespace current]::wlist $w.mols.mol2] {
-    if {[winfo class $widget] eq "Frame"} {
+    if {[winfo class $widget] eq "Frame" || [winfo class $widget] eq "Labelframe" } {
       continue
     }
     $widget config -state $state
@@ -602,6 +586,7 @@ proc itrajcomp::CreateObject {} {
       lappend defaults cutoff $cutoff
       lappend defaults reltype $reltype
     }
+    dist -
     covar {
       lappend defaults byres $byres normalize $normalize
     }
@@ -757,6 +742,7 @@ proc itrajcomp::loadData {file format} {
   set defaults [array get keys]
   lappend defaults rep_sel1 "all"
   switch $keys(type) {
+    dist -
     covar {
       lappend defaults format_data "%8.4f"
       lappend defaults format_key "%3d %3s"
@@ -837,3 +823,17 @@ proc itrajcomp::loadData_tab {fid} {
   }
   return $data
 }
+
+
+# Source rest of files
+source [file join $env(ITRAJCOMPDIR) rmsd.tcl]
+source [file join $env(ITRAJCOMPDIR) utils.tcl]
+source [file join $env(ITRAJCOMPDIR) object.tcl]
+source [file join $env(ITRAJCOMPDIR) save.tcl]
+source [file join $env(ITRAJCOMPDIR) contacts.tcl]
+source [file join $env(ITRAJCOMPDIR) hbonds.tcl]
+source [file join $env(ITRAJCOMPDIR) gui.tcl]
+source [file join $env(ITRAJCOMPDIR) clustering.tcl]
+source [file join $env(ITRAJCOMPDIR) labels.tcl]
+source [file join $env(ITRAJCOMPDIR) covar.tcl]
+source [file join $env(ITRAJCOMPDIR) dist.tcl]

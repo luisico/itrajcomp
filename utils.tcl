@@ -27,8 +27,6 @@
 #    Utility functions.
 
 
-package provide itrajcomp 1.0
-
 proc itrajcomp::AddRep1 {i j sel style color} {
   variable w
   mol rep $style

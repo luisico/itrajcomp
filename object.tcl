@@ -27,8 +27,6 @@
 #    Definition of the itrajcomp object and main methods.
 
 
-package provide itrajcomp 1.0
-
 namespace eval itrajcomp {
 }
 

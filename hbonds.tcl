@@ -27,8 +27,6 @@
 #    Functions to calculate hydrogen bonds between selections.
 
 
-package provide itrajcomp 1.0
-
 proc itrajcomp::hbonds { self } {
 
   # Access object variables

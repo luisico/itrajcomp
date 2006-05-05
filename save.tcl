@@ -27,8 +27,6 @@
 #    Functions to save the data to external files.
 
 
-package provide itrajcomp 1.0
-
 proc itrajcomp::SaveDataBrowse {self {format "tab"}} {
   set typeList {
     {"Data Files" ".dat .txt .out"}

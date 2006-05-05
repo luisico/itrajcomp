@@ -8,5 +8,4 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded itrajcomp 1.0 [list source [file join $dir maingui.tcl]]\n[list source [file join $dir rmsd.tcl]]\n[list source [file join $dir utils.tcl]]\n[list source [file join $dir object.tcl]]\n[list source [file join $dir save.tcl]]\n[list source [file join $dir contacts.tcl]]\n[list source [file join $dir hbonds.tcl]]\n[list source [file join $dir gui.tcl]]\n[list source [file join $dir clustering.tcl]]\n[list source [file join $dir labels.tcl]]\n[list source [file join $dir covar.tcl]]
-#\n[list source [file join $dir relrms.tcl]]
+package ifneeded itrajcomp 1.0 "set env(ITRAJCOMPDIR) [list $dir]; [list source [file join $dir maingui.tcl]]"

@@ -27,8 +27,6 @@
 #    GUI for iTrajComp objects.
 
 
-package provide itrajcomp 1.0
-
 proc itrajcomp::NewPlot {self} {
   namespace eval [namespace current]::${self}:: {
 
@@ -104,16 +102,14 @@ proc itrajcomp::NewPlot {self} {
     pack $p.menubar.help -side right
 
     # Title
-    frame $p.title
+    labelframe $p.title -relief ridge -bd 2 -text "Title"
     pack $p.title -side top -fill x -expand y
 
-    label $p.title.lab -text "Title:"
-    pack $p.title.lab -side left
     entry $p.title.title -textvariable [namespace current]::title -relief flat
     pack $p.title.title -side left -fill x -expand y
 
     # Main area
-    frame $p.u -relief raised -bd 2
+    labelframe $p.u -relief ridge -bd 2 -text "Graph"
     frame $p.l
     pack $p.u -side top -expand yes -fill both -pady 10
     pack $p.l -side bottom -anchor w
@@ -206,21 +202,16 @@ proc itrajcomp::NewPlot {self} {
     pack $p.u.r.clear -side bottom
 
     # Zoom
-    frame $p.u.r.zoom  -relief ridge -bd 2
+    labelframe $p.u.r.zoom  -relief ridge -bd 2 -text "Zoom"
     pack $p.u.r.zoom -side bottom
-
-    label $p.u.r.zoom.label -text "Zoom"
     button $p.u.r.zoom.incr -text "+" -command "[namespace parent]::Zoom $self 1"
     entry $p.u.r.zoom.val -width 2 -textvariable [namespace current]::grid
     button $p.u.r.zoom.decr -text "-" -command "[namespace parent]::Zoom $self -1"
-    pack $p.u.r.zoom.label $p.u.r.zoom.incr $p.u.r.zoom.val $p.u.r.zoom.decr
+    pack $p.u.r.zoom.incr $p.u.r.zoom.val $p.u.r.zoom.decr
     
     # Calculation info
-    frame $p.l.l.info -relief ridge -bd 4
+    labelframe $p.l.l.info -relief ridge -bd 4 -text "$type selections"
     pack $p.l.l.info -side top -expand yes -fill x 
-
-    label $p.l.l.info.type -text "$type" -font [list Helvetica 8 bold]
-    pack $p.l.l.info.type -side left
 
     frame $p.l.l.info.sel
     pack $p.l.l.info.sel -side left
@@ -249,10 +240,10 @@ proc itrajcomp::NewPlot {self} {
     }
     
     # Display selection
-    frame $p.l.l.rep -relief ridge -bd 4
+    labelframe $p.l.l.rep -relief ridge -bd 4 -text "Representation"
     pack $p.l.l.rep -side top -expand yes -fill x 
 
-    button $p.l.l.rep.but -text "Update\nRepresen-\ntation" -font [list Helvetica 8] -command "[namespace parent]::UpdateSelection $self"
+    button $p.l.l.rep.but -text "Update" -font [list Helvetica 8] -command "[namespace parent]::UpdateSelection $self"
     pack $p.l.l.rep.but -side left
 
     foreach x [list 1] {
@@ -306,13 +297,20 @@ proc itrajcomp::NewPlot {self} {
 #       pack $p.l.l.cluster.rthres_label $p.l.l.cluster.rthres $p.l.l.cluster.ncrit_label $p.l.l.cluster.ncrit $p.l.l.cluster.graphics $p.l.l.cluster.bt -side left 
 #     }
     
-    if {$type eq "covar"} {
-      [namespace parent]::Graph2 $self
-    } else {
-      [namespace parent]::Graph $self
+    switch $type {
+      rmsd -
+      contacts -
+      hbonds -
+      labels {
+	[namespace parent]::Graph $self
+      }
+      dist -
+      covar {
+	[namespace parent]::Graph2 $self
+      }
     }
     [namespace parent]::Zoom $self -5
-
+    
   }
 }
 

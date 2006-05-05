@@ -27,8 +27,6 @@
 #    Functions to calculate rmsd.
 
 
-package provide itrajcomp 1.0
-
 proc itrajcomp::rmsd { self } {
   
   # Access object variables

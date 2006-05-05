@@ -27,8 +27,6 @@
 #    Functions to calculate contacts between atoms.
 
 
-package provide itrajcomp 1.0
-
 proc itrajcomp::contacts { self } {
     
   # Access object variables

@@ -1,8 +1,31 @@
+#
+#         iTrajComp v1.0
+#
+# interactive Trajectory Comparison
+#
+# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+
+# Author
+# ------
+#      Luis Gracia, PhD
+#      Department of Physiology & Biophysics
+#      Weill Medical College of Cornell University
+#      1300 York Avenue, Box 75
+#      New York, NY 10021
+#      lug2002@med.cornell.edu
+
+# Description
+# -----------
+# 
+
+# Documentation
+# ------------
+#      The documentation can be found in the README.txt file and
+#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+
 # covar.tcl
 #    Functions to calculate the covariance matrix.
 
-
-package provide itrajcomp 1.0
 
 proc itrajcomp::covar { self } {
     
