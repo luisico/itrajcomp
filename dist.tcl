@@ -24,7 +24,6 @@ proc itrajcomp::dist { self } {
   }
   set format_data "%8.4f"
   set format_key  "%3d %3s"
-  set normalize "none"
   if {$normalize == "none"} {
     set format_scale "%4.1f"
   } else {
@@ -39,20 +38,39 @@ proc itrajcomp::dist { self } {
     return -code return
   }
 
-  # Get coordinates for all molecules and frames
-  foreach i $mol_all {
-    set s1 [atomselect $i $sel1]
-    #puts "DEBUG: mol $i"
-    foreach j [lindex $frame1 [lsearch -exact $mol_all $i]] {
-      $s1 frame $j
-      #puts "DEBUG: frame $j"
-      set coor($i:$j) [$s1 get {x y z}]
+  if {$byres} {
+    set regions [lsort -unique -integer [[atomselect [lindex $mol_all 0] $sel1] get residue]]
+    set names {}
+    foreach r $regions {
+      lappend names [lindex [[atomselect [lindex $mol_all 0] "residue $r"] get resname] 0]
+      
+      # Get coordinates for all molecules and frames
+      foreach i $mol_all {
+	set s1 [atomselect $i "residue $r and ($sel1)"]
+	#puts "DEBUG: mol $i"
+	foreach j [lindex $frame1 [lsearch -exact $mol_all $i]] {
+	  $s1 frame $j
+	  #puts "DEBUG: frame $j"
+	  lappend coor($i:$j) [measure center $s1]
+	}
+      }
+    }
+  } else {
+    set regions [[atomselect [lindex $mol_all 0] $sel1] get index]
+    set names [[atomselect [lindex $mol_all 0] $sel1] get name]
+
+    # Get coordinates for all molecules and frames
+    foreach i $mol_all {
+      set s1 [atomselect $i $sel1]
+      #puts "DEBUG: mol $i"
+      foreach j [lindex $frame1 [lsearch -exact $mol_all $i]] {
+	$s1 frame $j
+	#puts "DEBUG: frame $j"
+	set coor($i:$j) [$s1 get {x y z}]
+      }
     }
   }
-  
-  set regions [[atomselect [lindex $mol_all 0] $sel1] get index]
-  set names [[atomselect [lindex $mol_all 0] $sel1] get name]
-  
+
   set nreg [llength $regions]
   # Calculate max numbers of iterations
   set maxkeys [expr ($nreg*$nreg+$nreg)/2]
@@ -103,40 +121,20 @@ proc itrajcomp::dist { self } {
   
   set keys [lsort -dictionary [array names data]]
   
-  switch $normalize {
-    minmax {
-      set minmax [expr $max - $min]
-      foreach key $keys {
-	set data($key) [expr ($data($key)-$min) / $minmax]
-      }
-      set min 0
-      set max 1
-    }
-    exp {
-      foreach key $keys {
-	set data($key) [expr 1 - exp(-$data($key))]
-      }
-      set min 0
-      set max 1
-    }
-    expmin {
-      foreach key $keys {
-	set data($key) [expr 1 - exp(-($data($key)-$min))]
-      }
-      set min 0
-      set max 1
-    }
-  }
-  foreach key $keys {
-    lappend vals $data($key)
-  }
-  
   # Set object variables
   foreach v [[namespace current]::Objvars $self] {
     set ${self}::$v  [set $v]
     #puts "$v --->\t[set ${self}::$v]"
   }
   array set ${self}::data [array get data]
+
+  if {$normalize != "none"} {
+    [namespace current]::Normalize $normalize $self
+  }
+
+  foreach key $keys {
+    lappend vals [set ${self}::data($key)]
+  }
 
   return 0
 }

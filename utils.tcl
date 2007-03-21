@@ -332,12 +332,12 @@ proc itrajcomp::ParseKey {self key} {
     }
     atom {
       set m [lindex [set ${self}::mol_all] 0]
-      set f 0:[expr [molinfo $m get numframes]-1]
+      set f [join [set ${self}::frame1] " "]
       set s "index [lindex $indices 0]"
     }
     residue {
       set m [lindex [set ${self}::mol_all] 0]
-      set f 0:[expr [molinfo $m get numframes]-1]
+      set f [join [set ${self}::frame1] " "]
       set p [set ${self}::p]
       set extra [[namespace current]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
       set s "residue [lindex $indices 0] and ($extra)"
@@ -346,4 +346,39 @@ proc itrajcomp::ParseKey {self key} {
   }
 
   return [list $m $f $s]
+}
+
+
+
+proc itrajcomp::Normalize {{type "expmin"} self} {
+  
+  array set data [array get ${self}::data]
+  set keys [array names data]
+  set min [set ${self}::min]
+  set max [set ${self}::max]
+  
+  switch $type {
+    minmax {
+      set minmax [expr $max - $min]
+      foreach key $keys {
+	set data($key) [expr ($data($key)-$min) / $minmax]
+      }
+    }
+    exp {
+      foreach key $keys {
+	set data($key) [expr 1 - exp(-$data($key))]
+      }
+    }
+    expmin {
+      foreach key $keys {
+	set data($key) [expr 1 - exp(-($data($key)-$min))]
+      }
+    }
+  }
+
+  set ${self}::min 0
+  set ${self}::max 1
+  array set ${self}::data [array get data]
+
+  return
 }

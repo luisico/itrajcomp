@@ -196,40 +196,20 @@ proc itrajcomp::covar { self } {
   
   set keys [lsort -dictionary [array names data]]
   
-  switch $normalize {
-    minmax {
-      set minmax [expr $max - $min]
-      foreach key $keys {
-	set data($key) [expr ($data($key)-$min) / $minmax]
-      }
-      set min 0
-      set max 1
-    }
-    exp {
-      foreach key $keys {
-	set data($key) [expr 1 - exp(-$data($key))]
-      }
-      set min 0
-      set max 1
-    }
-    expmin {
-      foreach key $keys {
-	set data($key) [expr 1 - exp(-($data($key)-$min))]
-      }
-      set min 0
-      set max 1
-    }
-  }
-  foreach key $keys {
-    lappend vals $data($key)
-  }
-  
   # Set object variables
   foreach v [[namespace current]::Objvars $self] {
     set ${self}::$v  [set $v]
     #puts "$v --->\t[set ${self}::$v]"
   }
   array set ${self}::data [array get data]
+
+  if {$normalize != "none"} {
+    [namespace current]::Normalize $normalize $self
+  }
+
+  foreach key $keys {
+    lappend vals [set ${self}::data($key)]
+  }
 
   return 0
 }

@@ -103,10 +103,10 @@ proc itrajcomp::NewPlot {self} {
 
     # Title
     labelframe $p.title -relief ridge -bd 2 -text "Title"
-    pack $p.title -side top -fill x -expand y
+    pack $p.title -side top -fill x
 
     entry $p.title.title -textvariable [namespace current]::title -relief flat
-    pack $p.title.title -side left -fill x -expand y
+    pack $p.title.title -side left -fill x
 
     # Main area
     labelframe $p.u -relief ridge -bd 2 -text "Graph"
@@ -734,6 +734,9 @@ proc itrajcomp::MapCluster2 {self key {mod1 0} {mod2 0} } {
   foreach mykey [set ${self}::keys] {
     set indices [split $mykey ,]
     lassign $indices key1 key2
+    if {$key1 eq $key2} {
+      continue
+    }
     if {!$mod1 || $mod1 == 1} {
       if {$data($mykey) >= $val} {
 	set color black
