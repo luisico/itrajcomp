@@ -92,7 +92,7 @@ proc itrajcomp::init {} {
   variable angle 30.0
   variable reltype 1
   variable byres 1
-  variable normalize "expmin"
+  variable normalize "none"
 
   variable labstype "Dihedrals"
   variable labsnum_array
