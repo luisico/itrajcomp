@@ -61,7 +61,6 @@ proc itrajcomp::init {} {
   # Initialize main window
   variable w
   variable open_format_list
-  variable save_format_list
 
   # If already initialized, just turn on
   if { [winfo exists .itrajcomp] } {
@@ -95,11 +94,11 @@ proc itrajcomp::init {} {
   variable selmod2 "no"
 
   variable samemols 0
-  variable diagonal 0
 
   variable calctype "rmsd"
   variable align 0
   
+  variable diagonal 0
   variable cutoff 5.0
   variable angle 30.0
   variable reltype 1
@@ -113,7 +112,7 @@ proc itrajcomp::init {} {
   # Menu
   #--
   frame $w.menubar -relief raised -bd 2
-  pack $w.menubar -padx 1 -fill x
+  pack $w.menubar -side top -padx 1 -fill x
 
   menubutton $w.menubar.file -text "File" -underline 0 -menu $w.menubar.file.menu
   menu $w.menubar.file.menu -tearoff no
@@ -155,185 +154,225 @@ proc itrajcomp::init {} {
   pack $w.status.label -side left
   pack $w.status.info -side left -fill x -expand yes
 
+  # Tabs
+  #--
+  frame $w.tabcontent
+  pack $w.tabcontent -side bottom -padx 1 -fill x
+  pack [buttonbar::create $w.tabs $w.tabcontent] -side top -fill x
+
   # Frame for molecule/frame selection
   #--
-  frame $w.mols
-  pack $w.mols -side top -expand yes -fill x
-  
-  frame $w.mols.opts
-  pack $w.mols.opts -side top -expand yes -fill x
-
-  checkbutton $w.mols.opts.same -text "Same selections" -variable [namespace current]::samemols -command [namespace current]::UpdateGUI
-  pack $w.mols.opts.same -side left
-
-  checkbutton $w.mols.opts.diagonal -text "Only diagonal" -variable [namespace current]::diagonal
-  pack $w.mols.opts.diagonal -side left
+  variable tab_sel [buttonbar::add $w.tabs sel]
+  buttonbar::name $w.tabs sel "Selection"
 
   # SET1
   #--
-  labelframe $w.mols.mol1 -relief ridge -bd 4 -text "Set 1"
-  pack $w.mols.mol1 -side left -anchor nw -expand yes -fill x
+  labelframe $tab_sel.mol1 -relief ridge -bd 4 -text "Set 1"
+  pack $tab_sel.mol1 -side top -anchor nw -expand yes -fill x
 
-  # atom selection 1
+  # atom1
   #--
-  labelframe $w.mols.mol1.a -relief ridge -bd 2 -text "Atom selection"
-  text $w.mols.mol1.a.sel -exportselection yes -height 5 -width 25 -wrap word
-  $w.mols.mol1.a.sel insert end "all"
-  radiobutton $w.mols.mol1.a.no -text "All"      -variable [namespace current]::selmod1 -value "no"
-  radiobutton $w.mols.mol1.a.bb -text "Backbone"  -variable [namespace current]::selmod1 -value "bb"
-  radiobutton $w.mols.mol1.a.tr -text "Trace"     -variable [namespace current]::selmod1 -value "tr"
-  radiobutton $w.mols.mol1.a.sc -text "Sidechain" -variable [namespace current]::selmod1 -value "sc"
-
-  pack $w.mols.mol1.a -side bottom -expand yes -fill x
-  pack $w.mols.mol1.a.sel -side left -expand yes -fill x
-  pack $w.mols.mol1.a.no $w.mols.mol1.a.bb $w.mols.mol1.a.tr $w.mols.mol1.a.sc -side top -anchor w
+  labelframe $tab_sel.mol1.a -relief ridge -bd 2 -text "Atom selection"
+  text $tab_sel.mol1.a.sel -exportselection yes -height 5 -width 25 -wrap word
+  $tab_sel.mol1.a.sel insert end "all"
+  pack $tab_sel.mol1.a -side top -expand yes -fill x
+  pack $tab_sel.mol1.a.sel -side left -expand yes -fill x
 
   # mol1
   #--
-  labelframe $w.mols.mol1.m -relief ridge -bd 2 -text "Molecules"
-  radiobutton $w.mols.mol1.m.all -text "All"    -variable [namespace current]::mol1_def -value "all"
-  radiobutton $w.mols.mol1.m.top -text "Top"    -variable [namespace current]::mol1_def -value "top"
-  radiobutton $w.mols.mol1.m.act -text "Active" -variable [namespace current]::mol1_def -value "act"
-  frame $w.mols.mol1.m.ids
-  radiobutton $w.mols.mol1.m.ids.r -text "IDs:" -variable [namespace current]::mol1_def -value "id"
-  entry $w.mols.mol1.m.ids.list -width 5 -textvariable [namespace current]::mol1_m_list
+  labelframe $tab_sel.mol1.m -relief ridge -bd 2 -text "Molecules"
+  radiobutton $tab_sel.mol1.m.all -text "All"    -variable [namespace current]::mol1_def -value "all"
+  radiobutton $tab_sel.mol1.m.top -text "Top"    -variable [namespace current]::mol1_def -value "top"
+  radiobutton $tab_sel.mol1.m.act -text "Active" -variable [namespace current]::mol1_def -value "act"
+  frame $tab_sel.mol1.m.ids
+  radiobutton $tab_sel.mol1.m.ids.r -text "IDs:" -variable [namespace current]::mol1_def -value "id"
+  entry $tab_sel.mol1.m.ids.list -width 10 -textvariable [namespace current]::mol1_m_list
 
-  pack $w.mols.mol1.m -side left
-  pack $w.mols.mol1.m.all $w.mols.mol1.m.top $w.mols.mol1.m.act $w.mols.mol1.m.ids -side top -anchor w 
-  pack $w.mols.mol1.m.ids.r $w.mols.mol1.m.ids.list -side left
+  pack $tab_sel.mol1.m -side left
+  pack $tab_sel.mol1.m.all $tab_sel.mol1.m.top $tab_sel.mol1.m.act $tab_sel.mol1.m.ids -side top -anchor w 
+  pack $tab_sel.mol1.m.ids.r $tab_sel.mol1.m.ids.list -side left
   
   # frame1
   #--
-  labelframe $w.mols.mol1.f -relief ridge -bd 2 -text "Frames"
-  radiobutton $w.mols.mol1.f.all -text "All"     -variable [namespace current]::frame1_def -value "all"
-  radiobutton $w.mols.mol1.f.top -text "Current" -variable [namespace current]::frame1_def -value "cur"
-  frame $w.mols.mol1.f.ids
-  radiobutton $w.mols.mol1.f.ids.r -text "IDs:"  -variable [namespace current]::frame1_def -value "id"
-  entry $w.mols.mol1.f.ids.list -width 5 -textvariable [namespace current]::mol1_f_list
-  frame $w.mols.mol1.f.skip
-  label $w.mols.mol1.f.skip.l -text "Skip:"
-  entry $w.mols.mol1.f.skip.e -width 3 -textvariable [namespace current]::skip1
+  labelframe $tab_sel.mol1.f -relief ridge -bd 2 -text "Frames"
+  radiobutton $tab_sel.mol1.f.all -text "All"     -variable [namespace current]::frame1_def -value "all"
+  radiobutton $tab_sel.mol1.f.top -text "Current" -variable [namespace current]::frame1_def -value "cur"
+  frame $tab_sel.mol1.f.ids
+  radiobutton $tab_sel.mol1.f.ids.r -text "IDs:"  -variable [namespace current]::frame1_def -value "id"
+  entry $tab_sel.mol1.f.ids.list -width 5 -textvariable [namespace current]::mol1_f_list
+  frame $tab_sel.mol1.f.skip
+  label $tab_sel.mol1.f.skip.l -text "Skip:"
+  entry $tab_sel.mol1.f.skip.e -width 3 -textvariable [namespace current]::skip1
 
-  pack $w.mols.mol1.f -side left -anchor n -expand yes -fill x
-  pack $w.mols.mol1.f.all $w.mols.mol1.f.top -side top -anchor w 
-  pack $w.mols.mol1.f.ids -side top -anchor w -expand yes -fill x
-  pack $w.mols.mol1.f.skip -side top -anchor w 
-  pack $w.mols.mol1.f.ids.r -side left
-  pack $w.mols.mol1.f.ids.list -side left -expand yes -fill x
-  pack $w.mols.mol1.f.skip.l $w.mols.mol1.f.skip.e -side left
+  pack $tab_sel.mol1.f -side left -anchor n -expand yes -fill x
+  pack $tab_sel.mol1.f.all $tab_sel.mol1.f.top -side top -anchor w 
+  pack $tab_sel.mol1.f.ids -side top -anchor w -expand yes -fill x
+  pack $tab_sel.mol1.f.skip -side top -anchor w -padx 20
+  pack $tab_sel.mol1.f.ids.r -side left
+  pack $tab_sel.mol1.f.ids.list -side left -expand yes -fill x
+  pack $tab_sel.mol1.f.skip.l $tab_sel.mol1.f.skip.e -side left
+
+  # opt1
+  #--
+  labelframe $tab_sel.mol1.opt -relief ridge -bd 2 -text "Modifiers"
+  radiobutton $tab_sel.mol1.opt.no -text "All atoms" -variable [namespace current]::selmod1 -value "no"
+  radiobutton $tab_sel.mol1.opt.bb -text "Backbone"  -variable [namespace current]::selmod1 -value "bb"
+  radiobutton $tab_sel.mol1.opt.tr -text "Trace"     -variable [namespace current]::selmod1 -value "tr"
+  radiobutton $tab_sel.mol1.opt.sc -text "Sidechain" -variable [namespace current]::selmod1 -value "sc"
+  pack $tab_sel.mol1.opt -side right
+  pack $tab_sel.mol1.opt.no $tab_sel.mol1.opt.bb $tab_sel.mol1.opt.tr $tab_sel.mol1.opt.sc -side top -anchor w
+
+  # Same selections
+  #--
+  checkbutton $tab_sel.same -text "Same selections" -variable [namespace current]::samemols -command [namespace current]::UpdateTabSel
+  pack $tab_sel.same -side top
 
   # SET2
   #--
-  labelframe $w.mols.mol2 -relief ridge -bd 4 -text "Set 2"
-  pack $w.mols.mol2 -expand yes -fill x -side top -anchor n
+  labelframe $tab_sel.mol2 -relief ridge -bd 4 -text "Set 2"
+  pack $tab_sel.mol2 -side top -anchor n -expand yes -fill x
 
-  # atom selection 2
+  # atom2
   #--
-  labelframe $w.mols.mol2.a -relief ridge -bd 2 -text "Atom selection:"
-  text $w.mols.mol2.a.sel -exportselection yes -height 5 -width 25 -wrap word
-  $w.mols.mol2.a.sel insert end "all"
-  radiobutton $w.mols.mol2.a.no -text "All"      -variable [namespace current]::selmod2 -value "no"
-  radiobutton $w.mols.mol2.a.bb -text "Backbone"  -variable [namespace current]::selmod2 -value "bb"
-  radiobutton $w.mols.mol2.a.tr -text "Trace"     -variable [namespace current]::selmod2 -value "tr"
-  radiobutton $w.mols.mol2.a.sc -text "Sidechain" -variable [namespace current]::selmod2 -value "sc"
-
-  pack $w.mols.mol2.a -side bottom -expand yes -fill x
-  pack $w.mols.mol2.a.sel -side left -expand yes -fill x
-  pack $w.mols.mol2.a.no $w.mols.mol2.a.bb $w.mols.mol2.a.tr $w.mols.mol2.a.sc -side top -anchor w
+  labelframe $tab_sel.mol2.a -relief ridge -bd 2 -text "Atom selection"
+  text $tab_sel.mol2.a.sel -exportselection yes -height 5 -width 25 -wrap word
+  $tab_sel.mol2.a.sel insert end "all"
+  pack $tab_sel.mol2.a -side top -expand yes -fill x
+  pack $tab_sel.mol2.a.sel -side left -expand yes -fill x
 
   # mol2
   #--
-  labelframe $w.mols.mol2.m -relief ridge -bd 2 -text "Molecules"
-  radiobutton $w.mols.mol2.m.all -text "All"    -variable [namespace current]::mol2_def -value "all"
-  radiobutton $w.mols.mol2.m.top -text "Top"    -variable [namespace current]::mol2_def -value "top"
-  radiobutton $w.mols.mol2.m.act -text "Active" -variable [namespace current]::mol2_def -value "act"
-  frame $w.mols.mol2.m.ids
-  radiobutton $w.mols.mol2.m.ids.r -text "IDs:" -variable [namespace current]::mol2_def -value "id"
-  entry $w.mols.mol2.m.ids.list -width 5 -textvariable [namespace current]::mol2_m_list
+  labelframe $tab_sel.mol2.m -relief ridge -bd 2 -text "Molecules"
+  radiobutton $tab_sel.mol2.m.all -text "All"    -variable [namespace current]::mol2_def -value "all"
+  radiobutton $tab_sel.mol2.m.top -text "Top"    -variable [namespace current]::mol2_def -value "top"
+  radiobutton $tab_sel.mol2.m.act -text "Active" -variable [namespace current]::mol2_def -value "act"
+  frame $tab_sel.mol2.m.ids
+  radiobutton $tab_sel.mol2.m.ids.r -text "IDs:" -variable [namespace current]::mol2_def -value "id"
+  entry $tab_sel.mol2.m.ids.list -width 10 -textvariable [namespace current]::mol2_m_list
 
-  pack $w.mols.mol2.m -side left
-  pack $w.mols.mol2.m.all $w.mols.mol2.m.top $w.mols.mol2.m.act $w.mols.mol2.m.ids -side top -anchor w 
-  pack $w.mols.mol2.m.ids.r $w.mols.mol2.m.ids.list -side left
+  pack $tab_sel.mol2.m -side left
+  pack $tab_sel.mol2.m.all $tab_sel.mol2.m.top $tab_sel.mol2.m.act $tab_sel.mol2.m.ids -side top -anchor w 
+  pack $tab_sel.mol2.m.ids.r $tab_sel.mol2.m.ids.list -side left
   
   # frame2
   #--
-  labelframe $w.mols.mol2.f -relief ridge -bd 2 -text "Frames"
-  radiobutton $w.mols.mol2.f.all -text "All"     -variable [namespace current]::frame2_def -value "all"
-  radiobutton $w.mols.mol2.f.top -text "Current" -variable [namespace current]::frame2_def -value "cur"
-  frame $w.mols.mol2.f.ids
-  radiobutton $w.mols.mol2.f.ids.r -text "IDs:"  -variable [namespace current]::frame2_def -value "id"
-  entry $w.mols.mol2.f.ids.list -width 5 -textvariable [namespace current]::mol2_f_list
-  frame $w.mols.mol2.f.skip
-  label $w.mols.mol2.f.skip.l -text "Skip:"
-  entry $w.mols.mol2.f.skip.e -width 3 -textvariable [namespace current]::skip2
+  labelframe $tab_sel.mol2.f -relief ridge -bd 2 -text "Frames"
+  radiobutton $tab_sel.mol2.f.all -text "All"     -variable [namespace current]::frame2_def -value "all"
+  radiobutton $tab_sel.mol2.f.top -text "Current" -variable [namespace current]::frame2_def -value "cur"
+  frame $tab_sel.mol2.f.ids
+  radiobutton $tab_sel.mol2.f.ids.r -text "IDs:"  -variable [namespace current]::frame2_def -value "id"
+  entry $tab_sel.mol2.f.ids.list -width 5 -textvariable [namespace current]::mol2_f_list
+  frame $tab_sel.mol2.f.skip
+  label $tab_sel.mol2.f.skip.l -text "Skip:"
+  entry $tab_sel.mol2.f.skip.e -width 3 -textvariable [namespace current]::skip2
 
-  pack $w.mols.mol2.f -side left -anchor n -expand yes -fill x
-  pack $w.mols.mol2.f.all $w.mols.mol2.f.top -side top -anchor w 
-  pack $w.mols.mol2.f.ids -side top -anchor w -expand yes -fill x
-  pack $w.mols.mol2.f.skip -side top -anchor w 
-  pack $w.mols.mol2.f.ids.r -side left
-  pack $w.mols.mol2.f.ids.list -side left -expand yes -fill x
-  pack $w.mols.mol2.f.skip.l $w.mols.mol2.f.skip.e -side left
+  pack $tab_sel.mol2.f -side left -anchor n -expand yes -fill x
+  pack $tab_sel.mol2.f.all $tab_sel.mol2.f.top -side top -anchor w 
+  pack $tab_sel.mol2.f.ids -side top -anchor w -expand yes -fill x
+  pack $tab_sel.mol2.f.skip -side top -anchor w -padx 20
+  pack $tab_sel.mol2.f.ids.r -side left
+  pack $tab_sel.mol2.f.ids.list -side left -expand yes -fill x
+  pack $tab_sel.mol2.f.skip.l $tab_sel.mol2.f.skip.e -side left
 
-  # Calculation options
+  # opt2
   #--
-  labelframe $w.calc -relief ridge -bd 4 -text "Calculation"
-  pack $w.calc -side left -expand yes -fill x
+  labelframe $tab_sel.mol2.opt -relief ridge -bd 2 -text "Modifiers"
+  radiobutton $tab_sel.mol2.opt.no -text "All atoms" -variable [namespace current]::selmod1 -value "no"
+  radiobutton $tab_sel.mol2.opt.bb -text "Backbone"  -variable [namespace current]::selmod1 -value "bb"
+  radiobutton $tab_sel.mol2.opt.tr -text "Trace"     -variable [namespace current]::selmod1 -value "tr"
+  radiobutton $tab_sel.mol2.opt.sc -text "Sidechain" -variable [namespace current]::selmod1 -value "sc"
+  pack $tab_sel.mol2.opt -side right
+  pack $tab_sel.mol2.opt.no $tab_sel.mol2.opt.bb $tab_sel.mol2.opt.tr $tab_sel.mol2.opt.sc -side top -anchor w
 
-  button $w.calc.new -text "New\nobject" -command "[namespace current]::CreateObject"
-  pack $w.calc.new -side left
+  # Calculation Tab
+  #--
+  variable tab_calc [buttonbar::add $w.tabs calc]
+  buttonbar::name $w.tabs calc "Calculation"
 
-  frame $w.calc.u
-  pack $w.calc.u -side top -anchor nw
+  button $tab_calc.new -text "New object" -command "[namespace current]::CreateObject"
+  pack $tab_calc.new -side top
 
-  radiobutton $w.calc.u.rmsd     -text "Rmsd"     -variable [namespace current]::calctype -value "rmsd"     -command [namespace current]::UpdateGUI
-  radiobutton $w.calc.u.covar    -text "Covar"    -variable [namespace current]::calctype -value "covar"    -command [namespace current]::UpdateGUI
-  radiobutton $w.calc.u.dist     -text "Dist"     -variable [namespace current]::calctype -value "dist"     -command [namespace current]::UpdateGUI
-#  radiobutton $w.calc.u.relrms   -text "RelRms"   -variable [namespace current]::calctype -value "relrms"   -command [namespace current]::UpdateGUI
-  radiobutton $w.calc.u.contacts -text "Contacts" -variable [namespace current]::calctype -value "contacts" -command [namespace current]::UpdateGUI
-  radiobutton $w.calc.u.hbonds   -text "Hbonds"   -variable [namespace current]::calctype -value "hbonds"   -command [namespace current]::UpdateGUI
-  radiobutton $w.calc.u.labels   -text "Labels"   -variable [namespace current]::calctype -value "labels"   -command "[namespace current]::UpdateGUI; [namespace current]::UpdateLabels"
-  pack $w.calc.u.rmsd $w.calc.u.covar $w.calc.u.dist -side left
-# pack $w.calc.u.relrms -side left
-  pack $w.calc.u.contacts $w.calc.u.hbonds $w.calc.u.labels -side left
+  # type
+  # --
+  labelframe $tab_calc.type -relief ridge -bd 2 -text "Type"
+  pack $tab_calc.type -side top -anchor nw -expand yes -fill x
 
-  frame $w.calc.d
-  label $w.calc.d.label -text "Options:"
-  pack $w.calc.d -side left
-  checkbutton $w.calc.d.align -text "align" -variable [namespace current]::align
-
-  checkbutton $w.calc.d.byres -text "byres" -variable [namespace current]::byres
-  menubutton $w.calc.d.norm -text "Normalize" -menu $w.calc.d.norm.m -relief raised
-  menu $w.calc.d.norm.m
-  foreach entry [list none exp expmin minmax] {
-    $w.calc.d.norm.m add radiobutton -label $entry -variable [namespace current]::normalize -value $entry
+  grid columnconfigure $tab_calc.type 2 -weight 1
+  set row 1
+  foreach mytype {rmsd covar dist contacts hbonds} desc {"Root mean square deviation" "Covariance" "Distance" "Number of contacts" "Number of hydrogen bonds"} {
+    radiobutton $tab_calc.type.${mytype}_n -text $mytype -variable [namespace current]::calctype -value $mytype -command [namespace current]::UpdateTabCalc
+    label $tab_calc.type.${mytype}_d -text $desc
+    grid $tab_calc.type.${mytype}_n -row $row -column 1 -sticky nw
+    grid $tab_calc.type.${mytype}_d -row $row -column 2 -sticky nw
+    incr row
   }
+  set mytype "labels"
+  set desc  "VMD labels: distance, angles, dihedrals"
+  radiobutton $tab_calc.type.${mytype}_n -text $mytype -variable [namespace current]::calctype -value $mytype -command "[namespace current]::UpdateTabCalc; [namespace current]::UpdateLabels"
+  label $tab_calc.type.${mytype}_d -text $desc
+  grid $tab_calc.type.${mytype}_n -row $row -column 1 -sticky nw
+  grid $tab_calc.type.${mytype}_d -row $row -column 2 -sticky nw
 
-  label $w.calc.d.cutoff_l -text "Cutoff:"
-  entry $w.calc.d.cutoff -width 5 -textvariable [namespace current]::cutoff
-  label $w.calc.d.angle_l -text "Angle:"
-  entry $w.calc.d.angle -width 5 -textvariable [namespace current]::angle
-#  label $w.calc.d.reltype_l -text "Reltype:"
-#  entry $w.calc.d.reltype  -width 2 -textvariable [namespace current]::reltype
+  # options
+  #--
+  labelframe $tab_calc.opt -relief ridge -bd 2 -text "Options"
+  pack $tab_calc.opt -side top -anchor nw -expand yes -fill x
+
+  checkbutton $tab_calc.opt.diagonal -text "Only diagonal" -variable [namespace current]::diagonal
+  pack $tab_calc.opt.diagonal -side top -anchor nw
+
+  checkbutton $tab_calc.opt.align -text "align" -variable [namespace current]::align
+  pack $tab_calc.opt.align -side top -anchor nw
+
+  checkbutton $tab_calc.opt.byres -text "byres" -variable [namespace current]::byres
+  pack $tab_calc.opt.byres -side top -anchor nw
+
+  frame $tab_calc.opt.norm
+  pack $tab_calc.opt.norm -side top -anchor nw
   
-  #label $w.calc.d.labs_l -text "Labels:"
-  menubutton $w.calc.d.labs_t -text "Labels" -menu $w.calc.d.labs_t.m -relief raised
-  menu $w.calc.d.labs_t.m
-  foreach entry [list Bonds Angles Dihedrals] {
-    $w.calc.d.labs_t.m add radiobutton -label $entry -variable [namespace current]::label_type -value $entry -command "[namespace current]::UpdateLabels"
+  label $tab_calc.opt.norm.l -text "Normalization:"
+  pack $tab_calc.opt.norm.l -side left
+  foreach entry [list none exp expmin minmax] {
+    radiobutton $tab_calc.opt.norm.$entry -text $entry -variable [namespace current]::normalize -value $entry
+    pack $tab_calc.opt.norm.$entry -side left
   }
-#  menubutton $w.calc.d.labs_n -text "Labels" -menu $w.calc.d.labs_n.m -textvariable [namespace current]::labsnum -relief raised
-  menubutton $w.calc.d.labs_n -text "Id" -menu $w.calc.d.labs_n.m -relief raised
-  menu $w.calc.d.labs_n.m
 
-  pack $w.calc.d.label $w.calc.d.align -side left
-  pack $w.calc.d.byres $w.calc.d.norm -side left
-  pack $w.calc.d.cutoff_l $w.calc.d.cutoff $w.calc.d.angle_l $w.calc.d.angle -side left
-#  pack $w.calc.d.reltype_l $w.calc.d.reltype -side left
-  #$w.calc.d.labs_l 
-  pack $w.calc.d.labs_t $w.calc.d.labs_n -side left
+  frame $tab_calc.opt.cutoff
+  pack $tab_calc.opt.cutoff -side top -anchor nw
+  label $tab_calc.opt.cutoff.l -text "Cutoff:"
+  entry $tab_calc.opt.cutoff.v -width 5 -textvariable [namespace current]::cutoff
+  pack $tab_calc.opt.cutoff.l $tab_calc.opt.cutoff.v -side left
 
-  [namespace current]::UpdateGUI
+  frame $tab_calc.opt.angle
+  pack $tab_calc.opt.angle -side top -anchor nw
+  label $tab_calc.opt.angle.l -text "Angle:"
+  entry $tab_calc.opt.angle.v -width 5 -textvariable [namespace current]::angle
+  pack $tab_calc.opt.angle.l $tab_calc.opt.angle.v -side left
+  
+  frame $tab_calc.opt.labs
+  pack $tab_calc.opt.labs -side top -anchor nw
+  label $tab_calc.opt.labs.l -text "Labels:"
+  pack $tab_calc.opt.labs.l -side left
+  foreach entry [list Bonds Angles Dihedrals] {
+    radiobutton $tab_calc.opt.labs.[string tolower $entry] -text $entry -variable [namespace current]::label_type -value $entry -command "[namespace current]::UpdateLabels"
+    pack $tab_calc.opt.labs.[string tolower $entry] -side left
+  }
+  menubutton $tab_calc.opt.labs.id -text "Id" -menu $tab_calc.opt.labs.id.m -relief raised
+  menu $tab_calc.opt.labs.id.m
+  pack $tab_calc.opt.labs.id -side left
+
+
+  # Results tab
+  #--
+  buttonbar::add $w.tabs res
+  buttonbar::name $w.tabs res "Results"
+
+
+  # Finalize
+  buttonbar::showframe $w.tabs calc
+  update idletasks
+  # needed? or updatelabels is enough?
+  [namespace current]::UpdateTabCalc
 }
 
 
@@ -342,7 +381,7 @@ proc itrajcomp::UpdateLabels {} {
   # Each label has the format: 'num_label (atom_label, atom_label,...)'
   #    * num_label is the label number
   #    * atom_label is $mol-$resname$resid-$name
-  variable w
+  variable tab_calc
   variable label_type
 
   # TODO: why hold two variables with the same info?
@@ -351,11 +390,11 @@ proc itrajcomp::UpdateLabels {} {
 
   set labels [label list $label_type]
   set n [llength $labels]
-  $w.calc.d.labs_n.m delete 0 end
+  $tab_calc.opt.labs.id.m delete 0 end
   # TODO: don't reset their status (try to keep them when swithing between label types in the gui)
   array unset labels_status_array
   if {$n > 0} {
-    $w.calc.d.labs_n config -state normal
+    $tab_calc.opt.labs.id config -state normal
     set nat [expr [llength [lindex $labels 0]] -2]
     for {set i 0} {$i < $n} {incr i} {
       set label "$i ("
@@ -372,7 +411,7 @@ proc itrajcomp::UpdateLabels {} {
 	}
       }
       append label ")"
-      $w.calc.d.labs_n.m add checkbutton -label $label -variable [namespace current]::labels_status_array($i) -command "[namespace current]::UpdateLabelStatus $i"
+      $tab_calc.opt.labs.id.m add checkbutton -label $label -variable [namespace current]::labels_status_array($i) -command "[namespace current]::UpdateLabelStatus $i"
     }
   }
 
@@ -394,76 +433,60 @@ proc itrajcomp::UpdateLabelStatus {i} {
 }
 
 
-proc itrajcomp::UpdateGUI {} {
-  # Refresh the GUI
-  variable w
+proc itrajcomp::UpdateTabSel {} {
+  # Refresh the tab for selections
+  # Switch Selection 2 on/off
   variable samemols
-  variable calctype
+  variable tab_sel
    
+  set state "normal"
   if {$samemols} {
     set state "disable"
-  } else {
-    set state "normal"
-  }
-  [namespace current]::SwitchSel2 $state
-
-  $w.calc.d.align     config -state disable
-  $w.calc.d.cutoff_l  config -state disable
-  $w.calc.d.cutoff    config -state disable
-  $w.calc.d.angle_l   config -state disable
-  $w.calc.d.angle     config -state disable
-#  $w.calc.d.reltype_l config -state disable
-#  $w.calc.d.reltype   config -state disable
-  $w.calc.d.byres     config -state disable
-  $w.calc.d.norm      config -state disable
-#  $w.calc.d.labs_l    config -state disable
-  $w.calc.d.labs_t    config -state disable
-  $w.calc.d.labs_n    config -state disable
-
-  switch $calctype {
-    rmsd {
-      $w.calc.d.align config -state normal
-    }
-    dist -
-    covar {
-      [namespace current]::SwitchSel2 "disable"
-      $w.calc.d.byres config -state normal
-      $w.calc.d.norm  config -state normal
-    }
-    relrms {
-      $w.calc.d.cutoff_l  config -state normal
-      $w.calc.d.cutoff    config -state normal
-      $w.calc.d.reltype_l config -state normal
-      $w.calc.d.reltype   config -state normal
-    }
-    contacts {
-      $w.calc.d.cutoff_l config -state normal
-      $w.calc.d.cutoff   config -state normal
-    }
-    hbonds {
-      $w.calc.d.cutoff_l config -state normal
-      $w.calc.d.cutoff   config -state normal
-      $w.calc.d.angle_l  config -state normal
-      $w.calc.d.angle    config -state normal
-    }
-    labels {
-#      $w.calc.d.labs_l   config -state normal
-      $w.calc.d.labs_t   config -state normal
-      $w.calc.d.labs_n   config -state normal
-    }
   }
 
-}
-
-
-proc itrajcomp::SwitchSel2 {state} {
-  # Switch Selection 2 on/off
-  variable w
-  foreach widget [[namespace current]::wlist $w.mols.mol2] {
+  foreach widget [[namespace current]::wlist $tab_sel.mol2] {
     if {[winfo class $widget] eq "Frame" || [winfo class $widget] eq "Labelframe" } {
       continue
     }
     $widget config -state $state
+  }
+}
+
+
+proc itrajcomp::UpdateTabCalc {} {
+  # Refresh the tab for calculations
+  variable tab_calc
+  variable calctype
+  variable samemols
+   
+  $tab_calc.opt.align config -state disable
+  $tab_calc.opt.byres config -state disable
+  foreach widget [winfo children $tab_calc.opt.norm] {$widget config -state disable}
+  foreach widget [winfo children $tab_calc.opt.cutoff] {$widget config -state disable}
+  foreach widget [winfo children $tab_calc.opt.angle] {$widget config -state disable}
+  foreach widget [winfo children $tab_calc.opt.labs] {$widget config -state disable}
+
+  switch $calctype {
+    rmsd {
+      $tab_calc.opt.align config -state normal
+    }
+    dist -
+    covar {
+      set samemols 1
+      [namespace current]::UpdateTabSel
+      $tab_calc.opt.byres config -state normal
+      foreach widget [winfo children $tab_calc.opt.norm] {$widget config -state normal}
+    }
+    contacts {
+      foreach widget [winfo children $tab_calc.opt.cutoff] {$widget config -state normal}
+    }
+    hbonds {
+      foreach widget [winfo children $tab_calc.opt.cutoff] {$widget config -state normal}
+      foreach widget [winfo children $tab_calc.opt.angle] {$widget config -state normal}
+    }
+    labels {
+      foreach widget [winfo children $tab_calc.opt.labs] {$widget config -state normal}
+    }
   }
 }
 
@@ -529,7 +552,10 @@ proc itrajcomp::ClearStatus {} {
 proc itrajcomp::CreateObject {} {
   # Initialize an object
   # TODO: move to object?
+
   variable w
+  variable tab_sel
+
   variable mol1_def
   variable frame1_def
   variable mol1_m_list
@@ -545,9 +571,9 @@ proc itrajcomp::CreateObject {} {
   variable selmod2
 
   variable samemols
-  variable diagonal
 
   variable calctype
+  variable diagonal
   variable align
   variable cutoff
   variable angle
@@ -564,10 +590,10 @@ proc itrajcomp::CreateObject {} {
     set mol2_f_list $mol1_f_list
     set skip2 $skip1
     set selmod2 $selmod1
-    $w.mols.mol2.a.sel config -state normal
-    $w.mols.mol2.a.sel delete 1.0 end
-    $w.mols.mol2.a.sel insert end [$w.mols.mol1.a.sel get 1.0 end]
-    $w.mols.mol2.a.sel config -state disable
+    $tab_sel.mol2.a.sel config -state normal
+    $tab_sel.mol2.a.sel delete 1.0 end
+    $tab_sel.mol2.a.sel insert end [$tab_sel.mol1.a.sel get 1.0 end]
+    $tab_sel.mol2.a.sel config -state disable
   }
 
   # Parse list of molecules
@@ -579,8 +605,8 @@ proc itrajcomp::CreateObject {} {
   set frame2 [[namespace current]::ParseFrames $frame2_def $mol2 $skip2 $mol2_f_list]
 
   #puts "$mol1 $frame1 $mol2 $frame2 $selmod"
-  set sel1 [ParseSel [$w.mols.mol1.a.sel get 1.0 end] $selmod1]
-  set sel2 [ParseSel [$w.mols.mol2.a.sel get 1.0 end] $selmod2]
+  set sel1 [ParseSel [$tab_sel.mol1.a.sel get 1.0 end] $selmod1]
+  set sel2 [ParseSel [$tab_sel.mol2.a.sel get 1.0 end] $selmod2]
 
   set defaults [list\
 		mol1 $mol1     mol1_def $mol1_def\
@@ -645,4 +671,5 @@ source [file join $env(ITRAJCOMPDIR) gui.tcl]
 source [file join $env(ITRAJCOMPDIR) labels.tcl]
 source [file join $env(ITRAJCOMPDIR) covar.tcl]
 source [file join $env(ITRAJCOMPDIR) dist.tcl]
+source [file join $env(ITRAJCOMPDIR) buttonbar.tcl]
 #source [file join $env(ITRAJCOMPDIR) clustering.tcl]
