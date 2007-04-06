@@ -28,6 +28,7 @@
 
 
 proc itrajcomp::SaveDataBrowse {self {format "tab"}} {
+  # GUI for saving
   set typeList {
     {"Data Files" ".dat .txt .out"}
     {"Postscript Files" ".ps"}
@@ -47,6 +48,7 @@ proc itrajcomp::SaveDataBrowse {self {format "tab"}} {
 # Save data procs (general)
 #                  -------
 proc ::itrajcomp::saveData { self {fileout ""} {format "tab"} {options ""}} {
+  # Save data to file interface
   array set opt $options
 
   if {[llength [info procs "SaveData_$format"]]} {
@@ -87,6 +89,7 @@ proc ::itrajcomp::saveData { self {fileout ""} {format "tab"} {options ""}} {
 # Save data procs (postscript)
 #                  ----------
 proc ::itrajcomp::SaveData_postscript {data keys options} {
+  # Create postcript data
   array set opt $options
   return [$opt(canvas).u.l.canvas.c postscript]
 }
@@ -94,6 +97,7 @@ proc ::itrajcomp::SaveData_postscript {data keys options} {
 # Save data procs (tabular)
 #                  -------
 proc ::itrajcomp::SaveData_tab {data keys options} {
+  # Create tabular data
   array set opt $options
 
   set output ""
@@ -121,6 +125,7 @@ proc ::itrajcomp::SaveData_tab {data keys options} {
 # Save data procs (matrix)
 #                  ------
 proc ::itrajcomp::SaveData_matrix {data keys options} {
+  # Create matrix data
   array set opt $options
 
   #puts "DEBUG: [array get opt]"
@@ -155,11 +160,13 @@ proc ::itrajcomp::SaveData_matrix {data keys options} {
 # Save data procs (plotmtv)
 #                  -------
 proc ::itrajcomp::SaveData_plotmtv_binary {data keys options} {
+  # Create plotmtv binary data
   lappend options binary 1
   return [[namespace current]::SaveData_plotmtv $data $keys $options]
 }
 
 proc ::itrajcomp::SaveData_plotmtv {data keys options} {
+  # Create plotmtv data
   array set opt $options
 
   #puts "DEBUG: [array get opt]"

@@ -32,10 +32,14 @@ package provide itrajcomp 1.0
 namespace eval itrajcomp {
   namespace export init
   
+  # Global variables
   global env
   variable w
   #variable mol1_m_list
   #variable mol_ref
+
+  variable open_format_list [list tab matrix plotmtv plotmtv_binary]
+  variable save_format_list [list tab matrix plotmtv plotmtv_binary postscript]
 
   variable tmpdir
   if { [info exists env(TMPDIR)] } {
@@ -45,13 +49,19 @@ namespace eval itrajcomp {
   }
 }
 
+
 proc itrajcomp_tk_cb {} {
+  # Hook for vmd
   ::itrajcomp::init
   return $itrajcomp::w
 }
 
+
 proc itrajcomp::init {} {
+  # Initialize main window
   variable w
+  variable open_format_list
+  variable save_format_list
 
   # If already initialized, just turn on
   if { [winfo exists .itrajcomp] } {
@@ -66,6 +76,8 @@ proc itrajcomp::init {} {
   wm iconname $w "iTrajComp" 
   wm resizable $w 1 0
 
+  # Define main gui variables
+  #--
   variable mol1_def   top
   variable frame1_def all
   variable mol2_def   top
@@ -94,11 +106,12 @@ proc itrajcomp::init {} {
   variable byres 1
   variable normalize "none"
 
-  variable labstype "Dihedrals"
-  variable labsnum_array
-  variable labsnum
+  variable label_type "Dihedrals"
+  variable labels_status
+  variable labels_status_array
 
   # Menu
+  #--
   frame $w.menubar -relief raised -bd 2
   pack $w.menubar -padx 1 -fill x
 
@@ -106,7 +119,7 @@ proc itrajcomp::init {} {
   menu $w.menubar.file.menu -tearoff no
   $w.menubar.file.menu add cascade -label "Load..." -underline 0 -menu $w.menubar.file.menu.load
   menu $w.menubar.file.menu.load -tearoff no
-  foreach as [list tab matrix plotmtv plotmtv_binary] {
+  foreach as $open_format_list {
     $w.menubar.file.menu.load add command -label $as -command "[namespace current]::loadDataBrowse $as"
   }
   pack $w.menubar.file -side left
@@ -141,14 +154,11 @@ proc itrajcomp::init {} {
   pack $w.status -side bottom -fill x -expand yes
   pack $w.status.label -side left
   pack $w.status.info -side left -fill x -expand yes
-  #--
-
 
   # Frame for molecule/frame selection
   #--
   frame $w.mols
   pack $w.mols -side top -expand yes -fill x
-  #--
   
   frame $w.mols.opts
   pack $w.mols.opts -side top -expand yes -fill x
@@ -163,9 +173,8 @@ proc itrajcomp::init {} {
   #--
   labelframe $w.mols.mol1 -relief ridge -bd 4 -text "Set 1"
   pack $w.mols.mol1 -side left -anchor nw -expand yes -fill x
-  #--
 
-  # a1
+  # atom selection 1
   #--
   labelframe $w.mols.mol1.a -relief ridge -bd 2 -text "Atom selection"
   text $w.mols.mol1.a.sel -exportselection yes -height 5 -width 25 -wrap word
@@ -178,9 +187,8 @@ proc itrajcomp::init {} {
   pack $w.mols.mol1.a -side bottom -expand yes -fill x
   pack $w.mols.mol1.a.sel -side left -expand yes -fill x
   pack $w.mols.mol1.a.no $w.mols.mol1.a.bb $w.mols.mol1.a.tr $w.mols.mol1.a.sc -side top -anchor w
-  #--
 
-  # m1
+  # mol1
   #--
   labelframe $w.mols.mol1.m -relief ridge -bd 2 -text "Molecules"
   radiobutton $w.mols.mol1.m.all -text "All"    -variable [namespace current]::mol1_def -value "all"
@@ -193,9 +201,8 @@ proc itrajcomp::init {} {
   pack $w.mols.mol1.m -side left
   pack $w.mols.mol1.m.all $w.mols.mol1.m.top $w.mols.mol1.m.act $w.mols.mol1.m.ids -side top -anchor w 
   pack $w.mols.mol1.m.ids.r $w.mols.mol1.m.ids.list -side left
-  #--
   
-  # f1
+  # frame1
   #--
   labelframe $w.mols.mol1.f -relief ridge -bd 2 -text "Frames"
   radiobutton $w.mols.mol1.f.all -text "All"     -variable [namespace current]::frame1_def -value "all"
@@ -214,16 +221,13 @@ proc itrajcomp::init {} {
   pack $w.mols.mol1.f.ids.r -side left
   pack $w.mols.mol1.f.ids.list -side left -expand yes -fill x
   pack $w.mols.mol1.f.skip.l $w.mols.mol1.f.skip.e -side left
-  #--
-
 
   # SET2
   #--
   labelframe $w.mols.mol2 -relief ridge -bd 4 -text "Set 2"
   pack $w.mols.mol2 -expand yes -fill x -side top -anchor n
-  #--
 
-  # a2
+  # atom selection 2
   #--
   labelframe $w.mols.mol2.a -relief ridge -bd 2 -text "Atom selection:"
   text $w.mols.mol2.a.sel -exportselection yes -height 5 -width 25 -wrap word
@@ -236,9 +240,8 @@ proc itrajcomp::init {} {
   pack $w.mols.mol2.a -side bottom -expand yes -fill x
   pack $w.mols.mol2.a.sel -side left -expand yes -fill x
   pack $w.mols.mol2.a.no $w.mols.mol2.a.bb $w.mols.mol2.a.tr $w.mols.mol2.a.sc -side top -anchor w
-  #--
 
-  # m2
+  # mol2
   #--
   labelframe $w.mols.mol2.m -relief ridge -bd 2 -text "Molecules"
   radiobutton $w.mols.mol2.m.all -text "All"    -variable [namespace current]::mol2_def -value "all"
@@ -251,9 +254,8 @@ proc itrajcomp::init {} {
   pack $w.mols.mol2.m -side left
   pack $w.mols.mol2.m.all $w.mols.mol2.m.top $w.mols.mol2.m.act $w.mols.mol2.m.ids -side top -anchor w 
   pack $w.mols.mol2.m.ids.r $w.mols.mol2.m.ids.list -side left
-  #--
   
-  # f2
+  # frame2
   #--
   labelframe $w.mols.mol2.f -relief ridge -bd 2 -text "Frames"
   radiobutton $w.mols.mol2.f.all -text "All"     -variable [namespace current]::frame2_def -value "all"
@@ -272,9 +274,7 @@ proc itrajcomp::init {} {
   pack $w.mols.mol2.f.ids.r -side left
   pack $w.mols.mol2.f.ids.list -side left -expand yes -fill x
   pack $w.mols.mol2.f.skip.l $w.mols.mol2.f.skip.e -side left
-  #--
 
- 
   # Calculation options
   #--
   labelframe $w.calc -relief ridge -bd 4 -text "Calculation"
@@ -320,7 +320,7 @@ proc itrajcomp::init {} {
   menubutton $w.calc.d.labs_t -text "Labels" -menu $w.calc.d.labs_t.m -relief raised
   menu $w.calc.d.labs_t.m
   foreach entry [list Bonds Angles Dihedrals] {
-    $w.calc.d.labs_t.m add radiobutton -label $entry -variable [namespace current]::labstype -value $entry -command "[namespace current]::UpdateLabels"
+    $w.calc.d.labs_t.m add radiobutton -label $entry -variable [namespace current]::label_type -value $entry -command "[namespace current]::UpdateLabels"
   }
 #  menubutton $w.calc.d.labs_n -text "Labels" -menu $w.calc.d.labs_n.m -textvariable [namespace current]::labsnum -relief raised
   menubutton $w.calc.d.labs_n -text "Id" -menu $w.calc.d.labs_n.m -relief raised
@@ -332,62 +332,70 @@ proc itrajcomp::init {} {
 #  pack $w.calc.d.reltype_l $w.calc.d.reltype -side left
   #$w.calc.d.labs_l 
   pack $w.calc.d.labs_t $w.calc.d.labs_n -side left
-  #--
 
   [namespace current]::UpdateGUI
 }
 
 
 proc itrajcomp::UpdateLabels {} {
+  # Update list of available labels and reset their status
+  # Each label has the format: 'num_label (atom_label, atom_label,...)'
+  #    * num_label is the label number
+  #    * atom_label is $mol-$resname$resid-$name
   variable w
-  variable labstype
-  variable labsnum_array
-  variable labsnum
+  variable label_type
 
-  set labels [label list $labstype]
+  # TODO: why hold two variables with the same info?
+  variable labels_status_array
+  variable labels_status
+
+  set labels [label list $label_type]
   set n [llength $labels]
   $w.calc.d.labs_n.m delete 0 end
-  array unset labsnum_array
+  # TODO: don't reset their status (try to keep them when swithing between label types in the gui)
+  array unset labels_status_array
   if {$n > 0} {
-    $w.calc.d.labs_n   config -state normal
+    $w.calc.d.labs_n config -state normal
     set nat [expr [llength [lindex $labels 0]] -2]
     for {set i 0} {$i < $n} {incr i} {
       set label "$i ("
       for {set j 0} {$j < $nat} {incr j} {
 	set mol   [lindex [lindex [lindex $labels $i] $j] 0]
 	set index [lindex [lindex [lindex $labels $i] $j] 1]
-	set at [atomselect $mol "index $index"]
-	set name    [$at get name]
+	set at    [atomselect $mol "index $index"]
+	set resname [$at get resname]
 	set resid   [$at get resid]
-	set resname [$at get resid]
+	set name    [$at get name]
 	append label "$mol-$resname$resid-$name"
 	if {$j < [expr $nat-1]} {
 	  append label ", "
 	}
       }
       append label ")"
-      $w.calc.d.labs_n.m add checkbutton -label $label -variable [namespace current]::labsnum_array($i) -command "[namespace current]::UpdateLabelsVals $i"
+      $w.calc.d.labs_n.m add checkbutton -label $label -variable [namespace current]::labels_status_array($i) -command "[namespace current]::UpdateLabelStatus $i"
     }
   }
 
-  if {[info exists labsnum]} {
-    unset labsnum
+  if {[info exists labels_status]} {
+    unset labels_status
   }
-  foreach x [array names labsnum_array ] {
-    lappend labsnum $labsnum_array($x)
+  foreach x [array names labels_status_array ] {
+    lappend labels_status $labels_status_array($x)
   }
 }
 
 
-proc itrajcomp::UpdateLabelsVals {i} {
-  variable labsnum_array
-  variable labsnum
+proc itrajcomp::UpdateLabelStatus {i} {
+  # Update status of a label
+  variable labels_status_array
+  variable labels_status
   
-  set labsnum [lreplace $labsnum $i $i $labsnum_array($i)]
+  set labels_status [lreplace $labels_status $i $i $labels_status_array($i)]
 }
 
 
 proc itrajcomp::UpdateGUI {} {
+  # Refresh the GUI
   variable w
   variable samemols
   variable calctype
@@ -397,7 +405,7 @@ proc itrajcomp::UpdateGUI {} {
   } else {
     set state "normal"
   }
-  [namespace current]::UpdateSel $state
+  [namespace current]::SwitchSel2 $state
 
   $w.calc.d.align     config -state disable
   $w.calc.d.cutoff_l  config -state disable
@@ -418,7 +426,7 @@ proc itrajcomp::UpdateGUI {} {
     }
     dist -
     covar {
-      [namespace current]::UpdateSel "disable"
+      [namespace current]::SwitchSel2 "disable"
       $w.calc.d.byres config -state normal
       $w.calc.d.norm  config -state normal
     }
@@ -448,7 +456,8 @@ proc itrajcomp::UpdateGUI {} {
 }
 
 
-proc itrajcomp::UpdateSel {state} {
+proc itrajcomp::SwitchSel2 {state} {
+  # Switch Selection 2 on/off
   variable w
   foreach widget [[namespace current]::wlist $w.mols.mol2] {
     if {[winfo class $widget] eq "Frame" || [winfo class $widget] eq "Labelframe" } {
@@ -460,6 +469,7 @@ proc itrajcomp::UpdateSel {state} {
 
 
 proc itrajcomp::help_about { {parent .itrajcomp} } {
+  # Help window
   set vn [package present itrajcomp]
   tk_messageBox -title "iTrajComp v$vn - About"  -parent $parent -message \
     "iTrajComp v$vn
@@ -471,6 +481,7 @@ Copyright (C) Luis Gracia <lug2002@med.cornell.edu>
 
 
 proc itrajcomp::ProgressBar {num max} {
+  # Progress bar
   variable w
   variable options
 
@@ -500,6 +511,7 @@ proc itrajcomp::ProgressBar {num max} {
 
 
 proc itrajcomp::Status {txt} {
+  # Status bar
   variable w
   $w.status.info itemconfigure txt -text $txt
   update idletasks
@@ -508,12 +520,15 @@ proc itrajcomp::Status {txt} {
 
 
 proc itrajcomp::ClearStatus {} {
+  # TODO: this is not use anywhere
   after 1000 "[namespace current]::Status {}"
   after 1000 "[namespace current]::ProgressBar 1 0"
 }
 
 
 proc itrajcomp::CreateObject {} {
+  # Initialize an object
+  # TODO: move to object?
   variable w
   variable mol1_def
   variable frame1_def
@@ -539,8 +554,8 @@ proc itrajcomp::CreateObject {} {
   variable reltype
   variable byres
   variable normalize
-  variable labstype
-  variable labsnum
+  variable label_type
+  variable labels_status
 
   if {$samemols} {
     set mol2_def $mol1_def
@@ -578,6 +593,8 @@ proc itrajcomp::CreateObject {} {
 		type $calctype\
 		diagonal $diagonal\
 	       ]
+
+  # TODO: if there are no labels, prevent to execute with calctype=labels
   switch $calctype {
     rmsd {
       lappend defaults align $align
@@ -597,7 +614,7 @@ proc itrajcomp::CreateObject {} {
       lappend defaults cutoff $cutoff angle $angle
     }
     labels {
-      lappend defaults labstype $labstype labsnum $labsnum
+      lappend defaults label_type $label_type labels_status $labels_status
     }
   }
 
@@ -615,221 +632,13 @@ proc itrajcomp::CreateObject {} {
 #  [namespace current]::ClearStatus
 }
 
-
-proc itrajcomp::Combine {} {
-  variable c
-  set debug 0
-
-  set c [toplevel .itrajcompcomb]
-  wm title $c "iTrajComp - Combine"
-  wm iconname $c "iTrajComp" 
-  wm resizable $c 1 0
-
-  frame $c.obj
-  pack $c.obj -side top -anchor w
-  label $c.obj.title -text "Objects:"
-  pack $c.obj.title -side top -anchor w
-
-  frame $c.obj.list
-  pack $c.obj.list -side top -anchor w
-  listbox $c.obj.list.l -selectmode extended -exportselection no -height 5 -width 20 -yscrollcommand "$c.obj.list.scy set"
-  scrollbar $c.obj.list.scy -orient vertical -command "$c.obj.list.l yview"
-  pack $c.obj.list.l -side left -anchor w 
-  pack $c.obj.list.scy -side left -anchor w -fill y
-
-  frame $c.formula
-  pack $c.formula -side top -anchor w
-  label $c.formula.l -text "Formula:"
-  entry $c.formula.e -textvariable [namespace current]::formula
-  pack $c.formula.l $c.formula.e -side left -expand yes -fill x
-
-  button $c.combine -text "Combine" -command [namespace code {Objcombine $formula}]
-  button $c.update -text "Update" -command "[namespace current]::CombineUpdate $c.obj.list.l"
-  pack $c.combine $c.update -side top
-
-  CombineUpdate $c.obj.list.l
-}
-
-proc itrajcomp::CombineUpdate {widget} {
-  variable combobj
-
-  $widget selection set 0 end
-  foreach i [lsort -integer -decreasing [$widget curselection]] {
-    $widget delete 0 $i
-  }
-  
-  set combobj {}
-  foreach obj [[namespace current]::Objlist] {
-    set name [namespace tail $obj]
-    set num [string trim $name {itcObj}]
-    set objects($num) $name
-  }
-
-  foreach num [lsort -integer [array names objects]] {
-    set name $objects($num)
-    $widget insert end "$name"
-    lappend combobj $num
-  }
-}
-
-proc itrajcomp::CombineUpdateold {widget} {
-  $widget.obj.obj1.list delete 0 end
-  $widget.obj.obj2.list delete 0 end
-  
-  foreach obj [[namespace current]::Objlist] {
-    set name [namespace tail $obj]
-    set num [string trim $name {itcObj}]
-    set objects($num) $name
-  }
-
-  foreach num [lsort -integer [array names objects]] {
-    set name $objects($num)
-    $widget.obj.obj1.list add radiobutton -label "$name" -variable [namespace current]::obj1 -value $name
-    $widget.obj.obj2.list add radiobutton -label "$name" -variable [namespace current]::obj2 -value $name
-  }
-}
-
-proc itrajcomp::loadDataBrowse {format} {
-  set vn [package present itrajcomp]
-  if {[llength [info procs "loadData_$format"]] < 1} {
-    tk_messageBox -title "iTrajComp v$vn - Error" -parent .itrajcomp -message "loadData_$format not implemented yet"
-    return
-  }
-
-  set typeList {
-    {"Data Files" ".dat .txt .out"}
-    {"Postscript Files" ".ps"}
-    {"All files" ".*"}
-  }
-  
-  set file [tk_getOpenFile -filetypes $typeList -defaultextension ".dat" -title "Select file to open" -parent .itrajcomp]
-  
-  if { $file == "" } {
-    return;
-  }
-  
-  [namespace current]::loadData $file $format
-}
-
-proc itrajcomp::loadData {file format} {
-  if {$file == ""} {
-    return
-  }
-
-  set fid [open $file r]
-  fconfigure $fid
-
-  # Read header
-  while {![eof $fid]} {
-    gets $fid line
-    #puts "line $line"
-    regsub -all {\s\s+} $line " " line
-    regsub {^\s+}       $line ""  line
-    regsub {\s+$}       $line ""  line
-    #puts "temp $line"
-    if {[regexp {^\#\s*(\w+)\s+(.*)} $line junk key val]} {
-      #puts "$key --> $val"
-      set keys($key) $val
-      set offset [tell $fid]
-    } else {
-      seek $fid $offset
-      set data [[namespace current]::loadData_$format $fid]
-      break
-    }
-  }
-  close $fid
-  
-  set defaults [array get keys]
-  lappend defaults rep_sel1 "all"
-  switch $keys(type) {
-    dist -
-    covar {
-      lappend defaults format_data "%8.4f"
-      lappend defaults format_key "%3d %3s"
-    }
-    labels -
-    rmsd {
-      lappend defaults format_data "%8.4f"
-      lappend defaults format_key "%3d %3d"
-    }
-    hbonds -
-    contacts {
-      lappend defaults format_data "%4i"
-      lappend defaults format_key "%3d %3d"
-      
-    }
-
-
-      lappend defaults 
-  }
-  
-  set r [eval [namespace current]::Objnew ":auto" $defaults]
-  [namespace current]::processData $r $data
-  [namespace current]::NewPlot $r
-
-}
-
-proc itrajcomp::processData {self data} {
-  set vals {}
-  set keys {}
-  set regions {}
-  set min [lindex [lindex $data 1] 4]
-  set max $min
-  for {set i 1} {$i < [llength $data]} {incr i} {
-    set d [lindex $data $i]
-    set val [lindex $d 4]
-    set key "[lindex $d 0]:[lindex $d 1],[lindex $d 2]:[lindex $d 3]"
-    lappend vals $val
-    lappend keys $key
-    lappend regions [lindex $d 0] [lindex $d 2]
-    set temp($key) $val
-    if {$val < $min} {
-      set min $val
-    } elseif {$val > $max} {
-      set max $val
-    }
-  }
-
-  set ${self}::min $min
-  set ${self}::max $max
-  set ${self}::regions [lsort -integer -unique $regions]
-  set ${self}::keys $keys
-  set ${self}::vals $vals
-  array set ${self}::data [array get temp]
-
-}
-
-proc itrajcomp::loadData_tab {fid} {
-  # Names
-  set data {}
-  gets $fid line
-  regsub -all {\s\s+} $line " " line
-  regsub {^\s+}       $line ""  line
-  regsub {\s+$}       $line ""  line
-  lappend data [split $line { }]
-
-  # Data
-  while {![eof $fid]} {
-    gets $fid line
-    #puts "line $line"
-    if {[regexp {^$} $line junk junk]} {
-      break
-    }
-    regsub -all {\s\s+} $line " " line
-    regsub {^\s+}       $line ""  line
-    regsub {\s+$}       $line ""  line
-    #puts "temp $line"
-    lappend data [split $line { }]
-  }
-  return $data
-}
-
-
 # Source rest of files
 source [file join $env(ITRAJCOMPDIR) rmsd.tcl]
 source [file join $env(ITRAJCOMPDIR) utils.tcl]
 source [file join $env(ITRAJCOMPDIR) object.tcl]
 source [file join $env(ITRAJCOMPDIR) save.tcl]
+source [file join $env(ITRAJCOMPDIR) load.tcl]
+source [file join $env(ITRAJCOMPDIR) combine.tcl]
 source [file join $env(ITRAJCOMPDIR) contacts.tcl]
 source [file join $env(ITRAJCOMPDIR) hbonds.tcl]
 source [file join $env(ITRAJCOMPDIR) gui.tcl]

@@ -105,6 +105,7 @@ proc itrajcomp::contacts { self } {
       }
     }
   }
+
   set keys [lsort -dictionary [array names data]]
   foreach key $keys {
     lappend vals $data($key)

@@ -72,9 +72,9 @@ proc itrajcomp::labels { self } {
   
   # Get values for each mol
   set i 0
-  foreach lab $labsnum {
+  foreach lab $labels_status {
     if {$lab == 1} {
-      set alldata($i) [label graph $labstype $i]
+      set alldata($i) [label graph $label_type $i]
     }
     incr i
   }
@@ -102,7 +102,7 @@ proc itrajcomp::labels { self } {
 	      set v1 [lindex $alldata($v) $j]
 	      set v2 [lindex $alldata($v) $l]
 	      set val [expr abs($v1-$v2)]
-	      if {$val > 180 && ($labstype eq "Dihedrals" || $labstype eq "Angles")} {
+	      if {$val > 180 && ($label_type eq "Dihedrals" || $label_type eq "Angles")} {
 		set val [expr abs($val -360)]
 	      }
 	      set rms [expr $rms + $val*$val]

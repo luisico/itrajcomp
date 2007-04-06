@@ -28,11 +28,13 @@
 
 
 proc itrajcomp::NewPlot {self} {
+  # Initialize window for this object
+
   namespace eval [namespace current]::${self}:: {
 
     set rep_style_list [list Lines Bonds DynamicBonds HBonds Points VDW CPK Licorice Trace Tube Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Dotted Solvent]
     set rep_color_list [list Name Type ResName ResType ResID Chain SegName Molecule Structure ColorID Beta Occupancy Mass Charge Pos User Index Backbone Throb Timestep Volume]
-    set save_format_list [list tab matrix plotmtv plotmtv_binary postscript]
+    set save_format_list [set [namespace parent]::save_format_list]
 
     variable title
     variable add_rep
@@ -53,8 +55,8 @@ proc itrajcomp::NewPlot {self} {
     variable rep_colorid1  0
     variable highlight    0.2
     variable save_format  tab
-    #variable labstype
-    #variable labsnum
+    #variable label_type
+    #variable labels_status
 
     set p [toplevel ".${self}_plot"]
 
@@ -69,7 +71,7 @@ proc itrajcomp::NewPlot {self} {
 	set title "$title cutoff=$cutoff angle=$angle"
       }
       labels {
-	set title "$title type=$labstype"
+	set title "$title type=$label_type"
       }
     }
     wm title $p $title
@@ -188,7 +190,9 @@ proc itrajcomp::NewPlot {self} {
     set y $off
     set val $min
     set reg [expr double($max-$min)/$lb_n]
+    # TODO: if format_scale is integer (like in contacts.tcl) reg should be integer
     for {set i 0} {$i <= $lb_n} {incr i} {
+      puts "$i $val"
       $scale create line 15 $y $rg_w $y
       $scale create text [expr $rg_w+1] $y -text [format $format_scale $val] -anchor w -font [list helvetica 7 normal] -tag "line$val"
       $scale bind "line$val" <B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $val -1 1"
@@ -196,7 +200,7 @@ proc itrajcomp::NewPlot {self} {
       set val [expr $val+ $reg]
       set y [expr $y+$lb_h]
     }
-    
+   
     # Clear button
     button $p.u.r.clear -text "Clear" -command "[namespace parent]::MapClear $self"
     pack $p.u.r.clear -side bottom
@@ -231,10 +235,10 @@ proc itrajcomp::NewPlot {self} {
 	pack $p.l.l.info.other -side left
       }
       labels {
-	for {set i 0} {$i < [llength $labsnum]} {incr i} {
-	  if {[lindex $labsnum $i] == 1} {lappend labs [lindex $labsnum $i]}
+	for {set i 0} {$i < [llength $labels_status]} {incr i} {
+	  if {[lindex $labels_status $i] == 1} {lappend labs [lindex $labels_status $i]}
 	}
-	label $p.l.l.info.other -text "Type: $labstype; Labels: $labs" -font [list Helvetica 8]
+	label $p.l.l.info.other -text "Type: $label_type; Labels: $labs" -font [list Helvetica 8]
 	pack $p.l.l.info.other -side left
       }
     }
@@ -316,6 +320,7 @@ proc itrajcomp::NewPlot {self} {
 
 
 proc itrajcomp::Graph {self} {
+  # Create matrix graph for objects
   namespace eval [namespace current]::${self}:: {
     variable add_rep
     variable rep_list
@@ -371,7 +376,75 @@ proc itrajcomp::Graph {self} {
 }
 
 
+proc itrajcomp::Graph2 {self} {
+  # Create graph for object with region information (atoms, residue,...)
+  namespace eval [namespace current]::${self}:: {
+    variable add_rep
+    variable rep_list
+    variable rep_num
+    variable colors
+    variable regions
+
+    set nregions [llength $regions]
+    #puts "$nregions -> $regions"
+
+    foreach key $keys {
+      lassign [split $key ,:] i j k l
+      set part2($i) $j
+      set part2($k) $l
+    }
+
+    set maxkeys [llength $keys]
+    set count 0
+    
+    set offx 0
+    set offy 0
+    set width 3
+    for {set i 0} {$i < $nregions} {incr i} {
+      set key1 "[lindex $regions $i]:$part2([lindex $regions $i])"
+      set rep_list($key1) {}
+      set rep_num($key1) 0
+      set offy 0
+      for {set k 0} {$k < $nregions} {incr k} {
+	set key2 "[lindex $regions $k]:$part2([lindex $regions $k])"
+	set rep_list($key2) {}
+	set rep_num($key2) 0
+	set key "$key1,$key2"
+	#puts -nonewline "$key "
+	if {![info exists data($key)]} {
+	  #puts ""
+	  continue
+	}
+	set x [expr ($i+$offx)*($grid+$width)]
+	set y [expr ($k+$offy)*($grid+$width)]
+	set add_rep($key) 0
+	set colors($key) [[namespace parent]::ColorScale $max $min $data($key) 1.0]
+	#puts "-> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
+	$plot create rectangle $x $y [expr $x+$grid] [expr $y+$grid] -fill $colors($key) -outline $colors($key) -tag $key -width $width
+	
+	$plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
+	$plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
+	$plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  0"
+	$plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0 -1"
+	$plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  1"
+	$plot bind $key <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  0  0"
+	$plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $key -1  0"
+	$plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  1  0"
+
+	incr count
+	[namespace parent]::ProgressBar $count $maxkeys
+      }
+      set offy [expr $offy+$k]
+      
+    }
+    set offx [expr $offx+$i]
+    
+  }
+}
+
+
 proc itrajcomp::ViewData {self} {
+  # Create window to view data in tabular format
   set r [toplevel ".${self}_raw"]
   wm title $r "View $self"
   
@@ -388,7 +461,7 @@ proc itrajcomp::ViewData {self} {
 
 
 proc itrajcomp::StatDescriptive {self} {
-  
+  # Create window to view statistics
   array set data [array get ${self}::data]
   set format_data [set ${self}::format_data]
 
@@ -424,6 +497,7 @@ Mean: $mean
 
 
 proc itrajcomp::Zoom {self zoom} {
+  # Zoom in and out in the matrix plot
   set grid [set ${self}::grid]
   set plot [set ${self}::plot]
 
@@ -445,6 +519,7 @@ proc itrajcomp::Zoom {self zoom} {
 
 
 proc itrajcomp::AddRep {self key} {
+  # Add graphic representation
   set p [set ${self}::p]
   set rep_style1 [set ${self}::rep_style1]
   set rep_color1 [set ${self}::rep_color1]
@@ -474,6 +549,7 @@ proc itrajcomp::AddRep {self key} {
 
 
 proc itrajcomp::DelRep {self key} {
+  # Delete graphic representation
   set rep_num [set ${self}::rep_num($key)]
 
   incr rep_num -1
@@ -487,6 +563,7 @@ proc itrajcomp::DelRep {self key} {
 
 
 proc itrajcomp::ShowPoint {self key val stick} {
+  # Show information about a matrix cell
   if {[set ${self}::info_sticky] && $stick} return
   
   set indices [split $key ,:]
@@ -498,6 +575,7 @@ proc itrajcomp::ShowPoint {self key val stick} {
 
 
 proc itrajcomp::MapAdd {self key {check 0}} {
+  # Add a matrix cell to representation
   set indices [split $key ,]
   lassign $indices key1 key2
   
@@ -518,6 +596,7 @@ proc itrajcomp::MapAdd {self key {check 0}} {
 }
 
 proc itrajcomp::MapDel {self key {check 0}} {
+  # Delete a matrix cell from representation
   set indices [split $key ,]
   lassign $indices key1 key2
 
@@ -539,6 +618,7 @@ proc itrajcomp::MapDel {self key {check 0}} {
 }
 
 proc itrajcomp::MapPoint {self key data {mod 0}} {
+  # Add/delete matrix cell to/from representation
   set add_rep [set ${self}::add_rep($key)]
   
   if {$add_rep == 0 || $mod} {
@@ -555,6 +635,16 @@ proc itrajcomp::MapPoint {self key data {mod 0}} {
 
 
 proc itrajcomp::MapCluster3 {self key {mod1 0} {mod2 0}} {
+  # Select matrix cells
+  #  in column/row
+  #    mod1 = 0: select both columns and rows
+  #    mod1 = 1: select only columns
+  #    mod1 = 2: select only rows
+  #  with values
+  #    mod2 = 0: all
+  #    mod2 = 1: less/equal than selected cell
+  #    mod2 =-1: greater/equal than selected cell
+
   variable add_rep
 
   set keys [set ${self}::keys]
@@ -651,76 +741,16 @@ proc itrajcomp::MapCluster3 {self key {mod1 0} {mod2 0}} {
 }
 
 
-proc itrajcomp::MapCluster1 {self key {mod 0}} {
-  variable add_rep
-
-  set keys [set ${self}::keys]
-  set type [set ${self}::type]
-  set plot [set ${self}::plot]
-  array set data [array get ${self}::data]
-
-  set indices [split $key ,:]
-  set val $data($key)
-  [namespace current]::MapClear $self
-
-  if {!$mod || $mod == 1} {
-    set ref "[lindex $indices 0]:[lindex $indices 1]"
-    [namespace current]::AddRep $self $ref
-    foreach mykey [array names data $ref,*] {
-      set indices [split $mykey ,:]
-      set k [lindex $indices 2]
-      set l [lindex $indices 3]
-      if {$type eq "rmsd"} {
-	if {$data($mykey) <= $val} {
-	  set color black
-	  $plot itemconfigure $mykey -outline $color
-	  set ${self}::add_rep($mykey) 1
-	  [namespace current]::AddRep $self $k:$l
-	}
-      } else {
-	if {$data($mykey) >= $val} {
-	  set color black
-	  $plot itemconfigure $mykey -outline $color
-	  set ${self}::add_rep($mykey) 1
-	  [namespace current]::AddRep $self $k:$l
-	}
-      }
-    }
-  }
-  if {!$mod || $mod == 2} {
-    if {$mod} {
-      set ref "[lindex $indices 2]:[lindex $indices 3]"
-    } else {
-      set ref "[lindex $indices 0]:[lindex $indices 1]"
-    }
-    [namespace current]::AddRep $self $ref
-    foreach mykey [array names data *,$ref] {
-      set indices [split $mykey ,:]
-      set k [lindex $indices 0]
-      set l [lindex $indices 1]
-      if {$type eq "rmsd"} {
-	if {$data($mykey) <= $val} {
-	  set color black
-	  $plot itemconfigure $mykey -outline $color
-	  set ${self}::add_rep($mykey) 1
-	  [namespace current]::AddRep $self $k:$l
-	}
-      } else {
-	if {$data($mykey) >= $val} {
-	  set color black
-	  $plot itemconfigure $mykey -outline $color
-	  set ${self}::add_rep($mykey) 1
-	  [namespace current]::AddRep $self $k:$l
-	}
-      }
-    }
-  }
-
-  [namespace current]::ShowPoint $self $key $data($key) 0
-}
-
-
 proc itrajcomp::MapCluster2 {self key {mod1 0} {mod2 0} } {
+  # Select matrix cells
+  #  with values
+  #    mod1 = 0: all values
+  #    mod1 = 1: >= than reference cell
+  #    mod1 =-1: <= than reference cell
+  # with reference value in
+  #    mod2 = 0: selected cell
+  #    mod2 = 1: scale
+
   set plot [set ${self}::plot]
   array set data [array get ${self}::data]
 
@@ -760,6 +790,7 @@ proc itrajcomp::MapCluster2 {self key {mod1 0} {mod2 0} } {
 
 
 proc itrajcomp::MapClear {self} {
+  # Unselect all matrix cells
   set plot [set ${self}::plot]
   
   foreach key [set ${self}::keys] {
@@ -782,6 +813,7 @@ proc itrajcomp::MapClear {self} {
 
 
 proc itrajcomp::UpdateSelection {self} {
+  # Update representation in vmd window
   set p [set ${self}::p]
   set rep_style1 [set ${self}::rep_style1]
   set rep_color1 [set ${self}::rep_color1]
@@ -816,6 +848,7 @@ proc itrajcomp::UpdateSelection {self} {
 
 
 proc itrajcomp::Destroy {self} {
+  # Destroy object window and delete object
   [namespace current]::MapClear $self
   catch {destroy [set ${self}::p]}
   [namespace current]::Objdelete $self
@@ -823,6 +856,7 @@ proc itrajcomp::Destroy {self} {
 
 
 proc itrajcomp::help_keys { self } {
+  # Keybinding help
   set vn [package present itrajcomp]
 
   set r [toplevel ".${self}_keybindings"]
@@ -852,75 +886,9 @@ proc itrajcomp::help_keys { self } {
 }
 
 
-
-
-proc itrajcomp::Graph2 {self} {
-  namespace eval [namespace current]::${self}:: {
-    variable add_rep
-    variable rep_list
-    variable rep_num
-    variable colors
-    variable regions
-
-    set nregions [llength $regions]
-    #puts "$nregions -> $regions"
-
-    foreach key $keys {
-      lassign [split $key ,:] i j k l
-      set part2($i) $j
-      set part2($k) $l
-    }
-
-    set maxkeys [llength $keys]
-    set count 0
-    
-    set offx 0
-    set offy 0
-    set width 3
-    for {set i 0} {$i < $nregions} {incr i} {
-      set key1 "[lindex $regions $i]:$part2([lindex $regions $i])"
-      set rep_list($key1) {}
-      set rep_num($key1) 0
-      set offy 0
-      for {set k 0} {$k < $nregions} {incr k} {
-	set key2 "[lindex $regions $k]:$part2([lindex $regions $k])"
-	set rep_list($key2) {}
-	set rep_num($key2) 0
-	set key "$key1,$key2"
-	#puts -nonewline "$key "
-	if {![info exists data($key)]} {
-	  #puts ""
-	  continue
-	}
-	set x [expr ($i+$offx)*($grid+$width)]
-	set y [expr ($k+$offy)*($grid+$width)]
-	set add_rep($key) 0
-	set colors($key) [[namespace parent]::ColorScale $max $min $data($key) 1.0]
-	#puts "-> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
-	$plot create rectangle $x $y [expr $x+$grid] [expr $y+$grid] -fill $colors($key) -outline $colors($key) -tag $key -width $width
-	
-	$plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
-	$plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
-	$plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  0"
-	$plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0 -1"
-	$plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  1"
-	$plot bind $key <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  0  0"
-	$plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $key -1  0"
-	$plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  1  0"
-
-	incr count
-	[namespace parent]::ProgressBar $count $maxkeys
-      }
-      set offy [expr $offy+$k]
-      
-    }
-    set offx [expr $offx+$i]
-    
-  }
-}
-
-
 proc itrajcomp::RepList {self} {
+  # Print list of representations (for debuggin purposes)
+  # TODO: not use, remove? or move to a debugging proc
   array set rep_list [array get ${self}::rep_list]
   array set add_rep [array get ${self}::add_rep]
   array set rep_num [array get ${self}::rep_num]

@@ -28,6 +28,7 @@
 
 
 proc itrajcomp::AddRep1 {i j sel style color} {
+  # Add 1 representation to vmd
   variable w
   mol rep $style
   mol selection $sel
@@ -40,6 +41,7 @@ proc itrajcomp::AddRep1 {i j sel style color} {
 
 
 proc itrajcomp::AddRep2 {i j k l sel} {
+  # Add a pair (matrix cell) of representation to vmd
   variable w
   mol rep Lines 2
   mol selection $sel
@@ -55,11 +57,13 @@ proc itrajcomp::AddRep2 {i j k l sel} {
 
 
 proc itrajcomp::DelRep1 {name i} {
+  # Delete 1 representation from vmd
   mol delrep [mol repindex $i $name] $i
 }
 
 
 proc itrajcomp::DelRep2 {name i k} {
+  # Delete a pair (matrix cell) of representations from vmd
   mol delrep [mol repindex $i [lindex $name 0]] $i
   mol delrep [mol repindex $k [lindex $name 1]] $k
   #puts "delete [lindex $name 0]:[lindex $name 1]"
@@ -67,6 +71,7 @@ proc itrajcomp::DelRep2 {name i k} {
 
 
 proc itrajcomp::ParseMols { mols idlist {sort 1} } {
+  # Parse molecule selection
   if {$mols eq "id"} {
     set mols $idlist
   }
@@ -106,6 +111,7 @@ proc itrajcomp::ParseMols { mols idlist {sort 1} } {
 
 
 proc itrajcomp::ParseFrames { frames mols skip idlist } {
+  # Parse frame selection
   set final {}
   foreach mol $mols {
     set list {}
@@ -153,6 +159,7 @@ proc itrajcomp::ParseFrames { frames mols skip idlist } {
 
 
 proc itrajcomp::CombineMols { args } {
+  # Return a list of unique molecules
   set mols {}
   foreach i $args {
     foreach j $i {
@@ -164,6 +171,7 @@ proc itrajcomp::CombineMols { args } {
 
 
 proc itrajcomp::Mean { values } {
+  # Calculate the mean of a list of values
   set tot 0.0
   foreach n $values {
     set tot [expr $tot+$n]
@@ -175,6 +183,7 @@ proc itrajcomp::Mean { values } {
 
 
 proc itrajcomp::GetKeys { rms_values sort mol_ref mol_tar } {
+  # Not used, remove?
   upvar $rms_values values
   
   if {$mol_ref == "all" && $mol_tar == "all"} {
@@ -200,6 +209,7 @@ proc itrajcomp::GetKeys { rms_values sort mol_ref mol_tar } {
 
 
 proc itrajcomp::GetActive {} {
+  # Identify the active molecule
   set active {}
   foreach i [molinfo list] {
     if { [molinfo $i get active] } {
@@ -211,6 +221,7 @@ proc itrajcomp::GetActive {} {
 
 
 proc itrajcomp::ParseSel {orig selmod} {
+  # Parse a selection text
   regsub -all "\#.*?\n" $orig  ""  temp1
   regsub -all "\n"      $temp1 " " temp2
   regsub -all " *$"     $temp2 ""  temp3
@@ -237,6 +248,7 @@ proc itrajcomp::ParseSel {orig selmod} {
 
 
 proc itrajcomp::wlist {{W .}} {
+  # Return a list of TKwidgets
    set list [list $W]
    foreach w [winfo children $W] {
      set list [concat $list [wlist $w]]
@@ -246,6 +258,7 @@ proc itrajcomp::wlist {{W .}} {
 
 
 proc itrajcomp::ColorScale {max min i l} {
+  # Color scale transformation
   if {$max == 0} {
     set max 1.0
   }
@@ -264,6 +277,7 @@ proc itrajcomp::ColorScale {max min i l} {
 
 
 proc itrajcomp::hls2rgb {h l s} {
+  # Transform from hls to rgb colors
   #http://wiki.tcl.tk/666
   # h, l and s are floats between 0.0 and 1.0, ditto for r, g and b
   # h = 0   => red
@@ -291,6 +305,7 @@ proc itrajcomp::hls2rgb {h l s} {
 
 
 proc itrajcomp::CheckNatoms {mol1 sel1 {mol2 ""} {sel2 ""}} {
+  # Check same number of atoms in two selections
   foreach i $mol1 {
     set natoms($i) [[atomselect $i $sel1 frame 0] num]
   }
@@ -321,6 +336,7 @@ proc itrajcomp::CheckNatoms {mol1 sel1 {mol2 ""} {sel2 ""}} {
 
 
 proc itrajcomp::ParseKey {self key} {
+  # Parse a key to get mol, frame and selection back
   set graphtype [set ${self}::graphtype]
   set indices [split $key :]
 
@@ -351,12 +367,15 @@ proc itrajcomp::ParseKey {self key} {
 
 
 proc itrajcomp::Normalize {{type "expmin"} self} {
-  
+  # Normalize data
   array set data [array get ${self}::data]
   set keys [array names data]
   set min [set ${self}::min]
   set max [set ${self}::max]
   
+  # minmax: min gets 0, max gets 1
+  # exp: exponential
+  # expmin: exponential shifted
   switch $type {
     minmax {
       set minmax [expr $max - $min]
