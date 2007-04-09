@@ -146,7 +146,83 @@ proc itrajcomp::labels { self } {
 }
 
 
+proc itrajcomp::labels_options {} {
+  # Options for labels
+  variable labels_options
+  variable labels_vars [list label_type labels_status]
+  variable label_type "Dihedrals"
+  variable labels_status
+  variable labels_status_array
+
+  frame $labels_options.labs
+  pack $labels_options.labs -side top -anchor nw
+  label $labels_options.labs.l -text "Labels:"
+  pack $labels_options.labs.l -side left
+  foreach entry [list Bonds Angles Dihedrals] {
+    radiobutton $labels_options.labs.[string tolower $entry] -text $entry -variable [namespace current]::label_type -value $entry -command "[namespace current]::labels_options_update"
+    pack $labels_options.labs.[string tolower $entry] -side left
+  }
+  menubutton $labels_options.labs.id -text "Id" -menu $labels_options.labs.id.m -relief raised
+  menu $labels_options.labs.id.m
+  pack $labels_options.labs.id -side left
+}
 
 
+proc itrajcomp::labels_options_update {} {
+  # Update list of available labels and reset their status
+  # Each label has the format: 'num_label (atom_label, atom_label,...)'
+  #    * num_label is the label number
+  #    * atom_label is $mol-$resname$resid-$name
+  variable tab_calc
+  variable label_type
+  variable labels_options
+
+  # TODO: why hold two variables with the same info?
+  variable labels_status_array
+  variable labels_status
+
+  set labels [label list $label_type]
+  set n [llength $labels]
+  $labels_options.labs.id.m delete 0 end
+  # TODO: don't reset their status (try to keep them when swithing between label types in the gui)
+  array unset labels_status_array
+  if {$n > 0} {
+    $labels_options.labs.id config -state normal
+    set nat [expr [llength [lindex $labels 0]] -2]
+    for {set i 0} {$i < $n} {incr i} {
+      set label "$i ("
+      for {set j 0} {$j < $nat} {incr j} {
+	set mol   [lindex [lindex [lindex $labels $i] $j] 0]
+	set index [lindex [lindex [lindex $labels $i] $j] 1]
+	set at    [atomselect $mol "index $index"]
+	set resname [$at get resname]
+	set resid   [$at get resid]
+	set name    [$at get name]
+	append label "$mol-$resname$resid-$name"
+	if {$j < [expr $nat-1]} {
+	  append label ", "
+	}
+      }
+      append label ")"
+      $labels_options.labs.id.m add checkbutton -label $label -variable [namespace current]::labels_status_array($i) -command "[namespace current]::labels_update_status $i"
+    }
+  }
+
+  if {[info exists labels_status]} {
+    unset labels_status
+  }
+  foreach x [array names labels_status_array ] {
+    lappend labels_status $labels_status_array($x)
+  }
+}
+
+
+proc itrajcomp::labels_update_status {i} {
+  # Update status of a label
+  variable labels_status_array
+  variable labels_status
+  
+  set labels_status [lreplace $labels_status $i $i $labels_status_array($i)]
+}
 
 

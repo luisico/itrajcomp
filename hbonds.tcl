@@ -119,3 +119,22 @@ proc itrajcomp::hbonds { self } {
 }
 
 
+proc itrajcomp::hbonds_options {} {
+  # Options for hbonds
+  variable hbonds_options
+  variable hbonds_vars [list cutoff angle]
+  variable cutoff 5.0
+  variable angle 30.0
+
+  frame $hbonds_options.cutoff
+  pack $hbonds_options.cutoff -side top -anchor nw
+  label $hbonds_options.cutoff.l -text "Cutoff:"
+  entry $hbonds_options.cutoff.v -width 5 -textvariable [namespace current]::cutoff
+  pack $hbonds_options.cutoff.l $hbonds_options.cutoff.v -side left
+
+  frame $hbonds_options.angle
+  pack $hbonds_options.angle -side top -anchor nw
+  label $hbonds_options.angle.l -text "Angle:"
+  entry $hbonds_options.angle.v -width 5 -textvariable [namespace current]::angle
+  pack $hbonds_options.angle.l $hbonds_options.angle.v -side left
+}

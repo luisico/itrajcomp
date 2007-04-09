@@ -214,3 +214,29 @@ proc itrajcomp::covar { self } {
   return 0
 }
 
+
+proc itrajcomp::covar_options {} {
+  # Options for covar
+  variable covar_options
+  variable covar_vars [list byres normalize]
+  variable byres 1
+  variable normalize "none"
+
+  checkbutton $covar_options.byres -text "byres" -variable [namespace current]::byres
+  pack $covar_options.byres -side top -anchor nw
+
+  frame $covar_options.norm
+  pack $covar_options.norm -side top -anchor nw
+  label $covar_options.norm.l -text "Normalization:"
+  pack $covar_options.norm.l -side left
+  foreach entry [list none exp expmin minmax] {
+    radiobutton $covar_options.norm.$entry -text $entry -variable [namespace current]::normalize -value $entry
+    pack $covar_options.norm.$entry -side left
+  }
+}
+
+
+proc itrajcomp::covar_options_update {} {
+  # Update options gui
+  [namespace current]::Samemols on
+}

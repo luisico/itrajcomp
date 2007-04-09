@@ -139,3 +139,29 @@ proc itrajcomp::dist { self } {
   return 0
 }
 
+
+proc itrajcomp::dist_options {} {
+  # Options for dist
+  variable dist_options
+  variable dist_vars [list byres normalize]
+  variable byres 1
+  variable normalize "none"
+
+  checkbutton $dist_options.byres -text "byres" -variable [namespace current]::byres
+  pack $dist_options.byres -side top -anchor nw
+
+  frame $dist_options.norm
+  pack $dist_options.norm -side top -anchor nw
+  label $dist_options.norm.l -text "Normalization:"
+  pack $dist_options.norm.l -side left
+  foreach entry [list none exp expmin minmax] {
+    radiobutton $dist_options.norm.$entry -text $entry -variable [namespace current]::normalize -value $entry
+    pack $dist_options.norm.$entry -side left
+  }
+}
+
+
+proc itrajcomp::dist_options_update {} {
+  # Update options gui
+  [namespace current]::Samemols on
+}

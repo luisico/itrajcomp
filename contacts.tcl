@@ -122,3 +122,15 @@ proc itrajcomp::contacts { self } {
 }
 
 
+proc itrajcomp::contacts_options {} {
+  # Options for contacts
+  variable contacts_options
+  variable contacts_vars [list cutoff]
+  variable cutoff 5.0
+
+  frame $contacts_options.cutoff
+  pack $contacts_options.cutoff -side top -anchor nw
+  label $contacts_options.cutoff.l -text "Cutoff:"
+  entry $contacts_options.cutoff.v -width 5 -textvariable [namespace current]::cutoff
+  pack $contacts_options.cutoff.l $contacts_options.cutoff.v -side left
+}

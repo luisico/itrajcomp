@@ -29,7 +29,6 @@
 
 proc itrajcomp::AddRep1 {i j sel style color} {
   # Add 1 representation to vmd
-  variable w
   mol rep $style
   mol selection $sel
   mol color $color
@@ -42,7 +41,6 @@ proc itrajcomp::AddRep1 {i j sel style color} {
 
 proc itrajcomp::AddRep2 {i j k l sel} {
   # Add a pair (matrix cell) of representation to vmd
-  variable w
   mol rep Lines 2
   mol selection $sel
   mol addrep $i
@@ -247,11 +245,11 @@ proc itrajcomp::ParseSel {orig selmod} {
 }
 
 
-proc itrajcomp::wlist {{W .}} {
+proc itrajcomp::wlist {{w .}} {
   # Return a list of TKwidgets
-   set list [list $W]
-   foreach w [winfo children $W] {
-     set list [concat $list [wlist $w]]
+   set list [list $w]
+   foreach widget [winfo children $w] {
+     set list [concat $list [wlist $widget]]
    }
    return $list
 }

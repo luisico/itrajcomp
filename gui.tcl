@@ -55,24 +55,15 @@ proc itrajcomp::NewPlot {self} {
     variable rep_colorid1  0
     variable highlight    0.2
     variable save_format  tab
-    #variable label_type
-    #variable labels_status
 
     set p [toplevel ".${self}_plot"]
 
     wm protocol $p WM_DELETE_WINDOW "[namespace parent]::Destroy $self"
 
+    # TODO: update title window when the entry $p.title.title changes
     set title "$self: $type"
-    switch $type {
-      contacts {
-	set title "$title cutoff=$cutoff"
-      }
-      hbonds {
-	set title "$title cutoff=$cutoff angle=$angle"
-      }
-      labels {
-	set title "$title type=$label_type"
-      }
+    foreach var $vars {
+      append title " $var=[set $var]"
     }
     wm title $p $title
     
@@ -103,12 +94,12 @@ proc itrajcomp::NewPlot {self} {
     $p.menubar.help.menu add command -label "About" -command "[namespace parent]::help_about $p" -underline 0
     pack $p.menubar.help -side right
 
-    # Title
-    labelframe $p.title -relief ridge -bd 2 -text "Title"
-    pack $p.title -side top -fill x
-
-    entry $p.title.title -textvariable [namespace current]::title -relief flat
-    pack $p.title.title -side left -fill x
+    # TODO: remove title, since it is already in the window title
+#    # Title
+#    labelframe $p.title -relief ridge -bd 2 -text "Title"
+#    pack $p.title -side top -fill x
+#    entry $p.title.title -textvariable [namespace current]::title -relief flat
+#    pack $p.title.title -side top -anchor nw -expand yes -fill x
 
     # Main area
     labelframe $p.u -relief ridge -bd 2 -text "Graph"
@@ -140,14 +131,15 @@ proc itrajcomp::NewPlot {self} {
     frame $p.u.l.info
     pack $p.u.l.info -side top -anchor nw
     
+    # TODO: allow to change the key via text
     label $p.u.l.info.keys_label -text "Keys:"
-    entry $p.u.l.info.keys_entry1 -width 8 -textvariable [namespace current]::info_key1
-    entry $p.u.l.info.keys_entry2 -width 8 -textvariable [namespace current]::info_key2
+    entry $p.u.l.info.keys_entry1 -width 8 -textvariable [namespace current]::info_key1 -state readonly
+    entry $p.u.l.info.keys_entry2 -width 8 -textvariable [namespace current]::info_key2 -state readonly
     pack $p.u.l.info.keys_label $p.u.l.info.keys_entry1 $p.u.l.info.keys_entry2 -side left
     
-    label $p.u.l.info.rmsd_label -text "Value:"
-    entry $p.u.l.info.rmsd_entry -width 8 -textvariable [namespace current]::info_value
-    pack $p.u.l.info.rmsd_label $p.u.l.info.rmsd_entry -side left
+    label $p.u.l.info.value_label -text "Value:"
+    entry $p.u.l.info.value_entry -width 8 -textvariable [namespace current]::info_value -state readonly
+    pack $p.u.l.info.value_label $p.u.l.info.value_entry -side left
 
     checkbutton $p.u.l.info.sticky -text "Sticky" -variable [namespace current]::info_sticky
     pack $p.u.l.info.sticky -side left
@@ -225,24 +217,6 @@ proc itrajcomp::NewPlot {self} {
       pack $p.l.l.info.sel.e$x -side left -expand yes -fill x
     }
     
-    switch $type {
-      contacts {
-	label $p.l.l.info.other -text "Cutoff: $cutoff" -font [list Helvetica 8]
-	pack $p.l.l.info.other -side left
-      }
-      hbonds {
-	label $p.l.l.info.other -text "Cutoff: $cutoff; Angle: $angle" -font [list Helvetica 8]
-	pack $p.l.l.info.other -side left
-      }
-      labels {
-	for {set i 0} {$i < [llength $labels_status]} {incr i} {
-	  if {[lindex $labels_status $i] == 1} {lappend labs [lindex $labels_status $i]}
-	}
-	label $p.l.l.info.other -text "Type: $label_type; Labels: $labs" -font [list Helvetica 8]
-	pack $p.l.l.info.other -side left
-      }
-    }
-    
     # Display selection
     labelframe $p.l.l.rep -relief ridge -bd 4 -text "Representation"
     pack $p.l.l.rep -side top -expand yes -fill x 
@@ -286,33 +260,16 @@ proc itrajcomp::NewPlot {self} {
       pack $p.l.l.rep.disp$x.style.s $p.l.l.rep.disp$x.style.c $p.l.l.rep.disp$x.style.id -side left
     }
 
-
-#     if {$type eq "rmsd"} {
-#       # Clustering
-#       frame $p.l.l.cluster -relief ridge -bd 2
-#       pack $p.l.l.cluster -side top
-      
-#       label $p.l.l.cluster.rthres_label -text "r(thres,rel):"
-#       entry $p.l.l.cluster.rthres -width 5 -textvariable [namespace current]::r_thres_rel
-#       label $p.l.l.cluster.ncrit_label -text "N(crit,rel):"
-#       entry $p.l.lb.cluster.ncrit -width 5 -textvariable [namespace current]::N_crit_rel
-#       checkbutton $p.l.l.cluster.graphics -text "Graphics" -variable [namespace current]::clustering_graphics
-#       button $p.l.l.cluster.bt -text "Cluster" -command "[namespace parent]::Cluster $self"
-#       pack $p.l.l.cluster.rthres_label $p.l.l.cluster.rthres $p.l.l.cluster.ncrit_label $p.l.l.cluster.ncrit $p.l.l.cluster.graphics $p.l.l.cluster.bt -side left 
-#     }
-    
-    switch $type {
-      rmsd -
-      contacts -
-      hbonds -
-      labels {
+    switch $graphtype {
+      frame {
 	[namespace parent]::Graph $self
       }
-      dist -
-      covar {
+      atom -
+      residue {
 	[namespace parent]::Graph2 $self
       }
     }
+    # TODO: zoom to a better level depending on the size of the matrix and the space available
     [namespace parent]::Zoom $self -5
     
   }

@@ -27,8 +27,9 @@
 #    Load data.
 
 
+# TODO: broken
+# TODO: convert to a serialize object
 proc itrajcomp::loadDataBrowse {format} {
-  # TODO: move to load.tcl
   # Load GUI
   set vn [package present itrajcomp]
   if {[llength [info procs "loadData_$format"]] < 1} {

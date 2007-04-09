@@ -137,3 +137,14 @@ proc itrajcomp::rmsd { self } {
 
   return 0
 }
+
+
+proc itrajcomp::rmsd_options {} {
+  # Options for rmsd
+  variable rmsd_options
+  variable rmsd_vars [list align]
+  variable align 0
+
+  checkbutton $rmsd_options.align -text "align" -variable [namespace current]::align
+  pack $rmsd_options.align -side top -anchor nw
+}
