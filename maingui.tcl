@@ -29,6 +29,7 @@
 
 package provide itrajcomp 1.0
 
+# Our main namespace
 namespace eval itrajcomp {
   namespace export init
   
@@ -89,7 +90,7 @@ proc itrajcomp::init {} {
   pack [buttonbar::create $win_main.tabs $win_main.tabcontent] -side top -fill x
 
   # Frame for molecule/frame selection
- [namespace current]::TabSel $win_main
+  [namespace current]::TabSel $win_main
 
   # Calculation Tab
   [namespace current]::TabCalc $win_main
@@ -237,7 +238,7 @@ proc itrajcomp::TabCalc { w } {
   variable tab_calc [buttonbar::add $w.tabs calc]
   buttonbar::name $w.tabs calc "Calculation"
 
-  button $tab_calc.new -text "New object" -command "[namespace current]::CreateObject"
+  button $tab_calc.new -text "New object" -command "[namespace current]::NewObject"
   pack $tab_calc.new -side top
 
   # Type frame
@@ -317,29 +318,18 @@ proc itrajcomp::TabCalcUpdate {} {
 }
 
 
-proc itrajcomp::ConfigChildren { w {option -state} {value normal} } {
-  # Switch display of a widget and its children
-
-  foreach widget [winfo children $w] {
-    catch {
-      eval $widget config $option $value
-    } msg
-    #puts "$widget -> [winfo class $widget] $option $value : $msg"
-    [namespace current]::ConfigChildren $widget $option $value
-  }
-}
-
-
 proc itrajcomp::SwitchSamemols {} {
   # Switch selection 2
   variable samemols
   
+  # TODO: if calctype is dist or covar, 'same mols' cannot be activated
   set status "off"
   if {$samemols} {
     set status "on"
   }
   [namespace current]::Samemols $status
 }
+
 
 proc itrajcomp::Samemols { status } {
   # Turn Selection 2 on/off
@@ -356,7 +346,11 @@ proc itrajcomp::Samemols { status } {
     set samemols 1
   }
 
-  [namespace current]::ConfigChildren $tab_sel.mol2 -state $state
+  foreach widget [[namespace current]::wlist $tab_sel.mol2] {
+    catch {
+      eval $widget config -state $state
+    } msg
+  }
 
   # Flass the Selection tab to let the user know samemols changed
   if {$samemols != $old_status} {
@@ -410,11 +404,34 @@ proc itrajcomp::ClearStatus {} {
 }
 
 
-proc itrajcomp::CreateObject {} {
+proc itrajcomp::NewObject {} {
   # Initialize an object
   # TODO: move to object?
 
-  # Pass selection options
+  variable calctype
+
+  # Create new object
+  set obj [eval [namespace current]::Objnew ":auto" [[namespace current]::ParseOptions]]
+  
+  # Do the calculation
+  [namespace current]::Status "Calculating $calctype ..."
+  set err [[namespace current]::$calctype $obj]
+  if {$err} {
+    [namespace current]::Objdelete $obj
+    return 1
+  }
+  
+  # Create the new graph
+  [namespace current]::Status "Creating graph for $obj ..."
+  [namespace current]::itcObjGui $obj
+  #  [namespace current]::ClearStatus
+}
+
+
+proc itrajcomp::ParseOptions {} {
+  # Parse all options to create a new object
+
+  # Selection options
   variable tab_sel
 
   variable mol1_def
@@ -481,19 +498,9 @@ proc itrajcomp::CreateObject {} {
   }
   lappend defaults vars [set ${calctype}_vars]
 
-  set r [eval [namespace current]::Objnew ":auto" $defaults]
-
-#  [namespace current]::Objdump $r
-  [namespace current]::Status "Calculating $calctype ..."
-  set err [[namespace current]::$calctype $r]
-  if {$err} {
-    [namespace current]::Objdelete $r
-    return 1
-  }
-  [namespace current]::Status "Creating graph for $r ..."
-  [namespace current]::NewPlot $r
-#  [namespace current]::ClearStatus
+  return $defaults
 }
+
 
 proc itrajcomp::help_about { {parent .itrajcomp} } {
   # Help window

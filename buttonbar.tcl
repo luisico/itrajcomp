@@ -16,8 +16,6 @@
     pack $w.middle.c -fill both
     $w.middle.c create window 0 0 -anchor nw -window $w.middle.c.f
     bind $w.middle.c.f <Configure> "$w.middle.c configure -scrollregion \[$w.middle.c bbox all\]"
-    bind tab <Button-1> "[namespace current]::showframe $w %W; bind tab <Motion> \"[namespace current]::tabdrag $w %W\""
-    bind tab <ButtonRelease-1> "[namespace current]::tearoff $w %W %X %Y; bind tab <Motion> {}; after cancel \"[namespace current]::tabdrag $w %W\""
     bind $w.middle.c <Configure> "[namespace current]::setscrollstate $w"
     set buttonbar($w) $frame
     return $w
@@ -28,7 +26,9 @@
     eval frame $buttonbar($w).$name
     button $w.middle.c.f.$name -text $name -highlightthickness 0 -padx 3m -relief groove
     pack $w.middle.c.f.$name -side left -pady 0 -padx 0 -fill y
-    bindtags $w.middle.c.f.$name tab
+    bindtags $w.middle.c.f.$name tab_$w
+    bind tab_$w <Button-1> "[namespace current]::showframe $w %W; bind tab <Motion> \"[namespace current]::tabdrag $w %W\""
+    bind tab_$w <ButtonRelease-1> "[namespace current]::tearoff $w %W %X %Y; bind tab <Motion> {}; after cancel \"[namespace current]::tabdrag $w %W\""
     showframe $w $name
     after idle [namespace current]::setscrollstate $w
     return $buttonbar($w).$name

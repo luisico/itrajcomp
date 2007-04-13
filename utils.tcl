@@ -27,6 +27,7 @@
 #    Utility functions.
 
 
+# TODO: most of procs here are vmd related, rename to vmd?
 proc itrajcomp::AddRep1 {i j sel style color} {
   # Add 1 representation to vmd
   mol rep $style
@@ -156,6 +157,45 @@ proc itrajcomp::ParseFrames { frames mols skip idlist } {
 }
 
 
+proc itrajcomp::SplitFrames {frames} {
+  # Split frames for molecules
+  set text {}
+  for {set i 0} {$i < [llength $frames]} {incr i} {
+    lappend text "\[[[namespace current]::Range [lindex $frames $i]]\]"
+  }
+  return [join $text]
+}
+
+
+proc itrajcomp::Range {numbers} {
+  # Convert list of numbers range to a simple string
+
+  set numbers [lsort -unique -integer $numbers]
+  set start 0
+  set end 0
+  for {set i 1} {$i < [llength $numbers]} {incr i} {
+    set a [lindex $numbers [expr $i-1]]
+    set b [lindex $numbers $i]
+    if { [expr $a+1] == $b } {
+      set end $i
+    } else {
+      if {$start != $end} {
+	lappend results "[lindex $numbers $start]-$a"
+      } else {
+	lappend results $a
+      }
+      set start $i
+    }
+  }
+  if {[lindex $numbers $start] != $b} {
+    lappend results "[lindex $numbers $start]-$b"
+  } else {
+    lappend results $b
+  }
+  return [join $results]
+}
+
+
 proc itrajcomp::CombineMols { args } {
   # Return a list of unique molecules
   set mols {}
@@ -245,6 +285,104 @@ proc itrajcomp::ParseSel {orig selmod} {
 }
 
 
+proc itrajcomp::CheckNatoms {mol1 sel1 {mol2 ""} {sel2 ""}} {
+  # Check same number of atoms in two selections
+  foreach i $mol1 {
+    set natoms($i) [[atomselect $i $sel1 frame 0] num]
+  }
+  
+  if {$mol2 != ""} {
+    foreach i $mol2 {
+      set natoms($i) [[atomselect $i $sel2 frame 0] num]
+    }
+    set mol_all [[namespace current]::CombineMols $mol1 $mol2]
+  } else {
+    set mol_all $mol1
+  }
+
+  foreach i $mol_all {
+    foreach j $mol_all {
+      if {$i < $j} {
+	if {$natoms($i) != $natoms($j)} {
+	  tk_messageBox -title "Warning " -message "Selections differ for molecules $i ($natoms($i)) and $j ($natoms($j))" -parent .itrajcomp
+	  return -1
+	}
+      }
+    }
+  }
+  
+#  return $natoms([lindex $mol_all 0])
+  return $mol_all
+}
+
+
+proc itrajcomp::ParseKey {self key} {
+  # Parse a key to get mol, frame and selection back
+  set graphtype [set ${self}::graphtype]
+  set indices [split $key :]
+
+  switch $graphtype {
+    frame {
+      lassign $indices m f
+      set tab_rep [set ${self}::tab_rep]
+      set s [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
+    }
+    atom {
+      set m [lindex [set ${self}::mol_all] 0]
+      set f [join [set ${self}::frame1] " "]
+      set s "index [lindex $indices 0]"
+    }
+    residue {
+      set m [lindex [set ${self}::mol_all] 0]
+      set f [join [set ${self}::frame1] " "]
+      set tab_rep [set ${self}::tab_rep]
+      set extra [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
+      set s "residue [lindex $indices 0] and ($extra)"
+      puts $s
+    }
+  }
+
+  return [list $m $f $s]
+}
+
+
+
+proc itrajcomp::Normalize {{type "expmin"} self} {
+  # Normalize data
+  array set data [array get ${self}::data]
+  set keys [array names data]
+  set min [set ${self}::min]
+  set max [set ${self}::max]
+  
+  # minmax: min gets 0, max gets 1
+  # exp: exponential
+  # expmin: exponential shifted
+  switch $type {
+    minmax {
+      set minmax [expr $max - $min]
+      foreach key $keys {
+	set data($key) [expr ($data($key)-$min) / $minmax]
+      }
+    }
+    exp {
+      foreach key $keys {
+	set data($key) [expr 1 - exp(-$data($key))]
+      }
+    }
+    expmin {
+      foreach key $keys {
+	set data($key) [expr 1 - exp(-($data($key)-$min))]
+      }
+    }
+  }
+
+  set ${self}::min 0
+  set ${self}::max 1
+  array set ${self}::data [array get data]
+
+  return
+}
+
 proc itrajcomp::wlist {{w .}} {
   # Return a list of TKwidgets
    set list [list $w]
@@ -299,103 +437,4 @@ proc itrajcomp::hls2rgb {h l s} {
   set g [expr {(($g-1)*$s+1)*$l}]
   set b [expr {(($b-1)*$s+1)*$l}]
   return [list $r $g $b]
-}
-
-
-proc itrajcomp::CheckNatoms {mol1 sel1 {mol2 ""} {sel2 ""}} {
-  # Check same number of atoms in two selections
-  foreach i $mol1 {
-    set natoms($i) [[atomselect $i $sel1 frame 0] num]
-  }
-  
-  if {$mol2 != ""} {
-    foreach i $mol2 {
-      set natoms($i) [[atomselect $i $sel2 frame 0] num]
-    }
-    set mol_all [[namespace current]::CombineMols $mol1 $mol2]
-  } else {
-    set mol_all $mol1
-  }
-
-  foreach i $mol_all {
-    foreach j $mol_all {
-      if {$i < $j} {
-	if {$natoms($i) != $natoms($j)} {
-	  tk_messageBox -title "Warning " -message "Selections differ for molecules $i ($natoms($i)) and $j ($natoms($j))" -parent .itrajcomp
-	  return -1
-	}
-      }
-    }
-  }
-  
-#  return $natoms([lindex $mol_all 0])
-  return $mol_all
-}
-
-
-proc itrajcomp::ParseKey {self key} {
-  # Parse a key to get mol, frame and selection back
-  set graphtype [set ${self}::graphtype]
-  set indices [split $key :]
-
-  switch $graphtype {
-    frame {
-      lassign $indices m f
-      set p [set ${self}::p]
-      set s [[namespace current]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
-    }
-    atom {
-      set m [lindex [set ${self}::mol_all] 0]
-      set f [join [set ${self}::frame1] " "]
-      set s "index [lindex $indices 0]"
-    }
-    residue {
-      set m [lindex [set ${self}::mol_all] 0]
-      set f [join [set ${self}::frame1] " "]
-      set p [set ${self}::p]
-      set extra [[namespace current]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
-      set s "residue [lindex $indices 0] and ($extra)"
-      puts $s
-    }
-  }
-
-  return [list $m $f $s]
-}
-
-
-
-proc itrajcomp::Normalize {{type "expmin"} self} {
-  # Normalize data
-  array set data [array get ${self}::data]
-  set keys [array names data]
-  set min [set ${self}::min]
-  set max [set ${self}::max]
-  
-  # minmax: min gets 0, max gets 1
-  # exp: exponential
-  # expmin: exponential shifted
-  switch $type {
-    minmax {
-      set minmax [expr $max - $min]
-      foreach key $keys {
-	set data($key) [expr ($data($key)-$min) / $minmax]
-      }
-    }
-    exp {
-      foreach key $keys {
-	set data($key) [expr 1 - exp(-$data($key))]
-      }
-    }
-    expmin {
-      foreach key $keys {
-	set data($key) [expr 1 - exp(-($data($key)-$min))]
-      }
-    }
-  }
-
-  set ${self}::min 0
-  set ${self}::max 1
-  array set ${self}::data [array get data]
-
-  return
 }

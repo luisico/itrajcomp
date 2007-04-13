@@ -27,238 +27,276 @@
 #    GUI for iTrajComp objects.
 
 
-proc itrajcomp::NewPlot {self} {
+proc itrajcomp::itcObjGui {self} {
   # Initialize window for this object
 
   namespace eval [namespace current]::${self}:: {
 
-    set rep_style_list [list Lines Bonds DynamicBonds HBonds Points VDW CPK Licorice Trace Tube Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Dotted Solvent]
-    set rep_color_list [list Name Type ResName ResType ResID Chain SegName Molecule Structure ColorID Beta Occupancy Mass Charge Pos User Index Backbone Throb Timestep Volume]
-    set save_format_list [set [namespace parent]::save_format_list]
+    set rep_style_list [list Lines Bonds DynamicBonds HBonds Points VDW CPK Licorice Tube Trace Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Beads Dotted Solvent]
+    set rep_color_list [list Name Type Element ResName ResType ResID Chain SegName Conformation Molecule Structure ColorID Beta Occupancy Mass Charge Pos User Index Backbone Throb Timestep Volume]
 
     variable title
-    variable add_rep
-    variable info_key1
-    variable info_key2
-    variable info_value
-    variable info_sticky  0
-    variable map_add 0
-    variable map_del 0
-    variable p
-    variable plot
     variable r_thres_rel  0.5
     variable N_crit_rel   0.5
-    variable grid 10
     variable clustering_graphics 0
-    #variable rep_style1    NewRibbons
-    variable rep_color1    Molecule
-    variable rep_colorid1  0
-    variable highlight    0.2
     variable save_format  tab
+    variable win_obj
 
-    set p [toplevel ".${self}_plot"]
+    set win_obj [toplevel ".${self}_plot"]
 
-    wm protocol $p WM_DELETE_WINDOW "[namespace parent]::Destroy $self"
+    wm protocol $win_obj WM_DELETE_WINDOW "[namespace parent]::Destroy $self"
 
-    # TODO: update title window when the entry $p.title.title changes
+    # TODO: update title window when the entry $win_obj.title.title changes
     set title "$self: $type"
     foreach var $vars {
       append title " $var=[set $var]"
     }
-    wm title $p $title
+    wm title $win_obj $title
     
     # Menu
-    frame $p.menubar -relief raised -bd 2
-    pack $p.menubar -padx 1 -fill x
+    #-----
+    set menubar [frame $win_obj.menubar -relief raised -bd 2]
+    pack $win_obj.menubar -padx 1 -fill x
+    [namespace parent]::itcObjMenubar $self $menubar
     
-    menubutton $p.menubar.file -text "File" -menu $p.menubar.file.menu -width 4 -underline 0
-    menu $p.menubar.file.menu -tearoff no
-    #$p.menubar.file.menu add command -label "Save" -command "" -underline 0
-    $p.menubar.file.menu add cascade -label "Save As..." -menu $p.menubar.file.menu.saveas -underline 0
-    menu $p.menubar.file.menu.saveas
-    foreach as $save_format_list {
-      $p.menubar.file.menu.saveas add command -label $as -command "[namespace parent]::SaveDataBrowse $self $as"
-    }
-    $p.menubar.file.menu add command -label "View" -command "[namespace parent]::ViewData $self" -underline 0
-    $p.menubar.file.menu add command -label "Destroy" -command "[namespace parent]::Destroy $self" -underline 0
-    pack $p.menubar.file -side left
-    
-    menubutton $p.menubar.analysis -text "Analysis" -menu $p.menubar.analysis.menu -width 5 -underline 0
-    menu $p.menubar.analysis.menu -tearoff no
-    $p.menubar.analysis.menu add command -label "Descriptive" -command "[namespace parent]::StatDescriptive $self" -underline 0
-    pack $p.menubar.analysis -side left
+    # Tabs
+    #-----
+    frame $win_obj.tabc
+    pack $win_obj.tabc -side bottom -padx 1 -expand yes -fill both
+    pack [buttonbar::create $win_obj.tabs $win_obj.tabc] -side top -fill x
 
-    menubutton $p.menubar.help -text "Help" -menu $p.menubar.help.menu -width 4 -underline 0
-    menu $p.menubar.help.menu -tearoff no
-    $p.menubar.help.menu add command -label "Keybindings" -command "[namespace parent]::help_keys $self" -underline 0
-    $p.menubar.help.menu add command -label "About" -command "[namespace parent]::help_about $p" -underline 0
-    pack $p.menubar.help -side right
-
-    # TODO: remove title, since it is already in the window title
-#    # Title
-#    labelframe $p.title -relief ridge -bd 2 -text "Title"
-#    pack $p.title -side top -fill x
-#    entry $p.title.title -textvariable [namespace current]::title -relief flat
-#    pack $p.title.title -side top -anchor nw -expand yes -fill x
-
-    # Main area
-    labelframe $p.u -relief ridge -bd 2 -text "Graph"
-    frame $p.l
-    pack $p.u -side top -expand yes -fill both -pady 10
-    pack $p.l -side bottom -anchor w
-
-    frame $p.u.l
-    frame $p.u.r
-    frame $p.l.l
-    pack $p.u.l -side left -expand yes -fill both
-    pack $p.u.r -side right -fill y
-    pack $p.l.l -side top -expand yes -fill x
-#    pack $p.l.r -side right
+    # Info
+    variable tab_info [buttonbar::add $win_obj.tabs info]
+    buttonbar::name $win_obj.tabs info "Info"
+    [namespace parent]::itcObjInfo $self
 
     # Graph
-    frame $p.u.l.canvas -relief raised -bd 2
-    pack $p.u.l.canvas -side top -anchor nw -expand yes -fill both
+    variable tab_graph [buttonbar::add $win_obj.tabs graph]
+    buttonbar::name $win_obj.tabs graph "Graph"
+    [namespace parent]::itcObjGraph $self
 
-    set plot [canvas $p.u.l.canvas.c -height 400 -width 400 -scrollregion {0 0 2000 2000} -xscrollcommand "$p.u.l.canvas.xs set" -yscrollcommand "$p.u.l.canvas.ys set" -xscrollincrement 10 -yscrollincrement 10]
-    scrollbar $p.u.l.canvas.xs -orient horizontal -command "$plot xview"
-    scrollbar $p.u.l.canvas.ys -orient vertical   -command "$plot yview"
+    # Representation
+    variable tab_rep [buttonbar::add $win_obj.tabs rep]
+    buttonbar::name $win_obj.tabs rep "Representations"
+    [namespace parent]::itcObjRep $self
 
-    pack $p.u.l.canvas.xs -side bottom -fill x
-    pack $p.u.l.canvas.ys -side right -fill y
+    buttonbar::showframe $win_obj.tabs info
+    update idletasks
+  }
+}
+
+
+proc itrajcomp::itcObjMenubar {self w} {
+  # Menu for an itcObj
+    
+  menubutton $w.file -text "File" -menu $w.file.menu -width 4 -underline 0
+  menu $w.file.menu -tearoff no
+  #$w.file.menu add command -label "Save" -command "" -underline 0
+  $w.file.menu add cascade -label "Save As..." -menu $w.file.menu.saveas -underline 0
+  menu $w.file.menu.saveas
+  foreach as [set [namespace current]::save_format_list] {
+    $w.file.menu.saveas add command -label $as -command "[namespace current]::SaveDataBrowse $self $as"
+  }
+  $w.file.menu add command -label "View" -command "[namespace current]::ViewData $self" -underline 0
+  $w.file.menu add command -label "Destroy" -command "[namespace current]::Destroy $self" -underline 0
+  pack $w.file -side left
+  
+  menubutton $w.analysis -text "Analysis" -menu $w.analysis.menu -width 5 -underline 0
+  menu $w.analysis.menu -tearoff no
+  $w.analysis.menu add command -label "Descriptive" -command "[namespace current]::StatDescriptive $self" -underline 0
+  pack $w.analysis -side left
+  
+  menubutton $w.help -text "Help" -menu $w.help.menu -width 4 -underline 0
+  menu $w.help.menu -tearoff no
+  $w.help.menu add command -label "Keybindings" -command "[namespace current]::help_keys $self" -underline 0
+  $w.help.menu add command -label "About" -command "[namespace current]::help_about [winfo parent $w]" -underline 0
+  pack $w.help -side right
+  
+}
+
+
+proc itrajcomp::itcObjInfo {self} {
+  # construct info gui
+  namespace eval [namespace current]::${self}:: {
+
+    # Calculation type
+    labelframe $tab_info.calc -text "Calculation Type"
+    pack $tab_info.calc -side top -anchor nw -expand yes -fill x
+
+    label $tab_info.calc.type -text $type
+    pack $tab_info.calc.type -side top -anchor nw
+    
+    # Calculation options
+    labelframe $tab_info.opt -text "Calculation Options"
+    pack $tab_info.opt -side top -anchor nw -expand yes -fill x
+    
+    set row 1
+    grid columnconfigure $tab_info.opt 2 -weight 1
+    foreach var [concat diagonal $vars] {
+      incr row
+      label $tab_info.opt.${var}_l -text "$var:"
+      label $tab_info.opt.${var}_v -text "[set $var]"
+      grid $tab_info.opt.${var}_l -row $row -column 1 -sticky nw
+      grid $tab_info.opt.${var}_v -row $row -column 2 -sticky nw
+    }
+
+    # Selection set 1
+    labelframe $tab_info.sel1 -text "Selection 1"
+    pack $tab_info.sel1 -side top -anchor nw -expand yes -fill x
+
+    set row 1
+    grid columnconfigure $tab_info.sel1 2 -weight 1
+    
+    label $tab_info.sel1.mol_l -text "Molecule(s):"
+    label $tab_info.sel1.mol_v -text "$mol1_def ($mol1)"
+    grid $tab_info.sel1.mol_l -row $row -column 1 -sticky nw
+    grid $tab_info.sel1.mol_v -row $row -column 2 -sticky nw
+
+    # TODO: put frames for each mol in a different row
+    incr row
+    label $tab_info.sel1.frame_l -text "Frame(s):"
+    label $tab_info.sel1.frame_v -text "$frame1_def ([[namespace parent]::SplitFrames $frame1])"
+    grid $tab_info.sel1.frame_l -row $row -column 1 -sticky nw
+    grid $tab_info.sel1.frame_v -row $row -column 2 -sticky nw
+
+    incr row
+    label $tab_info.sel1.atom_l -text "Atom Sel:"
+    label $tab_info.sel1.atom_v -text "$sel1"
+    grid $tab_info.sel1.atom_l -row $row -column 1 -sticky nw
+    grid $tab_info.sel1.atom_v -row $row -column 2 -sticky nw
+
+    # Selection set 2
+    labelframe $tab_info.sel2 -text "Selection 2"
+    pack $tab_info.sel2 -side top -anchor nw -expand yes -fill x
+
+    set row 1
+    grid columnconfigure $tab_info.sel2 2 -weight 1
+    
+    label $tab_info.sel2.mol_l -text "Molecule(s):"
+    label $tab_info.sel2.mol_v -text "$mol2_def ($mol2)"
+    grid $tab_info.sel2.mol_l -row $row -column 1 -sticky nw
+    grid $tab_info.sel2.mol_v -row $row -column 2 -sticky nw
+
+    incr row
+    label $tab_info.sel2.frame_l -text "Frame(s):"
+    label $tab_info.sel2.frame_v -text "$frame2_def ([[namespace parent]::SplitFrames $frame2])"
+    grid $tab_info.sel2.frame_l -row $row -column 1 -sticky nw
+    grid $tab_info.sel2.frame_v -row $row -column 2 -sticky nw
+
+    incr row
+    label $tab_info.sel2.atom_l -text "Atom Sel:"
+    label $tab_info.sel2.atom_v -text "$sel2"
+    grid $tab_info.sel2.atom_l -row $row -column 1 -sticky nw
+    grid $tab_info.sel2.atom_v -row $row -column 2 -sticky nw
+
+    # Molecules list
+    labelframe $tab_info.mols -text "Molecules list"
+    pack $tab_info.mols -side top -anchor nw -expand yes -fill x
+
+    set row 1
+    grid columnconfigure $tab_info.mols 3 -weight 1
+    
+    label $tab_info.mols.header_n -text "Name"
+    grid $tab_info.mols.header_n -row $row -column 2 -sticky nw
+    label $tab_info.mols.header_f -text "Files"
+    grid $tab_info.mols.header_f -row $row -column 3 -sticky nw
+
+    foreach m $mol1 {
+      incr row
+      label $tab_info.mols.l$m -text "$m:"
+      grid $tab_info.mols.l$m -row $row -column 1 -sticky nw
+
+      label $tab_info.mols.n$m -text "[molinfo $m get name]"
+      grid $tab_info.mols.n$m -row $row -column 2 -sticky nw
+
+      foreach file [eval concat [molinfo $m get filename]] {
+	label $tab_info.mols.f$m$row -text "$file"
+	grid $tab_info.mols.f$m$row -row $row -column 3 -sticky nw
+	incr row
+      }
+    }
+
+  }
+}
+
+
+proc itrajcomp::itcObjGraph {self} {
+  # construct graph gui
+  namespace eval [namespace current]::${self}:: {
+    variable add_rep
+    variable info_key1
+    variable info_key2
+    variable info_value
+    variable info_sticky 0
+    variable map_add 0
+    variable map_del 0
+    variable highlight 0.2
+    variable grid 10
+
+    frame $tab_graph.l
+    frame $tab_graph.r
+    pack $tab_graph.l -side left -expand yes -fill both
+    pack $tab_graph.r -side right -fill y
+
+    # Graph
+    frame $tab_graph.l.graph -relief raised -bd 2
+    pack $tab_graph.l.graph -side top -anchor nw -expand yes -fill both
+
+    variable plot [canvas $tab_graph.l.graph.c -height 400 -width 400 -scrollregion {0 0 2000 2000} -xscrollcommand "$tab_graph.l.graph.xs set" -yscrollcommand "$tab_graph.l.graph.ys set" -xscrollincrement 10 -yscrollincrement 10 -bg white]
+    scrollbar $tab_graph.l.graph.xs -orient horizontal -command "$plot xview"
+    scrollbar $tab_graph.l.graph.ys -orient vertical   -command "$plot yview"
+
+    pack $tab_graph.l.graph.xs -side bottom -fill x
+    pack $tab_graph.l.graph.ys -side right -fill y
     pack $plot -side right -expand yes -fill both
 
     # Info
-    frame $p.u.l.info
-    pack $p.u.l.info -side top -anchor nw
+    set info_frame [frame $tab_graph.l.info]
+    pack $info_frame -side top -anchor nw
+
+    label $info_frame.keys_label -text "Keys:"
+    entry $info_frame.keys_entry1 -width 8 -textvariable [namespace current]::info_key1 -state readonly
+    entry $info_frame.keys_entry2 -width 8 -textvariable [namespace current]::info_key2 -state readonly
+    pack $info_frame.keys_label $info_frame.keys_entry1 $info_frame.keys_entry2 -side left
     
-    # TODO: allow to change the key via text
-    label $p.u.l.info.keys_label -text "Keys:"
-    entry $p.u.l.info.keys_entry1 -width 8 -textvariable [namespace current]::info_key1 -state readonly
-    entry $p.u.l.info.keys_entry2 -width 8 -textvariable [namespace current]::info_key2 -state readonly
-    pack $p.u.l.info.keys_label $p.u.l.info.keys_entry1 $p.u.l.info.keys_entry2 -side left
+    label $info_frame.value_label -text "Value:"
+    entry $info_frame.value_entry -width 8 -textvariable [namespace current]::info_value -state readonly
+    pack $info_frame.value_label $info_frame.value_entry -side left
+
+    checkbutton $info_frame.sticky -text "Sticky" -variable [namespace current]::info_sticky
+    pack $info_frame.sticky -side left
+
+    checkbutton $info_frame.mapadd -text "Add" -variable [namespace current]::map_add -command "set [namespace current]::map_del 0"
+    pack $info_frame.mapadd -side left
+
+    checkbutton $info_frame.mapdel -text "Del" -variable [namespace current]::map_del -command "set [namespace current]::map_add 0"
+    pack $info_frame.mapdel -side left
     
-    label $p.u.l.info.value_label -text "Value:"
-    entry $p.u.l.info.value_entry -width 8 -textvariable [namespace current]::info_value -state readonly
-    pack $p.u.l.info.value_label $p.u.l.info.value_entry -side left
-
-    checkbutton $p.u.l.info.sticky -text "Sticky" -variable [namespace current]::info_sticky
-    pack $p.u.l.info.sticky -side left
-
-    checkbutton $p.u.l.info.mapadd -text "Add" -variable [namespace current]::map_add -command "set [namespace current]::map_del 0"
-    pack $p.u.l.info.mapadd -side left
-
-    checkbutton $p.u.l.info.mapdel -text "Del" -variable [namespace current]::map_del -command "set [namespace current]::map_add 0"
-    pack $p.u.l.info.mapdel -side left
-
-#    label $p.u.l.info.high_label -text "Highlight:"
-#    entry $p.u.l.info.high_entry -width 3 -textvariable [namespace current]::highlight
-#    pack $p.u.l.info.high_label $p.u.l.info.high_entry -side left
+#    label $info_frame.high_label -text "Highlight:"
+#    entry $info_frame.high_entry -width 3 -textvariable [namespace current]::highlight
+#    pack $info_frame.high_label $info_frame.high_entry -side left
 
     # Scale
-    set sc_w    40.
-    set sc_h   200.
-    set off     10.
-    set rg_n    50
-    set rg_w    20.
-    set rg_h    [expr ($sc_h-2*$off)/$rg_n]
-    set lb_n    10
-    set lb_h    [expr $sc_h/($lb_n+1)]
-    
-    set scale [canvas $p.u.r.s -height $sc_h -width $sc_w -relief ridge -bd 1]
-    pack $scale -side top
-    
-    set y $off
-    set val $min
-    set reg [expr double($max-$min)/$rg_n]
-    for {set i 0} {$i <= $rg_n} {incr i} {
-      set color [[namespace parent]::ColorScale $max $min $val 1.0]
-      $scale create rectangle 0 $y $rg_w [expr $y+$rg_h] -fill $color -outline $color -tag "rect$val"
-      $scale bind "rect$val" <B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $val -1 1"
-      $scale bind "rect$val" <B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 1 1"
-      set val [expr $val+ $reg]
-      set y [expr $y+$rg_h]
-    }
-    
-    set y $off
-    set val $min
-    set reg [expr double($max-$min)/$lb_n]
-    # TODO: if format_scale is integer (like in contacts.tcl) reg should be integer
-    for {set i 0} {$i <= $lb_n} {incr i} {
-      puts "$i $val"
-      $scale create line 15 $y $rg_w $y
-      $scale create text [expr $rg_w+1] $y -text [format $format_scale $val] -anchor w -font [list helvetica 7 normal] -tag "line$val"
-      $scale bind "line$val" <B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $val -1 1"
-      $scale bind "line$val" <B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $val 1 1"
-      set val [expr $val+ $reg]
-      set y [expr $y+$lb_h]
-    }
-   
+    labelframe $tab_graph.r.scale -text "Scale"
+    pack $tab_graph.r.scale -side top -expand yes -fill y
+
+    set sc_w 40.
+    #set scale [canvas $tab_graph.r.scale.c -height $sc_h -width $sc_w]
+    set scale [canvas $tab_graph.r.scale.c -width $sc_w]
+    pack $scale -side top -expand yes -fill y
+    bind $scale <Configure> "[namespace parent]::UpdateScale $self"
+
     # Clear button
-    button $p.u.r.clear -text "Clear" -command "[namespace parent]::MapClear $self"
-    pack $p.u.r.clear -side bottom
+    button $tab_graph.r.clear -text "Clear" -command "[namespace parent]::MapClear $self"
+    pack $tab_graph.r.clear -side bottom
 
     # Zoom
-    labelframe $p.u.r.zoom  -relief ridge -bd 2 -text "Zoom"
-    pack $p.u.r.zoom -side bottom
-    button $p.u.r.zoom.incr -text "+" -command "[namespace parent]::Zoom $self 1"
-    entry $p.u.r.zoom.val -width 2 -textvariable [namespace current]::grid
-    button $p.u.r.zoom.decr -text "-" -command "[namespace parent]::Zoom $self -1"
-    pack $p.u.r.zoom.incr $p.u.r.zoom.val $p.u.r.zoom.decr
-    
-    # Calculation info
-    labelframe $p.l.l.info -relief ridge -bd 4 -text "$type selections"
-    pack $p.l.l.info -side top -expand yes -fill x 
-
-    frame $p.l.l.info.sel
-    pack $p.l.l.info.sel -side left
-
-    foreach x [list 1 2] {
-      label $p.l.l.info.sel.e$x -text "[set sel$x]" -relief sunken -bd 1 -font [list Helvetica 8]
-      pack $p.l.l.info.sel.e$x -side left -expand yes -fill x
-    }
-    
-    # Display selection
-    labelframe $p.l.l.rep -relief ridge -bd 4 -text "Representation"
-    pack $p.l.l.rep -side top -expand yes -fill x 
-
-    button $p.l.l.rep.but -text "Update" -font [list Helvetica 8] -command "[namespace parent]::UpdateSelection $self"
-    pack $p.l.l.rep.but -side left
-
-    foreach x [list 1] {
-      frame $p.l.l.rep.disp$x
-      pack $p.l.l.rep.disp$x -side left
-
-      text $p.l.l.rep.disp$x.e -exportselection yes -height 2 -width 25 -wrap word -font [list Helvetica 8]
-      $p.l.l.rep.disp$x.e insert end [set rep_sel$x]
-      pack $p.l.l.rep.disp$x.e -side top -anchor w
-
-      frame $p.l.l.rep.disp$x.style
-      pack $p.l.l.rep.disp$x.style -side top
-
-      menubutton $p.l.l.rep.disp$x.style.s -text "Style" -menu $p.l.l.rep.disp$x.style.s.list -textvariable [namespace current]::rep_style$x -relief raised -font [list Helvetica 8]
-      menu $p.l.l.rep.disp$x.style.s.list
-      foreach entry $rep_style_list {
- 	$p.l.l.rep.disp$x.style.s.list add radiobutton -label $entry -variable [namespace current]::rep_style$x -value $entry -command "[namespace parent]::UpdateSelection $self" -font [list Helvetica 8]
-      }
-
-      menubutton $p.l.l.rep.disp$x.style.c -text "Color" -menu $p.l.l.rep.disp$x.style.c.list -textvariable [namespace current]::rep_color$x -relief raised -font [list Helvetica 8]
-      menu $p.l.l.rep.disp$x.style.c.list
-      foreach entry $rep_color_list {
- 	if {$entry eq "ColorID"} {
- 	  $p.l.l.rep.disp$x.style.c.list add radiobutton -label $entry -variable [namespace current]::rep_color$x -value $entry -command "$p.l.l.rep.disp$x.style.id config -state normal; [namespace parent]::UpdateSelection $self" -font [list Helvetica 8]
- 	} else {
- 	  $p.l.l.rep.disp$x.style.c.list add radiobutton -label $entry -variable [namespace current]::rep_color$x -value $entry -command "$p.l.l.rep.disp$x.style.id config -state disable; [namespace parent]::UpdateSelection $self" -font [list Helvetica 8]
- 	}
-      }
-
-      menubutton $p.l.l.rep.disp$x.style.id -text "ColorID" -menu $p.l.l.rep.disp$x.style.id.list -textvariable [namespace current]::rep_colorid$x -relief raised -state disable -font [list Helvetica 8]
-      menu $p.l.l.rep.disp$x.style.id.list
-      for {set i 0} {$i <= 16} {incr i} {
-  	$p.l.l.rep.disp$x.style.id.list add radiobutton -label $i -variable [namespace current]::rep_colorid$x -value $i -command "[namespace parent]::UpdateSelection $self" -font [list Helvetica 8]
-      }
-      
-      pack $p.l.l.rep.disp$x.style.s $p.l.l.rep.disp$x.style.c $p.l.l.rep.disp$x.style.id -side left
-    }
+    labelframe $tab_graph.r.zoom  -relief ridge -bd 2 -text "Zoom"
+    pack $tab_graph.r.zoom -side bottom
+    button $tab_graph.r.zoom.incr -text "+" -command "[namespace parent]::Zoom $self 1"
+    entry $tab_graph.r.zoom.val -width 2 -textvariable [namespace current]::grid
+    button $tab_graph.r.zoom.decr -text "-" -command "[namespace parent]::Zoom $self -1"
+    pack $tab_graph.r.zoom.incr $tab_graph.r.zoom.val $tab_graph.r.zoom.decr
 
     switch $graphtype {
       frame {
@@ -271,7 +309,81 @@ proc itrajcomp::NewPlot {self} {
     }
     # TODO: zoom to a better level depending on the size of the matrix and the space available
     [namespace parent]::Zoom $self -5
+  }
+}
+
+
+proc itrajcomp::itcObjRep {self} {
+  # construct representations gui
+  namespace eval [namespace current]::${self}:: {
+    #variable rep_style1    NewRibbons
+    variable rep_color1    Molecule
+    variable rep_colorid1  0
+
+    foreach x [list 1] {
+      frame $tab_rep.disp$x
+      pack $tab_rep.disp$x -side left -expand yes -fill x
+
+      # Selection
+      #----------
+      labelframe $tab_rep.disp$x.sel -text "Selection"
+      pack $tab_rep.disp$x.sel -side left -anchor nw -expand yes -fill both
+      
+      text $tab_rep.disp$x.sel.e -exportselection yes -height 2 -width 25 -wrap word
+      $tab_rep.disp$x.sel.e insert end [set rep_sel$x]
+      pack $tab_rep.disp$x.sel.e -side top -anchor w -expand yes -fill both
     
+      # Style
+      #------
+      set style [labelframe $tab_rep.disp$x.style -text "Style"]
+      pack $style -side left
+
+      # Draw
+      frame $style.draw
+      pack $style.draw -side top -anchor nw
+
+      label $style.draw.l -text "Drawing:"
+      pack $style.draw.l -side left
+
+      menubutton $style.draw.m -text "Drawing" -menu $style.draw.m.list -textvariable [namespace current]::rep_style$x -relief raised
+      menu $style.draw.m.list
+      foreach entry $rep_style_list {
+ 	$style.draw.m.list add radiobutton -label $entry -variable [namespace current]::rep_style$x -value $entry -command "[namespace parent]::UpdateSelection $self"
+      }
+      pack $style.draw.m
+
+      # Color
+      frame $style.color
+      pack $style.color -side top -anchor nw
+
+      label $style.color.l -text "Color:"
+      pack $style.color.l -side left
+
+      menubutton $style.color.m -text "Color" -menu $style.color.m.list -textvariable [namespace current]::rep_color$x -relief raised
+      menu $style.color.m.list
+      foreach entry $rep_color_list {
+ 	if {$entry eq "ColorID"} {
+ 	  $style.color.m.list add radiobutton -label $entry -variable [namespace current]::rep_color$x -value $entry -command "$style.color.id config -state normal; [namespace parent]::UpdateSelection $self"
+ 	} else {
+ 	  $style.color.m.list add radiobutton -label $entry -variable [namespace current]::rep_color$x -value $entry -command "$style.color.id config -state disable; [namespace parent]::UpdateSelection $self"
+ 	}
+      }
+
+      menubutton $style.color.id -text "ColorID" -menu $style.color.id.list -textvariable [namespace current]::rep_colorid$x -relief raised -state disable
+      menu $style.color.id.list
+      set a [colorinfo colors]
+      for {set i 0} {$i < [llength $a]} {incr i} {
+  	$style.color.id.list add radiobutton -label "$i [lindex $a $i]" -variable [namespace current]::rep_colorid$x -value $i -command "[namespace parent]::UpdateSelection $self"
+      }
+      pack $style.color.m $style.color.id -side left
+    }
+
+    # Update button
+    #--------------
+    button $tab_rep.but -text "Update"  -command "[namespace parent]::UpdateSelection $self"
+    pack $tab_rep.but -side left
+
+
   }
 }
 
@@ -442,7 +554,7 @@ proc itrajcomp::StatDescriptive {self} {
   set mean [format "$format_data" $mean]
   set sd [format "$format_data" $sd]
 
-  tk_messageBox -title "$self Stats"  -parent [set ${self}::p] -message \
+  tk_messageBox -title "$self Stats"  -parent [set ${self}::win_obj] -message \
     "Descriptive statistics
 ----------------------
 Mean: $mean
@@ -477,7 +589,7 @@ proc itrajcomp::Zoom {self zoom} {
 
 proc itrajcomp::AddRep {self key} {
   # Add graphic representation
-  set p [set ${self}::p]
+  set tab_rep [set ${self}::tab_rep]
   set rep_style1 [set ${self}::rep_style1]
   set rep_color1 [set ${self}::rep_color1]
   set rep_colorid1 [set ${self}::rep_colorid1]
@@ -485,7 +597,7 @@ proc itrajcomp::AddRep {self key} {
   set rep_list [set ${self}::rep_list($key)]
   set rep_num [set ${self}::rep_num($key)]
   
-  set rep_sel1 [[namespace current]::ParseSel [$p.l.l.rep.disp1.e get 1.0 end] ""]
+  set rep_sel1 [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
 
   incr rep_num
   
@@ -771,7 +883,6 @@ proc itrajcomp::MapClear {self} {
 
 proc itrajcomp::UpdateSelection {self} {
   # Update representation in vmd window
-  set p [set ${self}::p]
   set rep_style1 [set ${self}::rep_style1]
   set rep_color1 [set ${self}::rep_color1]
   set rep_colorid1 [set ${self}::rep_colorid1]
@@ -785,7 +896,17 @@ proc itrajcomp::UpdateSelection {self} {
       mol modselect $repname $m $s
       switch $rep_style1 {
 	HBonds {
-	  mol modstyle  $repname $m $rep_style1 [set ${self}::cutoff] [set ${self}::angle]
+	  if {[info exists ${self}::cutoff]} {
+	    set cutoff [set ${self}::cutoff]
+	    if {[info exists ${self}::angle]} {
+	      set angle [set ${self}::angle]
+	      mol modstyle  $repname $m $rep_style1 $cutoff $angle
+	    } else {
+	      mol modstyle  $repname $m $rep_style1 $cutoff
+	    }
+	  } else {
+	    mol modstyle  $repname $m $rep_style1
+	  }
 	}
 	default {
 	  mol modstyle  $repname $m $rep_style1
@@ -807,7 +928,7 @@ proc itrajcomp::UpdateSelection {self} {
 proc itrajcomp::Destroy {self} {
   # Destroy object window and delete object
   [namespace current]::MapClear $self
-  catch {destroy [set ${self}::p]}
+  catch {destroy [set ${self}::win_obj]}
   [namespace current]::Objdelete $self
 }
 
@@ -860,4 +981,82 @@ proc itrajcomp::RepList {self} {
     puts "add_rep: $key $add_rep($key)"
   }
   puts "-----"
+}
+
+
+proc itrajcomp::UpdateScale {self} {
+  # Redraw scale
+
+  set scale [set ${self}::scale]
+  set format_scale [set ${self}::format_scale]
+  set min [set ${self}::min]
+  set max [set ${self}::max]
+
+  set sc_h [winfo height $scale]
+  set sc_w [winfo width $scale]
+  set offset 10.
+  
+  # Delete all
+  $scale delete all
+  
+  # Colors
+  #-------
+  set c_n 50
+  set c_w $sc_w
+  set c_h [expr ($sc_h-2*$offset)/$c_n]
+
+  # Calculate interval increments
+  if {[string index $format_scale [expr [string length $format_scale]-1] ] == "i"} {
+    set c_inc [expr ($max-$min)/$c_n]
+  } else {
+    set c_inc [expr double($max-$min)/$c_n]
+  }
+
+  # Upper offset
+  set val $min
+  set color [[namespace current]::ColorScale $max $min $val 1.0]
+  $scale create rectangle 0 0 $c_w $offset -fill $color -outline $color -tag "rect$val"
+  $scale bind "rect$val" <B2-ButtonRelease> "[namespace current]::MapCluster2 $self $val -1 1"
+  $scale bind "rect$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
+
+  # Intervals
+  set val [expr $min+($min+$c_inc)/2]
+  set y $offset
+  for {set i 0} {$i < $c_n} {incr i} {
+    set color [[namespace current]::ColorScale $max $min $val 1.0]
+    $scale create rectangle 0 $y $c_w [expr $y+$c_h] -fill $color -outline $color -tag "rect$val"
+    $scale bind "rect$val" <B2-ButtonRelease> "[namespace current]::MapCluster2 $self $val -1 1"
+    $scale bind "rect$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
+    set val [expr $val+ $c_inc]
+    set y [expr $y+$c_h]
+  }
+
+  # Lower offset
+  set val $max
+  set color [[namespace current]::ColorScale $max $min $val 1.0]
+  $scale create rectangle 0 $y $c_w $sc_h -fill $color -outline $color -tag "rect$val"
+  $scale bind "rect$val" <B2-ButtonRelease> "[namespace current]::MapCluster2 $self $val -1 1"
+  $scale bind "rect$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
+
+  # Labels
+  #-------
+  set l_n 10
+  set l_h [expr ($sc_h-2*$offset)/$l_n]
+  
+  # Intervals
+  set val $min
+  set y $offset
+  if {[string index $format_scale [expr [string length $format_scale]-1] ] == "i"} {
+    set l_inc [expr ($max-$min)/$l_n]
+  } else {
+    set l_inc [expr double($max-$min)/$l_n]
+  }
+  for {set i 0} {$i <= $l_n} {incr i} {
+    $scale create line [expr $sc_w-5] $y $c_w $y
+    $scale create text [expr $sc_w-10] $y -text [format $format_scale $val] -anchor e -font [list helvetica 7 normal] -tag "line$val"
+    $scale bind "line$val" <B2-ButtonRelease> "[namespace current]::MapCluster2 $self $val -1 1"
+    $scale bind "line$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
+    set val [expr $val+ $l_inc]
+    set y [expr $y+$l_h]
+  }
 }

@@ -30,6 +30,7 @@
 proc itrajcomp::Combine {} {
   # Combine to objects
   # TODO: move to combine.tcl
+  # TODO: combine is broken
   variable c
   set debug 0
 
@@ -188,6 +189,6 @@ proc itrajcomp::Objcombine { formula } {
     }
   }
 
-  [namespace current]::NewPlot $r
+  [namespace current]::itcObjGui $r
 
 }

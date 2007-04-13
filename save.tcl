@@ -35,7 +35,7 @@ proc itrajcomp::SaveDataBrowse {self {format "tab"}} {
     {"All files" ".*"}
   }
   
-  set file [tk_getSaveFile -filetypes $typeList -defaultextension ".dat" -title "Select file to save data" -parent [set ${self}::p]]
+  set file [tk_getSaveFile -filetypes $typeList -defaultextension ".dat" -title "Select file to save data" -parent [set ${self}::win_obj]]
   
   if { $file == "" } {
     return;
@@ -71,10 +71,11 @@ proc ::itrajcomp::saveData { self {fileout ""} {format "tab"} {options ""}} {
     if {$fileout != ""} {
       puts $fileout_id $output
       close $fileout_id
+      # TODO: move this to the plotmtv code
       if {$format eq "plotmtv" || $format eq "plotmtv_binary"} {
 	set status [catch {exec plotmtv $fileout &} msg]
 	if { $status } {
-	  tk_messageBox -title "Warning" -message "Could not open plotmtv\n\nError returned:\n $msg" -type ok -parent $p
+	  tk_messageBox -title "Warning" -message "Could not open plotmtv\n\nError returned:\n $msg" -type ok -parent [set ${self}::win_obj]
 	} 
       }
     } else {
@@ -207,6 +208,7 @@ proc ::itrajcomp::SaveData_plotmtv {data keys options} {
   append output "% xmin=0 xmax=$nx\n"
   append output "% nx=$nx ny=$ny\n"
 
+  # TODO: binary is not working
   if {[info exists opt(binary)]} {
     append output "% BINARY\n"
     append output [binary format "d[llength $vals]" [eval list $vals]]
