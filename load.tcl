@@ -115,7 +115,7 @@ proc itrajcomp::processData {self data} {
   # Process data loaded
   set vals {}
   set keys {}
-  set regions {}
+  set segments {}
   set min [lindex [lindex $data 1] 4]
   set max $min
   for {set i 1} {$i < [llength $data]} {incr i} {
@@ -124,7 +124,7 @@ proc itrajcomp::processData {self data} {
     set key "[lindex $d 0]:[lindex $d 1],[lindex $d 2]:[lindex $d 3]"
     lappend vals $val
     lappend keys $key
-    lappend regions [lindex $d 0] [lindex $d 2]
+    lappend segments [lindex $d 0] [lindex $d 2]
     set temp($key) $val
     if {$val < $min} {
       set min $val
@@ -135,7 +135,7 @@ proc itrajcomp::processData {self data} {
 
   set ${self}::min $min
   set ${self}::max $max
-  set ${self}::regions [lsort -integer -unique $regions]
+  set ${self}::segments [lsort -integer -unique $segments]
   set ${self}::keys $keys
   set ${self}::vals $vals
   array set ${self}::data [array get temp]

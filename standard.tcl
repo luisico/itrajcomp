@@ -27,11 +27,16 @@
 #    Standard calculation types.
 
 
-proc itrajcomp::calc_standard {} {
+proc itrajcomp::AddStandardCalc {} {
   # Standard calculation types for the vanilla itrajcomp plugin.
   variable calctype "rmsd"
   global env
-  foreach type {rmsd covar dist contacts hbonds labels} desc {"Root mean square deviation" "Covariance" "Distance" "Number of contacts" "Number of hydrogen bonds" "VMD labels: distance, angles, dihedrals"} {
+
+  foreach type {rmsd contacts hbonds labels} desc {"Root mean square deviation" "Number of contacts" "Number of hydrogen bonds" "VMD labels: distance, angles, dihedrals"} {
     [namespace current]::AddCalc $type $desc [file join $env(ITRAJCOMPDIR) $type.tcl]
   }
+
+#  foreach type {dist covar} desc {"Covariance" "Distance"} {
+#    [namespace current]::AddCalc $type $desc [file join $env(ITRAJCOMPDIR) $type.tcl]
+#  }
 }

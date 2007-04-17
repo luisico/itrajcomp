@@ -47,9 +47,9 @@ proc itrajcomp::itcObjGui {self} {
     wm protocol $win_obj WM_DELETE_WINDOW "[namespace parent]::Destroy $self"
 
     # TODO: update title window when the entry $win_obj.title.title changes
-    set title "$self: $type"
-    foreach var $vars {
-      append title " $var=[set $var]"
+    set title "$self: $opts(type)"
+    foreach v [array names opts] {
+      append title " $v=$opts($v)"
     }
     wm title $win_obj $title
     
@@ -80,7 +80,7 @@ proc itrajcomp::itcObjGui {self} {
     buttonbar::name $win_obj.tabs rep "Representations"
     [namespace parent]::itcObjRep $self
 
-    buttonbar::showframe $win_obj.tabs info
+    buttonbar::showframe $win_obj.tabs graph
     update idletasks
   }
 }
@@ -111,19 +111,18 @@ proc itrajcomp::itcObjMenubar {self w} {
   $w.help.menu add command -label "Keybindings" -command "[namespace current]::help_keys $self" -underline 0
   $w.help.menu add command -label "About" -command "[namespace current]::help_about [winfo parent $w]" -underline 0
   pack $w.help -side right
-  
 }
 
 
 proc itrajcomp::itcObjInfo {self} {
-  # construct info gui
+  # Construct info gui
   namespace eval [namespace current]::${self}:: {
 
     # Calculation type
     labelframe $tab_info.calc -text "Calculation Type"
     pack $tab_info.calc -side top -anchor nw -expand yes -fill x
 
-    label $tab_info.calc.type -text $type
+    label $tab_info.calc.type -text $opts(type)
     pack $tab_info.calc.type -side top -anchor nw
     
     # Calculation options
@@ -132,12 +131,18 @@ proc itrajcomp::itcObjInfo {self} {
     
     set row 1
     grid columnconfigure $tab_info.opt 2 -weight 1
-    foreach var [concat diagonal $vars] {
+    incr row
+    label $tab_info.opt.diagonal_l -text "diagonal:"
+    label $tab_info.opt.diagonal_v -text "$opts(diagonal)"
+    grid $tab_info.opt.diagonal_l -row $row -column 1 -sticky nw
+    grid $tab_info.opt.diagonal_v -row $row -column 2 -sticky nw
+    foreach v [array names opts] {
+      if { $v == "type" || $v == "diagonal" } {continue}
       incr row
-      label $tab_info.opt.${var}_l -text "$var:"
-      label $tab_info.opt.${var}_v -text "[set $var]"
-      grid $tab_info.opt.${var}_l -row $row -column 1 -sticky nw
-      grid $tab_info.opt.${var}_v -row $row -column 2 -sticky nw
+      label $tab_info.opt.${v}_l -text "$v:"
+      label $tab_info.opt.${v}_v -text "$opts($v)"
+      grid $tab_info.opt.${v}_l -row $row -column 1 -sticky nw
+      grid $tab_info.opt.${v}_v -row $row -column 2 -sticky nw
     }
 
     # Selection set 1
@@ -148,20 +153,20 @@ proc itrajcomp::itcObjInfo {self} {
     grid columnconfigure $tab_info.sel1 2 -weight 1
     
     label $tab_info.sel1.mol_l -text "Molecule(s):"
-    label $tab_info.sel1.mol_v -text "$mol1_def ($mol1)"
+    label $tab_info.sel1.mol_v -text "$sets(mol1_def) ($sets(mol1))"
     grid $tab_info.sel1.mol_l -row $row -column 1 -sticky nw
     grid $tab_info.sel1.mol_v -row $row -column 2 -sticky nw
 
     # TODO: put frames for each mol in a different row
     incr row
     label $tab_info.sel1.frame_l -text "Frame(s):"
-    label $tab_info.sel1.frame_v -text "$frame1_def ([[namespace parent]::SplitFrames $frame1])"
+    label $tab_info.sel1.frame_v -text "$sets(frame1_def) ([[namespace parent]::SplitFrames $sets(frame1)])"
     grid $tab_info.sel1.frame_l -row $row -column 1 -sticky nw
     grid $tab_info.sel1.frame_v -row $row -column 2 -sticky nw
 
     incr row
     label $tab_info.sel1.atom_l -text "Atom Sel:"
-    label $tab_info.sel1.atom_v -text "$sel1"
+    label $tab_info.sel1.atom_v -text "$sets(sel1)"
     grid $tab_info.sel1.atom_l -row $row -column 1 -sticky nw
     grid $tab_info.sel1.atom_v -row $row -column 2 -sticky nw
 
@@ -173,19 +178,19 @@ proc itrajcomp::itcObjInfo {self} {
     grid columnconfigure $tab_info.sel2 2 -weight 1
     
     label $tab_info.sel2.mol_l -text "Molecule(s):"
-    label $tab_info.sel2.mol_v -text "$mol2_def ($mol2)"
+    label $tab_info.sel2.mol_v -text "$sets(mol2_def) ($sets(mol2))"
     grid $tab_info.sel2.mol_l -row $row -column 1 -sticky nw
     grid $tab_info.sel2.mol_v -row $row -column 2 -sticky nw
 
     incr row
     label $tab_info.sel2.frame_l -text "Frame(s):"
-    label $tab_info.sel2.frame_v -text "$frame2_def ([[namespace parent]::SplitFrames $frame2])"
+    label $tab_info.sel2.frame_v -text "$sets(frame2_def) ([[namespace parent]::SplitFrames $sets(frame2)])"
     grid $tab_info.sel2.frame_l -row $row -column 1 -sticky nw
     grid $tab_info.sel2.frame_v -row $row -column 2 -sticky nw
 
     incr row
     label $tab_info.sel2.atom_l -text "Atom Sel:"
-    label $tab_info.sel2.atom_v -text "$sel2"
+    label $tab_info.sel2.atom_v -text "$sets(sel2)"
     grid $tab_info.sel2.atom_l -row $row -column 1 -sticky nw
     grid $tab_info.sel2.atom_v -row $row -column 2 -sticky nw
 
@@ -201,7 +206,7 @@ proc itrajcomp::itcObjInfo {self} {
     label $tab_info.mols.header_f -text "Files"
     grid $tab_info.mols.header_f -row $row -column 3 -sticky nw
 
-    foreach m $mol1 {
+    foreach m $sets(mol1) {
       incr row
       label $tab_info.mols.l$m -text "$m:"
       grid $tab_info.mols.l$m -row $row -column 1 -sticky nw
@@ -215,7 +220,6 @@ proc itrajcomp::itcObjInfo {self} {
 	incr row
       }
     }
-
   }
 }
 
@@ -293,18 +297,37 @@ proc itrajcomp::itcObjGraph {self} {
     # Zoom
     labelframe $tab_graph.r.zoom  -relief ridge -bd 2 -text "Zoom"
     pack $tab_graph.r.zoom -side bottom
-    button $tab_graph.r.zoom.incr -text "+" -command "[namespace parent]::Zoom $self 1"
-    entry $tab_graph.r.zoom.val -width 2 -textvariable [namespace current]::grid
-    button $tab_graph.r.zoom.decr -text "-" -command "[namespace parent]::Zoom $self -1"
-    pack $tab_graph.r.zoom.incr $tab_graph.r.zoom.val $tab_graph.r.zoom.decr
 
-    switch $graphtype {
-      frame {
-	[namespace parent]::Graph $self
+    frame $tab_graph.r.zoom.incr
+    pack $tab_graph.r.zoom.incr
+    button $tab_graph.r.zoom.incr.1 -text "+1" -width 2 -padx 1 -pady 0 -command "[namespace parent]::Zoom $self 1" -font [list helvetica 6]
+    button $tab_graph.r.zoom.incr.5 -text "+5" -width 2 -padx 1 -pady 0 -command "[namespace parent]::Zoom $self 5" -font [list helvetica 6]
+    pack $tab_graph.r.zoom.incr.1 $tab_graph.r.zoom.incr.5 -side left
+
+    entry $tab_graph.r.zoom.val -width 2 -textvariable [namespace current]::grid
+    pack $tab_graph.r.zoom.val -fill x
+
+    frame $tab_graph.r.zoom.decr
+    pack $tab_graph.r.zoom.decr
+    button $tab_graph.r.zoom.decr.1 -text "-1" -width 2 -padx 1 -pady 0 -command "[namespace parent]::Zoom $self -1" -font [list helvetica 6]
+    button $tab_graph.r.zoom.decr.5 -text "-5" -width 2 -padx 1 -pady 0 -command "[namespace parent]::Zoom $self -5" -font [list helvetica 6]
+    pack $tab_graph.r.zoom.decr.1 $tab_graph.r.zoom.decr.5 -side left
+
+    switch $graph_opts(type) {
+      frames {
+	set graph_opts(header1) "mol"
+	set graph_opts(header2) "frame"
+	[namespace parent]::GraphFrames $self
       }
-      atom -
-      residue {
-	[namespace parent]::Graph2 $self
+      atoms {
+	set graph_opts(header1) "index"
+	set graph_opts(header2) "name"
+	[namespace parent]::GraphSegments $self
+      }
+      residues {
+	set graph_opts(header1) "residue"
+	set graph_opts(header2) "resname"
+	[namespace parent]::GraphSegments $self
       }
     }
     # TODO: zoom to a better level depending on the size of the matrix and the space available
@@ -316,9 +339,6 @@ proc itrajcomp::itcObjGraph {self} {
 proc itrajcomp::itcObjRep {self} {
   # construct representations gui
   namespace eval [namespace current]::${self}:: {
-    #variable rep_style1    NewRibbons
-    variable rep_color1    Molecule
-    variable rep_colorid1  0
 
     foreach x [list 1] {
       frame $tab_rep.disp$x
@@ -330,7 +350,7 @@ proc itrajcomp::itcObjRep {self} {
       pack $tab_rep.disp$x.sel -side left -anchor nw -expand yes -fill both
       
       text $tab_rep.disp$x.sel.e -exportselection yes -height 2 -width 25 -wrap word
-      $tab_rep.disp$x.sel.e insert end [set rep_sel$x]
+      $tab_rep.disp$x.sel.e insert end $sets(rep_sel$x)
       pack $tab_rep.disp$x.sel.e -side top -anchor w -expand yes -fill both
     
       # Style
@@ -345,10 +365,10 @@ proc itrajcomp::itcObjRep {self} {
       label $style.draw.l -text "Drawing:"
       pack $style.draw.l -side left
 
-      menubutton $style.draw.m -text "Drawing" -menu $style.draw.m.list -textvariable [namespace current]::rep_style$x -relief raised
+      menubutton $style.draw.m -text "Drawing" -menu $style.draw.m.list -textvariable [namespace current]::graph_opts(rep_style$x) -relief raised
       menu $style.draw.m.list
       foreach entry $rep_style_list {
- 	$style.draw.m.list add radiobutton -label $entry -variable [namespace current]::rep_style$x -value $entry -command "[namespace parent]::UpdateSelection $self"
+ 	$style.draw.m.list add radiobutton -label $entry -variable [namespace current]::graph_opts(rep_style$x) -value $entry -command "[namespace parent]::UpdateSelection $self"
       }
       pack $style.draw.m
 
@@ -359,21 +379,21 @@ proc itrajcomp::itcObjRep {self} {
       label $style.color.l -text "Color:"
       pack $style.color.l -side left
 
-      menubutton $style.color.m -text "Color" -menu $style.color.m.list -textvariable [namespace current]::rep_color$x -relief raised
+      menubutton $style.color.m -text "Color" -menu $style.color.m.list -textvariable [namespace current]::graph_opts(rep_color$x) -relief raised
       menu $style.color.m.list
       foreach entry $rep_color_list {
  	if {$entry eq "ColorID"} {
- 	  $style.color.m.list add radiobutton -label $entry -variable [namespace current]::rep_color$x -value $entry -command "$style.color.id config -state normal; [namespace parent]::UpdateSelection $self"
+ 	  $style.color.m.list add radiobutton -label $entry -variable [namespace current]::graph_opts(rep_color$x) -value $entry -command "$style.color.id config -state normal; [namespace parent]::UpdateSelection $self"
  	} else {
- 	  $style.color.m.list add radiobutton -label $entry -variable [namespace current]::rep_color$x -value $entry -command "$style.color.id config -state disable; [namespace parent]::UpdateSelection $self"
+ 	  $style.color.m.list add radiobutton -label $entry -variable [namespace current]::graph_opts(rep_color$x) -value $entry -command "$style.color.id config -state disable; [namespace parent]::UpdateSelection $self"
  	}
       }
 
-      menubutton $style.color.id -text "ColorID" -menu $style.color.id.list -textvariable [namespace current]::rep_colorid$x -relief raised -state disable
+      menubutton $style.color.id -text "ColorID" -menu $style.color.id.list -textvariable [namespace current]::graph_opts(rep_colorid$x) -relief raised -state disable
       menu $style.color.id.list
       set a [colorinfo colors]
       for {set i 0} {$i < [llength $a]} {incr i} {
-  	$style.color.id.list add radiobutton -label "$i [lindex $a $i]" -variable [namespace current]::rep_colorid$x -value $i -command "[namespace parent]::UpdateSelection $self"
+  	$style.color.id.list add radiobutton -label "$i [lindex $a $i]" -variable [namespace current]::graph_opts(rep_colorid$x) -value $i -command "[namespace parent]::UpdateSelection $self"
       }
       pack $style.color.m $style.color.id -side left
     }
@@ -382,132 +402,6 @@ proc itrajcomp::itcObjRep {self} {
     #--------------
     button $tab_rep.but -text "Update"  -command "[namespace parent]::UpdateSelection $self"
     pack $tab_rep.but -side left
-
-
-  }
-}
-
-
-proc itrajcomp::Graph {self} {
-  # Create matrix graph for objects
-  namespace eval [namespace current]::${self}:: {
-    variable add_rep
-    variable rep_list
-    variable rep_num
-    variable colors
-
-    set maxkeys [llength $keys]
-    set count 0
-    
-    set offx 0
-    set offy 0
-    set width 3
-    for {set i 0} {$i < [llength $mol1]} {incr i} {
-      set f1 [lindex $frame1 $i]
-      for {set j 0} { $j < [llength $f1]} {incr j} {
-	set key1 "[lindex $mol1 $i]:[lindex $f1 $j]"
-	set rep_list($key1) {}
-	set rep_num($key1) 0
-	set offy 0
-	for {set k 0} {$k < [llength $mol2]} {incr k} {
-	  set f2 [lindex $frame2 $k]
-	  for {set l 0} { $l < [llength $f2]} {incr l} {
-	    set key2 "[lindex $mol2 $k]:[lindex $f2 $l]"
-	    set rep_list($key2) {}
-	    set rep_num($key2) 0
-	    set key "$key1,$key2"
-	    if {![info exists data($key)]} continue
-	    set x [expr ($j+$offx)*($grid+$width)]
-	    set y [expr ($l+$offy)*($grid+$width)]
-	    set add_rep($key) 0
-	    set colors($key) [[namespace parent]::ColorScale $max $min $data($key) 1.0]
-	    #puts "$i $j -> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
-	    $plot create rectangle $x $y [expr $x+$grid] [expr $y+$grid] -fill $colors($key) -outline $colors($key) -tag $key -width $width
-	    
-	    $plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
-	    $plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
-	    $plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  0"
-	    $plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0 -1"
-	    $plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  1"
-	    $plot bind $key <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  0  0"
-	    $plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $key -1  0"
-	    $plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  1  0"
-
-	    incr count
-	    [namespace parent]::ProgressBar $count $maxkeys
-	  }
-	  set offy [expr $offy+[llength $f2]]
-	}
-      }
-      set offx [expr $offx+[llength $f1]]
-    }
-  }
-}
-
-
-proc itrajcomp::Graph2 {self} {
-  # Create graph for object with region information (atoms, residue,...)
-  namespace eval [namespace current]::${self}:: {
-    variable add_rep
-    variable rep_list
-    variable rep_num
-    variable colors
-    variable regions
-
-    set nregions [llength $regions]
-    #puts "$nregions -> $regions"
-
-    foreach key $keys {
-      lassign [split $key ,:] i j k l
-      set part2($i) $j
-      set part2($k) $l
-    }
-
-    set maxkeys [llength $keys]
-    set count 0
-    
-    set offx 0
-    set offy 0
-    set width 3
-    for {set i 0} {$i < $nregions} {incr i} {
-      set key1 "[lindex $regions $i]:$part2([lindex $regions $i])"
-      set rep_list($key1) {}
-      set rep_num($key1) 0
-      set offy 0
-      for {set k 0} {$k < $nregions} {incr k} {
-	set key2 "[lindex $regions $k]:$part2([lindex $regions $k])"
-	set rep_list($key2) {}
-	set rep_num($key2) 0
-	set key "$key1,$key2"
-	#puts -nonewline "$key "
-	if {![info exists data($key)]} {
-	  #puts ""
-	  continue
-	}
-	set x [expr ($i+$offx)*($grid+$width)]
-	set y [expr ($k+$offy)*($grid+$width)]
-	set add_rep($key) 0
-	set colors($key) [[namespace parent]::ColorScale $max $min $data($key) 1.0]
-	#puts "-> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
-	$plot create rectangle $x $y [expr $x+$grid] [expr $y+$grid] -fill $colors($key) -outline $colors($key) -tag $key -width $width
-	
-	$plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
-	$plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
-	$plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  0"
-	$plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0 -1"
-	$plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  1"
-	$plot bind $key <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  0  0"
-	$plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $key -1  0"
-	$plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  1  0"
-
-	incr count
-	[namespace parent]::ProgressBar $count $maxkeys
-      }
-      set offy [expr $offy+$k]
-      
-    }
-    set offx [expr $offx+$i]
-    
   }
 }
 
@@ -532,12 +426,11 @@ proc itrajcomp::ViewData {self} {
 proc itrajcomp::StatDescriptive {self} {
   # Create window to view statistics
   array set data [array get ${self}::data]
-  set format_data [set ${self}::format_data]
+  array set graph_opts [array get ${self}::graph_opts]
 
   # Mean
   set mean 0.0
   foreach mykey [array names data] {
-    #puts "$mykey $data($mykey)"
     set mean [expr $mean + $data($mykey)]
   }
   set mean [expr $mean / double([array size data] - 1)]
@@ -545,14 +438,13 @@ proc itrajcomp::StatDescriptive {self} {
   # Std
   set sd 0.0
   foreach mykey [array names data] {
-    #puts "$mykey $data($mykey)"
     set temp [expr $data($mykey) - $mean]
     set sd [expr $sd + $temp*$temp]
   }
   set sd [expr sqrt($sd / double([array size data] - 1))]
 
-  set mean [format "$format_data" $mean]
-  set sd [format "$format_data" $sd]
+  set mean [format "$graph_opts(format_data)" $mean]
+  set sd [format "$graph_opts(format_data)" $sd]
 
   tk_messageBox -title "$self Stats"  -parent [set ${self}::win_obj] -message \
     "Descriptive statistics
@@ -590,9 +482,7 @@ proc itrajcomp::Zoom {self zoom} {
 proc itrajcomp::AddRep {self key} {
   # Add graphic representation
   set tab_rep [set ${self}::tab_rep]
-  set rep_style1 [set ${self}::rep_style1]
-  set rep_color1 [set ${self}::rep_color1]
-  set rep_colorid1 [set ${self}::rep_colorid1]
+  array set graph_opts [array get ${self}::graph_opts]
 
   set rep_list [set ${self}::rep_list($key)]
   set rep_num [set ${self}::rep_num($key)]
@@ -603,13 +493,13 @@ proc itrajcomp::AddRep {self key} {
   
   #puts "add $key = $rep_num"
   if {$rep_num <= 1} {
-    if {$rep_color1 eq "ColorID"} {
-      set color [list $rep_color1 $rep_colorid1]
+    if {$graph_opts(rep_color1) eq "ColorID"} {
+      set color [list $graph_opts(rep_color1) $graph_opts(rep_colorid1)]
     } else {
-      set color $rep_color1
+      set color $graph_opts(rep_color1)
     }
     lassign [[namespace current]::ParseKey $self $key] m f s
-    set rep_list [[namespace current]::AddRep1 $m $f $s $rep_style1 $color]
+    set rep_list [[namespace current]::AddRep1 $m $f $s $graph_opts(rep_style1) $color]
     
   }
   set ${self}::rep_list($key) $rep_list
@@ -633,13 +523,14 @@ proc itrajcomp::DelRep {self key} {
 
 proc itrajcomp::ShowPoint {self key val stick} {
   # Show information about a matrix cell
+  array set graph_opts [array get ${self}::graph_opts]
   if {[set ${self}::info_sticky] && $stick} return
   
   set indices [split $key ,:]
   lassign $indices i j k l
-  set ${self}::info_key1 [format "[set ${self}::format_key]" $i $j]
-  set ${self}::info_key2 [format "[set ${self}::format_key]" $k $l]
-  set ${self}::info_value [format "[set ${self}::format_data]" $val]
+  set ${self}::info_key1 [format "$graph_opts(format_key)" $i $j]
+  set ${self}::info_key2 [format "$graph_opts(format_key)" $k $l]
+  set ${self}::info_value [format "$graph_opts(format_data)" $val]
 }
 
 
@@ -883,10 +774,8 @@ proc itrajcomp::MapClear {self} {
 
 proc itrajcomp::UpdateSelection {self} {
   # Update representation in vmd window
-  set rep_style1 [set ${self}::rep_style1]
-  set rep_color1 [set ${self}::rep_color1]
-  set rep_colorid1 [set ${self}::rep_colorid1]
-  
+  array set opts [array get ${self}::opts]
+  array set graph_opts [array get ${self}::graph_opts]
   array set rep_list [array get ${self}::rep_list]
  
   foreach key [array names rep_list] {
@@ -894,30 +783,28 @@ proc itrajcomp::UpdateSelection {self} {
       lassign [[namespace current]::ParseKey $self $key] m f s
       set repname [mol repindex $m $rep_list($key)]
       mol modselect $repname $m $s
-      switch $rep_style1 {
+      switch $graph_opts(rep_style1) {
 	HBonds {
-	  if {[info exists ${self}::cutoff]} {
-	    set cutoff [set ${self}::cutoff]
-	    if {[info exists ${self}::angle]} {
-	      set angle [set ${self}::angle]
-	      mol modstyle  $repname $m $rep_style1 $cutoff $angle
+	  if {[info exists opts(cutoff)]} {
+	    if {[info exists opts(angle)]} {
+	      mol modstyle $repname $m $graph_opts(rep_style1) $opts(cutoff) $opts(angle)
 	    } else {
-	      mol modstyle  $repname $m $rep_style1 $cutoff
+	      mol modstyle $repname $m $graph_opts(rep_style1) $opts(cutoff)
 	    }
 	  } else {
-	    mol modstyle  $repname $m $rep_style1
+	    mol modstyle $repname $m $graph_opts(rep_style1)
 	  }
 	}
 	default {
-	  mol modstyle  $repname $m $rep_style1
+	  mol modstyle $repname $m $graph_opts(rep_style1)
 	}
       }
-      switch $rep_color1 {
+      switch $graph_opts(rep_color1) {
 	ColorID {
-	  mol modcolor  $repname $m $rep_color1 $rep_colorid1
+	  mol modcolor $repname $m $graph_opts(rep_color1) $graph_opts(rep_colorid1)
 	}
 	default {
-	  mol modcolor  $repname $m $rep_color1
+	  mol modcolor $repname $m $graph_opts(rep_color1)
 	}
       }
     }
@@ -933,7 +820,7 @@ proc itrajcomp::Destroy {self} {
 }
 
 
-proc itrajcomp::help_keys { self } {
+proc itrajcomp::help_keys {self} {
   # Keybinding help
   set vn [package present itrajcomp]
 
@@ -986,9 +873,9 @@ proc itrajcomp::RepList {self} {
 
 proc itrajcomp::UpdateScale {self} {
   # Redraw scale
+  array set graph_opts [array get ${self}::graph_opts]
 
   set scale [set ${self}::scale]
-  set format_scale [set ${self}::format_scale]
   set min [set ${self}::min]
   set max [set ${self}::max]
 
@@ -1005,25 +892,24 @@ proc itrajcomp::UpdateScale {self} {
   set c_w $sc_w
   set c_h [expr ($sc_h-2*$offset)/$c_n]
 
-  # Calculate interval increments
-  if {[string index $format_scale [expr [string length $format_scale]-1] ] == "i"} {
-    set c_inc [expr ($max-$min)/$c_n]
-  } else {
-    set c_inc [expr double($max-$min)/$c_n]
+  set int 0
+  if {[string index $graph_opts(format_scale) [expr [string length $graph_opts(format_scale)]-1] ] == "i"} {
+    set int 1
   }
 
   # Upper offset
   set val $min
-  set color [[namespace current]::ColorScale $max $min $val 1.0]
+  set color [[namespace current]::ColorScale $val $max $min]
   $scale create rectangle 0 0 $c_w $offset -fill $color -outline $color -tag "rect$val"
   $scale bind "rect$val" <B2-ButtonRelease> "[namespace current]::MapCluster2 $self $val -1 1"
   $scale bind "rect$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
 
   # Intervals
-  set val [expr $min+($min+$c_inc)/2]
+  set c_inc [expr double($max-$min)/$c_n]
+  set val [expr $min+($c_inc/2)]
   set y $offset
   for {set i 0} {$i < $c_n} {incr i} {
-    set color [[namespace current]::ColorScale $max $min $val 1.0]
+    set color [[namespace current]::ColorScale $val $max $min]
     $scale create rectangle 0 $y $c_w [expr $y+$c_h] -fill $color -outline $color -tag "rect$val"
     $scale bind "rect$val" <B2-ButtonRelease> "[namespace current]::MapCluster2 $self $val -1 1"
     $scale bind "rect$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
@@ -1033,7 +919,7 @@ proc itrajcomp::UpdateScale {self} {
 
   # Lower offset
   set val $max
-  set color [[namespace current]::ColorScale $max $min $val 1.0]
+  set color [[namespace current]::ColorScale $val $max $min]
   $scale create rectangle 0 $y $c_w $sc_h -fill $color -outline $color -tag "rect$val"
   $scale bind "rect$val" <B2-ButtonRelease> "[namespace current]::MapCluster2 $self $val -1 1"
   $scale bind "rect$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
@@ -1046,14 +932,16 @@ proc itrajcomp::UpdateScale {self} {
   # Intervals
   set val $min
   set y $offset
-  if {[string index $format_scale [expr [string length $format_scale]-1] ] == "i"} {
-    set l_inc [expr ($max-$min)/$l_n]
-  } else {
-    set l_inc [expr double($max-$min)/$l_n]
-  }
+  set l_inc [expr double($max-$min)/$l_n]
+
   for {set i 0} {$i <= $l_n} {incr i} {
+    if {$int > 0} {
+      set newval [expr int($val)]
+    } else {
+      set newval $val
+    }
     $scale create line [expr $sc_w-5] $y $c_w $y
-    $scale create text [expr $sc_w-10] $y -text [format $format_scale $val] -anchor e -font [list helvetica 7 normal] -tag "line$val"
+    $scale create text [expr $sc_w-10] $y -text [format $graph_opts(format_scale) $newval] -anchor e -font [list helvetica 7 normal] -tag "line$val"
     $scale bind "line$val" <B2-ButtonRelease> "[namespace current]::MapCluster2 $self $val -1 1"
     $scale bind "line$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
     set val [expr $val+ $l_inc]

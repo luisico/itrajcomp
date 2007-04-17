@@ -27,114 +27,53 @@
 #    Functions to calculate hydrogen bonds between selections.
 
 
-proc itrajcomp::hbonds { self } {
+# TODO: is this working? seems like only diagonal makes sense here
+proc itrajcomp::calc_hbonds {self} {
 
-  # Access object variables
-  foreach v [[namespace current]::Objvars $self] {
-    #puts "$v --> [set ${self}::$v]"
-    set $v [set ${self}::$v]
-  }
-  #puts "---------------"
-  #puts [info vars]
-    
-  # Object format
-  set graphtype   "frame"
-  set format_data "%4i"
-  set format_key  "%3d %3d"
-  set format_scale "%4i"
-  set header1     "mol"
-  set header2     "frame"
-  set rep_style1  "NewRibbons"
-
+  set mol1 [set ${self}::sets(mol1)]
+  set mol2 [set ${self}::sets(mol2)]
   if {$mol1 != $mol2} {
     tk_messageBox -title "Warning " -message "Selections must come from the same molecule." -parent .itrajcomp
     return -code return
   }
   
-  
-  # Calculate max numbers of iteractions
-  set maxkeys 0
-  foreach i $mol1 {
-    foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
-      foreach k $mol2 {
-	foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
-	  if {[info exists foo($k:$l,$i:$j)]} {
-	    continue
-	  } else {
-	    set foo($i:$j,$k:$l) 1
-	    incr maxkeys
-	  }
-	}
-      }
-    }
-  }
-  
-  # Calculate hbonds
-  set z 1
-  set count 0
-  foreach i $mol1 {
-    set s1 [atomselect $i $sel1]
-    foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
-      $s1 frame $j
-      foreach k $mol2 {
-	set s2 [atomselect $k $sel2]
-	foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
-	  $s2 frame $l
-	  if {[info exists data($k:$l,$i:$j)]} {
-	    #	      set data($i:$j,$k:$l) $data($k:$l,$i:$j)
-	    continue
-	  } else {
-	    set data($i:$j,$k:$l) [llength [lindex [measure hbonds $cutoff $angle $s1 $s2] 0]]
-	    incr count
-	    [namespace current]::ProgressBar $count $maxkeys
-	    if {$z} {
-	      set min $data($i:$j,$k:$l)
-	      set max $data($i:$j,$k:$l)
-	      set z 0
-	    }
-	    if {$data($i:$j,$k:$l) > $max} {
-	      set max $data($i:$j,$k:$l)
-	    }
-	    if {$data($i:$j,$k:$l) < $min} {
-	      set min $data($i:$j,$k:$l)
-	    }
-	  }
-	}
-      }
-    }
-  }
-  set keys [lsort -dictionary [array names data]]
-  foreach key $keys {
-    lappend vals $data($key)
-  }
-  
-  # Set object variables
-  foreach v [[namespace current]::Objvars $self] {
-    set ${self}::$v  [set $v]
-    #puts "$v --->\t[set ${self}::$v]"
-  }
-  array set ${self}::data [array get data]
-  
-  return 0
+  return [[namespace current]::LoopFrames $self]
 }
 
 
-proc itrajcomp::hbonds_options {} {
+proc itrajcomp::calc_hbonds_hook {self} {
+  namespace eval [namespace current]::${self}:: {
+    return [llength [lindex [measure hbonds $opts(cutoff) $opts(angle) $s1 $s2] 0]]
+  }
+}
+
+
+proc itrajcomp::calc_hbonds_options {} {
   # Options for hbonds
-  variable hbonds_options
-  variable hbonds_vars [list cutoff angle]
-  variable cutoff 5.0
-  variable angle 30.0
+  variable calc_hbonds_frame
+  variable calc_hbonds_opts
+  set calc_hbonds_opts(cutoff) 5.0
+  set calc_hbonds_opts(angle) 30.0
 
-  frame $hbonds_options.cutoff
-  pack $hbonds_options.cutoff -side top -anchor nw
-  label $hbonds_options.cutoff.l -text "Cutoff:"
-  entry $hbonds_options.cutoff.v -width 5 -textvariable [namespace current]::cutoff
-  pack $hbonds_options.cutoff.l $hbonds_options.cutoff.v -side left
+  frame $calc_hbonds_frame.cutoff
+  pack $calc_hbonds_frame.cutoff -side top -anchor nw
+  label $calc_hbonds_frame.cutoff.l -text "Cutoff:"
+  entry $calc_hbonds_frame.cutoff.v -width 5 -textvariable [namespace current]::calc_hbonds_opts(cutoff)
+  pack $calc_hbonds_frame.cutoff.l $calc_hbonds_frame.cutoff.v -side left
 
-  frame $hbonds_options.angle
-  pack $hbonds_options.angle -side top -anchor nw
-  label $hbonds_options.angle.l -text "Angle:"
-  entry $hbonds_options.angle.v -width 5 -textvariable [namespace current]::angle
-  pack $hbonds_options.angle.l $hbonds_options.angle.v -side left
+  frame $calc_hbonds_frame.angle
+  pack $calc_hbonds_frame.angle -side top -anchor nw
+  label $calc_hbonds_frame.angle.l -text "Angle:"
+  entry $calc_hbonds_frame.angle.v -width 5 -textvariable [namespace current]::calc_hbonds_opts(angle)
+  pack $calc_hbonds_frame.angle.l $calc_hbonds_frame.angle.v -side left
+
+ # Graph options
+  variable calc_hbonds_graph
+  array set calc_hbonds_graph {
+    type         "frames"\
+    format_data  "%4i"\
+    format_key   "%3d %3d"\
+    format_scale "%4i"\
+    rep_style1   "NewRibbons"
+  }
 }

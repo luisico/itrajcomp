@@ -44,16 +44,8 @@ proc itrajcomp::Objnew {{self ":auto"} args} {
   
 #  interp alias {} $self: {} namespace eval ::itrajcomp::$self
   array set defaults {
-    mol1 0 frame1 0 mol2 0 frame2 0
-    sel1 all sel2 all
     keys {} vals {}
-    regions {}
     min 0 max 0
-    mol_all {}
-    graphtype ""
-    format_data "" format_key "" format_scale ""
-    header1 "" header2 ""
-    rep_style1 ""
   }
   foreach {key val} $args {
     set defaults($key) $val
@@ -102,9 +94,10 @@ proc itrajcomp::Objdump {self} {
     }
     set vartxt [namespace tail $var]
     if {[array exists $var]} {
-      puts "  $vartxt [array get $var]"
+      puts "  $vartxt (array):"
+      puts "     [array get $var]"
     } else {
-      puts "  $vartxt [set $var]"
+      puts "  $vartxt: [set $var]"
     }
   }
 

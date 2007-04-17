@@ -27,124 +27,62 @@
 #    Functions to calculate rmsd.
 
 
-proc itrajcomp::rmsd { self } {
-  
-  # Access object variables
-  foreach v [[namespace current]::Objvars $self] {
-    #puts "$v --> [set ${self}::$v]"
-    set $v [set ${self}::$v]
-  }
-  #puts "---------------"
-  #puts [info vars]
-  
-  # Object format
-  set graphtype   "frame"
-  set format_data "%8.4f"
-  set format_key  "%3d %3d"
-  set format_scale "%4.2f"
-  set header1     "mol"
-  set header2     "frame"
-  set rep_style1  "NewRibbons"
+proc itrajcomp::calc_rmsd {self} {
   
   # Check number of atoms in selections, and combined list of molecules
-  set mol_all [[namespace current]::CheckNatoms $mol1 $sel1 $mol2 $sel2]
-  if {$mol_all == -1} {
+  if {[[namespace current]::CheckNatoms $self] == -1} {
     return -code return
   }
   
-  # Calculate max numbers of iteractions
-  set maxkeys 0
-  foreach i $mol1 {
-    foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
-      foreach k $mol2 {
-	foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
-	  if {$diagonal} {
-	    if {$i != $k || $j != $l} {
-	      continue
-	    }
-	  }
-	  if {[info exists foo($k:$l,$i:$j)]} {
-	    continue
-	  } else {
-	    set foo($i:$j,$k:$l) 1
-	    incr maxkeys
-	  }
-	}
-      }
-    }
-  }
-  
-  # Calculate rmsd for each pair reference(mol,frame)-target(mol,frame)
-  set z 1
-  set count 0
-  foreach i $mol1 {
-    set s1 [atomselect $i $sel1]
-    if {$align} {
+  return [[namespace current]::LoopFrames $self]
+}
+
+proc itrajcomp::calc_rmsd_prehook1 {self} {
+  namespace eval [namespace current]::${self}:: {
+    if {$opts(align)} {
       set move_sel [atomselect $i "all"]
     }
-    foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
-      $s1 frame $j
-      if {$align} {
-	$move_sel frame $j
-      }
-      foreach k $mol2 {
-	set s2 [atomselect $k $sel2]
-	foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
-	  if {$diagonal && $j != $l} {
-	    continue
-	  }
-	  if {[info exists data($k:$l,$i:$j)]} {
-	    #	      set data($i:$j,$k:$l) $data($k:$l,$i:$j)
-	    continue
-	  } else {
-	    $s2 frame $l
-	    if {$align} {
-	      set tmatrix [measure fit $s1 $s2]
-	      $move_sel move $tmatrix
-	    }
-	    set data($i:$j,$k:$l) [measure rmsd $s1 $s2]
-	    #	      puts "$i $j $k $l $data($i:$j,$k:$l)"
-	    incr count
-	    [namespace current]::ProgressBar $count $maxkeys
-	    if {$z} {
-	      set min $data($i:$j,$k:$l)
-	      set max $data($i:$j,$k:$l)
-	      set z 0
-	    }
-	    if {$data($i:$j,$k:$l) > $max} {
-	      set max $data($i:$j,$k:$l)
-	    }
-	    if {$data($i:$j,$k:$l) < $min} {
-	      set min $data($i:$j,$k:$l)
-	    }
-	  }
-	}
-      }
+  }
+}
+
+proc itrajcomp::calc_rmsd_prehook2 {self} {
+  namespace eval [namespace current]::${self}:: {
+    if {$opts(align)} {
+      $move_sel frame $j
     }
   }
+}
 
-  set keys [lsort -dictionary [array names data]]
-  foreach key $keys {
-    lappend vals $data($key)
+proc itrajcomp::calc_rmsd_hook {self} {
+  namespace eval [namespace current]::${self}:: {
+    if {$opts(align)} {
+      set tmatrix [measure fit $s1 $s2]
+      $move_sel move $tmatrix
+    }
+    return [measure rmsd $s1 $s2]
   }
-  
-  # Set object variables
-  foreach v [[namespace current]::Objvars $self] {
-    set ${self}::$v  [set $v]
-    #puts "$v --->\t[set ${self}::$v]"
-  }
-  array set ${self}::data [array get data]
-
-  return 0
 }
 
 
-proc itrajcomp::rmsd_options {} {
-  # Options for rmsd
-  variable rmsd_options
-  variable rmsd_vars [list align]
-  variable align 0
+proc itrajcomp::calc_rmsd_options {} {
+  # Options for rmsd gui
+  variable calc_rmsd_frame
+  variable calc_rmsd_opts
+  set calc_rmsd_opts(align) 0
 
-  checkbutton $rmsd_options.align -text "align" -variable [namespace current]::align
-  pack $rmsd_options.align -side top -anchor nw
+  checkbutton $calc_rmsd_frame.align -text "align" -variable [namespace current]::calc_rmsd_opts(align)
+  pack $calc_rmsd_frame.align -side top -anchor nw
+
+  # Graph options
+  variable calc_rmsd_graph
+  array set calc_rmsd_graph {
+    type         "frames"\
+    format_data  "%8.4f"\
+    format_key   "%3d %3d"\
+    format_scale "%4.2f"\
+    rep_style1   "NewRibbons"
+  }
+}
+
+proc itrajcomp::calc_rmsd_options_update {} {
 }

@@ -28,5 +28,5 @@
 
 
 
-proc itrajcomp::calc_user {} {
+proc itrajcomp::AddUserCalc {} {
 }

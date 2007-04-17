@@ -87,7 +87,7 @@ proc itrajcomp::CombineUpdate {widget} {
   }
 }
 
-proc itrajcomp::Objcombine { formula } {
+proc itrajcomp::Objcombine {formula} {
   variable combobj
 
   #puts "FORMULA: $formula"

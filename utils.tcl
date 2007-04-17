@@ -69,7 +69,7 @@ proc itrajcomp::DelRep2 {name i k} {
 }
 
 
-proc itrajcomp::ParseMols { mols idlist {sort 1} } {
+proc itrajcomp::ParseMols {mols idlist {sort 1} } {
   # Parse molecule selection
   if {$mols eq "id"} {
     set mols $idlist
@@ -99,28 +99,38 @@ proc itrajcomp::ParseMols { mols idlist {sort 1} } {
     set mols [lsort -unique -integer $mols]
   }
   
+  set invalid_mols {}
   for {set i 0} {$i < [llength $mols]} {incr i} {
     if {[lsearch [molinfo list] [lindex $mols $i]] > -1} {
       lappend valid_mols [lindex $mols $i]
+    } else {
+      lappend invalid_mols [lindex $mols $i]
     }
   }
 
-  return $valid_mols
+  if {[llength $invalid_mols]} {
+    tk_messageBox -title "Warning " -message "The following mols are not available: $invalid_mols" -parent .itrajcomp
+    return -1
+  } else {
+    return $valid_mols
+  }
 }  
 
 
-proc itrajcomp::ParseFrames { frames mols skip idlist } {
+proc itrajcomp::ParseFrames {def mols skip idlist} {
   # Parse frame selection
-  set final {}
+  # Creates a list of lists (one for each mol)
+  set frames {}
   foreach mol $mols {
     set list {}
-    if {$frames == "all"} {
-      for {set n 0} {$n < [molinfo $mol get numframes]} {incr n} {
+    set nframes [molinfo $mol get numframes]
+    if {$def == "all"} {
+      for {set n 0} {$n < $nframes} {incr n} {
 	lappend list $n
       }
-    } elseif {$frames == "cur"} {
+    } elseif {$def == "cur"} {
       set list [molinfo $mol get frame]
-    } elseif {$frames == "id"} {
+    } elseif {$def == "id"} {
       if {[set indices [lsearch -all $idlist "to"]] > -1} {
 	foreach i $indices {
 	  set a [expr [lindex $idlist [expr $i-1]] + 1]
@@ -132,17 +142,16 @@ proc itrajcomp::ParseFrames { frames mols skip idlist } {
 	}
       }
       set list $idlist
-    } else {
-      set nframes [molinfo $mol get numframes]
-      set list $frames
+
+      # Check frames are within mol range
       foreach f $list {
 	if {$f >= $nframes} {
-	  puts "Frame ref $f for mol $mol is out of range"
-	  return -code return
+	  tk_messageBox -title "Warning " -message "Frame $f is out of range for mol $mol" -parent .itrajcomp
+	  return -1
 	}
       }
     }
-    
+
     if {$skip} {
       set result {}
       set s [expr $skip+1]
@@ -151,9 +160,11 @@ proc itrajcomp::ParseFrames { frames mols skip idlist } {
       }
       set list $result
     }
-    lappend final $list
+
+    lappend frames $list
   }
-  return $final
+
+  return $frames
 }
 
 
@@ -196,7 +207,7 @@ proc itrajcomp::Range {numbers} {
 }
 
 
-proc itrajcomp::CombineMols { args } {
+proc itrajcomp::CombineMols {args} {
   # Return a list of unique molecules
   set mols {}
   foreach i $args {
@@ -208,7 +219,7 @@ proc itrajcomp::CombineMols { args } {
 }
 
 
-proc itrajcomp::Mean { values } {
+proc itrajcomp::Mean {values} {
   # Calculate the mean of a list of values
   set tot 0.0
   foreach n $values {
@@ -220,7 +231,7 @@ proc itrajcomp::Mean { values } {
 }
 
 
-proc itrajcomp::GetKeys { rms_values sort mol_ref mol_tar } {
+proc itrajcomp::GetKeys {rms_values sort mol_ref mol_tar} {
   # Not used, remove?
   upvar $rms_values values
   
@@ -285,23 +296,26 @@ proc itrajcomp::ParseSel {orig selmod} {
 }
 
 
-proc itrajcomp::CheckNatoms {mol1 sel1 {mol2 ""} {sel2 ""}} {
+proc itrajcomp::CheckNatoms {self} {
   # Check same number of atoms in two selections
-  foreach i $mol1 {
-    set natoms($i) [[atomselect $i $sel1 frame 0] num]
+  array set sets [array get ${self}::sets]
+  
+  foreach i $sets(mol1) {
+    set natoms($i) [[atomselect $i $sets(sel1) frame 0] num]
   }
   
-  if {$mol2 != ""} {
-    foreach i $mol2 {
-      set natoms($i) [[atomselect $i $sel2 frame 0] num]
+  if {$sets(mol2) != ""} {
+    foreach i $sets(mol2) {
+      set n [[atomselect $i $sets(sel2) frame 0] num]
+      if {[info exists natoms($i)] && $natoms($i) != $n} {
+	tk_messageBox -title "Warning " -message "Difference in atom selection between Set1 ($natoms($i)) and Set2 ($n) for molecule $i" -parent .itrajcomp
+	  return -1
+      }
     }
-    set mol_all [[namespace current]::CombineMols $mol1 $mol2]
-  } else {
-    set mol_all $mol1
   }
 
-  foreach i $mol_all {
-    foreach j $mol_all {
+  foreach i $sets(mol_all) {
+    foreach j $sets(mol_all) {
       if {$i < $j} {
 	if {$natoms($i) != $natoms($j)} {
 	  tk_messageBox -title "Warning " -message "Selections differ for molecules $i ($natoms($i)) and $j ($natoms($j))" -parent .itrajcomp
@@ -311,34 +325,33 @@ proc itrajcomp::CheckNatoms {mol1 sel1 {mol2 ""} {sel2 ""}} {
     }
   }
   
-#  return $natoms([lindex $mol_all 0])
-  return $mol_all
+  return 1
 }
 
 
 proc itrajcomp::ParseKey {self key} {
   # Parse a key to get mol, frame and selection back
-  set graphtype [set ${self}::graphtype]
+  array set graph_opts [array get ${self}::graph_opts]
+  array set sets [array get ${self}::sets]
   set indices [split $key :]
 
-  switch $graphtype {
-    frame {
+  switch $graph_opts(type) {
+    frames {
       lassign $indices m f
       set tab_rep [set ${self}::tab_rep]
       set s [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
     }
-    atom {
-      set m [lindex [set ${self}::mol_all] 0]
-      set f [join [set ${self}::frame1] " "]
+    atoms {
+      set m [lindex [set $sets(mol_all)] 0]
+      set f [join [set $sets(frame1)] " "]
       set s "index [lindex $indices 0]"
     }
-    residue {
-      set m [lindex [set ${self}::mol_all] 0]
-      set f [join [set ${self}::frame1] " "]
+    residues {
+      set m [lindex [set $sets(mol_all)] 0]
+      set f [join [set $sets(frame1)] " "]
       set tab_rep [set ${self}::tab_rep]
       set extra [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
       set s "residue [lindex $indices 0] and ($extra)"
-      puts $s
     }
   }
 
@@ -349,6 +362,7 @@ proc itrajcomp::ParseKey {self key} {
 
 proc itrajcomp::Normalize {{type "expmin"} self} {
   # Normalize data
+  # TODO: add this to all calctypes
   array set data [array get ${self}::data]
   set keys [array names data]
   set min [set ${self}::min]
@@ -393,17 +407,17 @@ proc itrajcomp::wlist {{w .}} {
 }
 
 
-proc itrajcomp::ColorScale {max min i l} {
+proc itrajcomp::ColorScale {val max min} {
   # Color scale transformation
   if {$max == 0} {
     set max 1.0
   }
 
   set h [expr 2.0/3.0]
-#  set l 1.0
+  set l 1.0
   set s 1.0
 
-  lassign [hls2rgb [expr ($h - $h*$i/$max)] $l $s] r g b
+  lassign [hls2rgb [expr ($h - $h*($val-$min)/($max-$min))] $l $s] r g b
 
   set r [expr int($r*255)]
   set g [expr int($g*255)]

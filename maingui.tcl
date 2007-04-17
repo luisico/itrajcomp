@@ -107,7 +107,7 @@ proc itrajcomp::init {} {
   update idletasks
 }
 
-proc itrajcomp::Menubar { w } {
+proc itrajcomp::Menubar {w} {
   # Menu bar
   variable open_format_list
 
@@ -137,7 +137,7 @@ proc itrajcomp::Menubar { w } {
   pack $w.help -side right
 }
 
-proc itrajcomp::Statusbar { w } {
+proc itrajcomp::Statusbar {w} {
   # Status bar
   label $w.label -text "Status:"
 
@@ -152,7 +152,7 @@ proc itrajcomp::Statusbar { w } {
 }
 
 
-proc itrajcomp::TabSel { w } {
+proc itrajcomp::TabSel {w} {
   # Selection tab
   variable samemols 0
 
@@ -170,7 +170,7 @@ proc itrajcomp::TabSel { w } {
   [namespace current]::SelWidget $tab_sel 2
 }
 
-proc itrajcomp::SelWidget { w id } {
+proc itrajcomp::SelWidget {w id} {
   # Selection widget
   # w is the container
   variable mol${id}_def top
@@ -233,7 +233,7 @@ proc itrajcomp::SelWidget { w id } {
 }
 
 
-proc itrajcomp::TabCalc { w } {
+proc itrajcomp::TabCalc {w} {
   # Calculation tab
   variable tab_calc [buttonbar::add $w.tabs calc]
   buttonbar::name $w.tabs calc "Calculation"
@@ -259,12 +259,12 @@ proc itrajcomp::TabCalc { w } {
   pack $tab_calc.opt.general.diagonal -side top -anchor nw
 
   # Add calc types
-  [namespace current]::calc_standard
-  [namespace current]::calc_user
+  [namespace current]::AddStandardCalc
+  [namespace current]::AddUserCalc
 }
 
 
-proc itrajcomp::AddCalc { type {description ""} {script ""} {help ""} } {
+proc itrajcomp::AddCalc {type {description ""} {script ""} {help ""}} {
   variable tab_calc
   variable calc_id
 
@@ -286,11 +286,19 @@ proc itrajcomp::AddCalc { type {description ""} {script ""} {help ""} } {
   grid $tab_calc.type.${type}_d -row $calc_id -column 2 -sticky nw
 
   # Options
-  if {[llength [info procs "${type}_options"]]} {
-    variable ${type}_options [frame $tab_calc.opt.$type]
+  if {[llength [info procs "calc_${type}_options"]]} {
+    variable calc_${type}_frame [frame $tab_calc.opt.$type]
     pack $tab_calc.opt.$type -side top -anchor nw
-    [namespace current]::${type}_options
+    [namespace current]::calc_${type}_options
   }
+}
+
+
+proc itrajcomp::DelCalc {type} {
+  variable tab_calc
+  
+  grid forget $tab_calc.type.${type}_n $tab_calc.type.${type}_d
+  pack forget $tab_calc.opt.$type
 }
 
 
@@ -312,8 +320,8 @@ proc itrajcomp::TabCalcUpdate {} {
   }
 
   # Some user specifics
-  if {[llength [info procs "${calctype}_options_update"]]} {
-    [namespace current]::${calctype}_options_update
+  if {[llength [info procs "calc_${calctype}_options_update"]]} {
+    [namespace current]::calc_${calctype}_options_update
   }
 }
 
@@ -331,7 +339,7 @@ proc itrajcomp::SwitchSamemols {} {
 }
 
 
-proc itrajcomp::Samemols { status } {
+proc itrajcomp::Samemols {status} {
   # Turn Selection 2 on/off
   variable samemols
   variable tab_sel
@@ -411,11 +419,38 @@ proc itrajcomp::NewObject {} {
   variable calctype
 
   # Create new object
-  set obj [eval [namespace current]::Objnew ":auto" [[namespace current]::ParseOptions]]
-  
+  set obj [eval [namespace current]::Objnew ":auto"]
+
+  # Pass sel options
+  set temp [[namespace current]::SelOptions]
+  if {$temp == -1} {
+    return -code return
+  } else {
+    array set ${obj}::sets $temp
+  }
+
+  # Pass calc options
+  variable calc_${calctype}_opts
+  array set ${obj}::opts [array get calc_${calctype}_opts]
+  variable diagonal
+  set ${obj}::opts(type) $calctype
+  set ${obj}::opts(diagonal) $diagonal
+
+  # Pass graph options
+  variable calc_${calctype}_graph
+  array set graph_opts {
+    type ""
+    format_data "" format_key "" format_scale ""
+    rep_style1 NewRibbons
+    rep_color1 Molecule
+    rep_colorid1 0
+  }
+  array set graph_opts [array get calc_${calctype}_graph]
+  array set ${obj}::graph_opts [array get graph_opts]
+
   # Do the calculation
   [namespace current]::Status "Calculating $calctype ..."
-  set err [[namespace current]::$calctype $obj]
+  set err [[namespace current]::calc_$calctype $obj]
   if {$err} {
     [namespace current]::Objdelete $obj
     return 1
@@ -428,7 +463,7 @@ proc itrajcomp::NewObject {} {
 }
 
 
-proc itrajcomp::ParseOptions {} {
+proc itrajcomp::SelOptions {} {
   # Parse all options to create a new object
 
   # Selection options
@@ -466,43 +501,39 @@ proc itrajcomp::ParseOptions {} {
   # Parse list of molecules
   set mol1 [[namespace current]::ParseMols $mol1_def $mol1_m_list]
   set mol2 [[namespace current]::ParseMols $mol2_def $mol2_m_list]
+  set mol_all [[namespace current]::CombineMols $mol1 $mol2]
+  if {$mol1 == -1 || $mol2 == -1} {
+    return -1
+  }
 
   # Parse frames
   set frame1 [[namespace current]::ParseFrames $frame1_def $mol1 $skip1 $mol1_f_list]
+  if {$frame1 == -1} {
+    return -1
+  }
   set frame2 [[namespace current]::ParseFrames $frame2_def $mol2 $skip2 $mol2_f_list]
+  if {$frame2 == -1} {
+    return -1
+  }
 
   #puts "$mol1 $frame1 $mol2 $frame2 $selmod"
   set sel1 [ParseSel [$tab_sel.mol1.a.sel get 1.0 end] $selmod1]
   set sel2 [ParseSel [$tab_sel.mol2.a.sel get 1.0 end] $selmod2]
 
-  set defaults [list\
-		mol1 $mol1     mol1_def $mol1_def\
-		frame1 $frame1 frame1_def $frame1_def\
-		mol2 $mol2     mol2_def $mol2_def\
-		frame2 $frame2 frame2_def $frame2_def\
-		sel1 $sel1\
-		sel2 $sel2\
-		rep_sel1 $sel1
-		]
-
-  # TODO: if there are no labels, prevent to execute with calctype=labels
-  # Pass calculation options
-  variable calctype
-  variable diagonal
-  variable ${calctype}_vars
-  lappend defaults type $calctype diagonal $diagonal
-
-  foreach var [set ${calctype}_vars] {
-    variable $var
-    lappend defaults $var [set $var]
-  }
-  lappend defaults vars [set ${calctype}_vars]
-
-  return $defaults
+  return [list\
+	    mol1 $mol1       mol1_def $mol1_def\
+	    frame1 $frame1   frame1_def $frame1_def\
+	    mol2 $mol2       mol2_def $mol2_def\
+	    frame2 $frame2   frame2_def $frame2_def\
+	    sel1 $sel1\
+	    sel2 $sel2\
+	    rep_sel1 $sel1\
+	    mol_all $mol_all
+	 ]
 }
 
 
-proc itrajcomp::help_about { {parent .itrajcomp} } {
+proc itrajcomp::help_about {{parent .itrajcomp}} {
   # Help window
   set vn [package present itrajcomp]
   tk_messageBox -title "iTrajComp v$vn - About" -parent $parent -message \
@@ -524,4 +555,6 @@ source [file join $env(ITRAJCOMPDIR) combine.tcl]
 source [file join $env(ITRAJCOMPDIR) standard.tcl]
 source [file join $env(ITRAJCOMPDIR) user.tcl]
 source [file join $env(ITRAJCOMPDIR) buttonbar.tcl]
+source [file join $env(ITRAJCOMPDIR) frames.tcl]
+source [file join $env(ITRAJCOMPDIR) segments.tcl]
 #source [file join $env(ITRAJCOMPDIR) clustering.tcl]

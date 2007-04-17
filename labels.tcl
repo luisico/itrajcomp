@@ -29,165 +29,101 @@
 
 package provide itrajcomp 1.0
 
-proc itrajcomp::labels { self } {
-
-  # Access object variables
-  foreach v [[namespace current]::Objvars $self] {
-    #puts "$v --> [set ${self}::$v]"
-    set $v [set ${self}::$v]
-  }
-  #puts "---------------"
-  #puts [info vars]
-  
-  # Object format
-  set graphtype   "frame"
-  set format_data "%8.4f"
-  set format_key  "%3d %3d"
-  set format_scale "%4.2f"
-  set header1     "mol"
-  set header2     "frame"
-  set rep_style1  "NewRibbons"
-
-  # Calculate max numbers of iteractions
-  set maxkeys 0
-  foreach i $mol1 {
-    foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
-      foreach k $mol2 {
-	foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
-	  if {$diagonal} {
-	    if {$i != $k || $j != $l} {
-	      continue
-	    }
-	  }
-	  if {[info exists foo($k:$l,$i:$j)]} {
-	    continue
-	  } else {
-	    set foo($i:$j,$k:$l) 1
-	    incr maxkeys
-	  }
-	}
-      }
-    }
-  }
+proc itrajcomp::calc_labels {self} {
+  array set opts [array get ${self}::opts]
   
   # Get values for each mol
   set i 0
-  foreach lab $labels_status {
+  if {! [info exists opts(labels_status)]} {
+    tk_messageBox -title "Warning" -message "No $opts(label_type) have been defined" -type ok
+    return 1
+  }
+    
+  foreach lab $opts(labels_status) {
     if {$lab == 1} {
-      set alldata($i) [label graph $label_type $i]
+      set alldata($i) [label graph $opts(label_type) $i]
     }
     incr i
   }
   if {! [array exists alldata]} {
-    tk_messageBox -title "Warning" -message "No Labels have been selected" -type ok
+    tk_messageBox -title "Warning" -message "No $opts(label_type) have been selected" -type ok
     return 1
   }
-  
-  set z 1
-  set count 0
-  foreach i $mol1 {
-    foreach j [lindex $frame1 [lsearch -exact $mol1 $i]] {
-      foreach k $mol2 {
-	foreach l [lindex $frame2 [lsearch -exact $mol2 $k]] {
-	  if {$diagonal && $j != $l} {
-	    continue
-	  }
-	  if {[info exists data($k:$l,$i:$j)]} {
-	    #	      set data($i:$j,$k:$l) $data($k:$l,$i:$j)
-	    continue
-	  } else {
-	    #puts "DEBUG: $i $j $k $l"
-	    set rms 0
-	    foreach v [array names alldata] {
-	      set v1 [lindex $alldata($v) $j]
-	      set v2 [lindex $alldata($v) $l]
-	      set val [expr abs($v1-$v2)]
-	      if {$val > 180 && ($label_type eq "Dihedrals" || $label_type eq "Angles")} {
-		set val [expr abs($val -360)]
-	      }
-	      set rms [expr $rms + $val*$val]
-	      #puts "DEBUG: $v1 $v2 $val [expr $val*$val] $rms"
-	    }
-	    
-	    set data($i:$j,$k:$l) [expr sqrt($rms/([llength [array names alldata]]+1))]
-	    #puts "DEBUG: $data($i:$j,$k:$l)\n"
-	    
-	    incr count
-	    [namespace current]::ProgressBar $count $maxkeys
-	    if {$z} {
-	      set min $data($i:$j,$k:$l)
-	      set max $data($i:$j,$k:$l)
-	      set z 0
-	    }
-	    if {$data($i:$j,$k:$l) > $max} {
-	      set max $data($i:$j,$k:$l)
-	    }
-	    if {$data($i:$j,$k:$l) < $min} {
-	      set min $data($i:$j,$k:$l)
-	    }
-	  }
-	}
+  array set ${self}::alldata [array get alldata]
+
+  return [[namespace current]::LoopFrames $self]
+}
+
+
+proc itrajcomp::calc_labels_hook {self} {
+  namespace eval [namespace current]::${self}:: {
+    set rms 0
+    foreach v [array names alldata] {
+      set v1 [lindex $alldata($v) $j]
+      set v2 [lindex $alldata($v) $l]
+      set val [expr abs($v1-$v2)]
+      if {$val > 180 && ($opts(label_type) eq "Dihedrals" || $opts(label_type) eq "Angles")} {
+	set val [expr abs($val -360)]
       }
+      set rms [expr $rms + $val*$val]
+      #puts "DEBUG: $v1 $v2 $val [expr $val*$val] $rms"
     }
+    
+    return [expr sqrt($rms/([llength [array names alldata]]+1))]
   }
-  set keys [lsort -dictionary [array names data]]
-  foreach key $keys {
-    lappend vals $data($key)
-  }
-  
-  # Set object variables
-  foreach v [[namespace current]::Objvars $self] {
-    set ${self}::$v  [set $v]
-    #puts "$v --->\t[set ${self}::$v]"
-  }
-  array set ${self}::data [array get data]
-
-  return 0
 }
 
 
-proc itrajcomp::labels_options {} {
+proc itrajcomp::calc_labels_options {} {
   # Options for labels
-  variable labels_options
-  variable labels_vars [list label_type labels_status]
-  variable label_type "Dihedrals"
-  variable labels_status
-  variable labels_status_array
+  variable calc_labels_frame
+  variable calc_labels_opts
+  set calc_labels_opts(label_type)  "Dihedrals"
+  set calc_labels_opts(labels_status) ""
 
-  frame $labels_options.labs
-  pack $labels_options.labs -side top -anchor nw
-  label $labels_options.labs.l -text "Labels:"
-  pack $labels_options.labs.l -side left
+  frame $calc_labels_frame.labs
+  pack $calc_labels_frame.labs -side top -anchor nw
+  label $calc_labels_frame.labs.l -text "Labels:"
+  pack $calc_labels_frame.labs.l -side left
   foreach entry [list Bonds Angles Dihedrals] {
-    radiobutton $labels_options.labs.[string tolower $entry] -text $entry -variable [namespace current]::label_type -value $entry -command "[namespace current]::labels_options_update"
-    pack $labels_options.labs.[string tolower $entry] -side left
+    radiobutton $calc_labels_frame.labs.[string tolower $entry] -text $entry -variable [namespace current]::calc_labels_opts(label_type) -value $entry -command "[namespace current]::calc_labels_options_update"
+    pack $calc_labels_frame.labs.[string tolower $entry] -side left
   }
-  menubutton $labels_options.labs.id -text "Id" -menu $labels_options.labs.id.m -relief raised
-  menu $labels_options.labs.id.m
-  pack $labels_options.labs.id -side left
+  menubutton $calc_labels_frame.labs.id -text "Id" -menu $calc_labels_frame.labs.id.m -relief raised
+  menu $calc_labels_frame.labs.id.m
+  pack $calc_labels_frame.labs.id -side left
+
+  # Graph options
+  variable calc_labels_graph
+  array set calc_labels_graph {
+    type         "frames"\
+    format_data  "%8.4f"\
+    format_key   "%3d %3d"\
+    format_scale "%4.2f"\
+    rep_style1   "NewRibbons"
+  }
 }
 
 
-proc itrajcomp::labels_options_update {} {
+proc itrajcomp::calc_labels_options_update {} {
   # Update list of available labels and reset their status
   # Each label has the format: 'num_label (atom_label, atom_label,...)'
   #    * num_label is the label number
   #    * atom_label is $mol-$resname$resid-$name
   variable tab_calc
-  variable label_type
-  variable labels_options
+  variable calc_labels_frame
+  variable calc_labels_opts
 
   # TODO: why hold two variables with the same info?
   variable labels_status_array
-  variable labels_status
 
-  set labels [label list $label_type]
+  set labels [label list $calc_labels_opts(label_type)]
   set n [llength $labels]
-  $labels_options.labs.id.m delete 0 end
+  $calc_labels_frame.labs.id.m delete 0 end
   # TODO: don't reset their status (try to keep them when swithing between label types in the gui)
   array unset labels_status_array
   if {$n > 0} {
-    $labels_options.labs.id config -state normal
+    $calc_labels_frame.labs.id config -state normal
     set nat [expr [llength [lindex $labels 0]] -2]
     for {set i 0} {$i < $n} {incr i} {
       set label "$i ("
@@ -204,15 +140,16 @@ proc itrajcomp::labels_options_update {} {
 	}
       }
       append label ")"
-      $labels_options.labs.id.m add checkbutton -label $label -variable [namespace current]::labels_status_array($i) -command "[namespace current]::labels_update_status $i"
+      $calc_labels_frame.labs.id.m add checkbutton -label $label -variable [namespace current]::labels_status_array($i) -command "[namespace current]::labels_update_status $i"
+      puts [array get labels_status_array]
     }
   }
 
-  if {[info exists labels_status]} {
-    unset labels_status
+  if {[info exists calc_labels_opts(labels_status)]} {
+    unset calc_labels_opts(labels_status)
   }
   foreach x [array names labels_status_array ] {
-    lappend labels_status $labels_status_array($x)
+    lappend calc_labels_opts(labels_status) $labels_status_array($x)
   }
 }
 
@@ -220,9 +157,9 @@ proc itrajcomp::labels_options_update {} {
 proc itrajcomp::labels_update_status {i} {
   # Update status of a label
   variable labels_status_array
-  variable labels_status
+  variable calc_labels_opts
   
-  set labels_status [lreplace $labels_status $i $i $labels_status_array($i)]
+  set calc_labels_opts(labels_status) [lreplace $calc_labels_opts(labels_status) $i $i $labels_status_array($i)]
 }
 
 

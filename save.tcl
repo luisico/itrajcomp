@@ -31,7 +31,7 @@ proc itrajcomp::SaveDataBrowse {self {format "tab"}} {
   # GUI for saving
   set typeList {
     {"Data Files" ".dat .txt .out"}
-    {"Postscript Files" ".ps"}
+    {"Postscript Files" ".ps .eps"}
     {"All files" ".*"}
   }
   
@@ -47,7 +47,7 @@ proc itrajcomp::SaveDataBrowse {self {format "tab"}} {
 
 # Save data procs (general)
 #                  -------
-proc ::itrajcomp::saveData { self {fileout ""} {format "tab"} {options ""}} {
+proc ::itrajcomp::saveData {self {fileout ""} {format "tab"} {options ""}} {
   # Save data to file interface
   array set opt $options
 
@@ -56,15 +56,17 @@ proc ::itrajcomp::saveData { self {fileout ""} {format "tab"} {options ""}} {
       #puts "DEBUG: using file \"$fileout\" for output"
       set fileout_id [open $fileout w]
       fconfigure $fileout_id
+      # Binary needs this (http://wiki.tcl.tk/1180)
+      if {$format eq "plotmtv_binary"} {
+	fconfigure $fileout_id -translation binary
+      }
     } else {
       set fileout_id stdout
     }
 
-    foreach v [[namespace current]::Objvars $self] {
-      if {[array exists ${self}::$v]} {continue}
-      #puts "$v --> [set ${self}::$v]"
-      set opt($v) [set ${self}::$v]
-    }
+    array set opt [array get ${self}::graph_opts]
+    array set opt [array get ${self}::sets]
+    set opt(plot) [set ${self}::plot]
 
     set output [SaveData_$format [set ${self}::vals] [set ${self}::keys] [array get opt]]
 
@@ -91,8 +93,9 @@ proc ::itrajcomp::saveData { self {fileout ""} {format "tab"} {options ""}} {
 #                  ----------
 proc ::itrajcomp::SaveData_postscript {data keys options} {
   # Create postcript data
+  # TODO: add scale to ps
   array set opt $options
-  return [$opt(canvas).u.l.canvas.c postscript]
+  return [$opt(plot) postscript]
 }
 
 # Save data procs (tabular)
@@ -103,14 +106,16 @@ proc ::itrajcomp::SaveData_tab {data keys options} {
 
   set output ""
   # Object info
-  foreach i [list type graphtype mol_all sel1 sel2] {
-    if {$opt($i) != ""} {
+  foreach i [list type mol_all sel1 sel2] {
+    if {[info exists opt($i)] && $opt($i) != ""} {
       append output "\# $i [set opt($i)]\n"
     }
   }
 
   # Data
-  append output [format "%7s %7s   %7s %7s   %[string index $opt(format_data) 1]s\n" "$opt(header1)1" "$opt(header2)1" "$opt(header1)2" "$opt(header2)2" $opt(type)]
+  #set f_k [regsub -all {(%[0-9]+).?[0-9a-z]+} $opt(format_key) {\1s}]
+  set f_d "%[lindex [regexp {%(\d+)} $opt(format_data)] 1]s"
+  append output [format "%8s %8s   %8s %8s   $f_d\n" "$opt(header1)1" "$opt(header2)1" "$opt(header1)2" "$opt(header2)2" "val"]
   for {set z 0} {$z < [llength $keys]} {incr z} {
     set key [lindex $keys $z]
     set indices [split $key :,]
@@ -208,7 +213,6 @@ proc ::itrajcomp::SaveData_plotmtv {data keys options} {
   append output "% xmin=0 xmax=$nx\n"
   append output "% nx=$nx ny=$ny\n"
 
-  # TODO: binary is not working
   if {[info exists opt(binary)]} {
     append output "% BINARY\n"
     append output [binary format "d[llength $vals]" [eval list $vals]]
