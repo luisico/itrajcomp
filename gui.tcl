@@ -63,24 +63,24 @@ proc itrajcomp::itcObjGui {self} {
     #-----
     frame $win_obj.tabc
     pack $win_obj.tabc -side bottom -padx 1 -expand yes -fill both
-    pack [buttonbar::create $win_obj.tabs $win_obj.tabc] -side top -fill x
+    pack [buttonbar::create $menubar $win_obj.tabc] -side top -fill x
 
     # Info
-    variable tab_info [buttonbar::add $win_obj.tabs info]
-    buttonbar::name $win_obj.tabs info "Info"
+    variable tab_info [buttonbar::add $menubar info]
+    buttonbar::name $menubar info "Info"
     [namespace parent]::itcObjInfo $self
 
     # Graph
-    variable tab_graph [buttonbar::add $win_obj.tabs graph]
-    buttonbar::name $win_obj.tabs graph "Graph"
+    variable tab_graph [buttonbar::add $menubar graph]
+    buttonbar::name $menubar graph "Graph"
     [namespace parent]::itcObjGraph $self
 
     # Representation
-    variable tab_rep [buttonbar::add $win_obj.tabs rep]
-    buttonbar::name $win_obj.tabs rep "Representations"
+    variable tab_rep [buttonbar::add $menubar rep]
+    buttonbar::name $menubar rep "Representations"
     [namespace parent]::itcObjRep $self
 
-    buttonbar::showframe $win_obj.tabs graph
+    buttonbar::showframe $menubar graph
     update idletasks
   }
 }
@@ -110,7 +110,7 @@ proc itrajcomp::itcObjMenubar {self w} {
   menu $w.help.menu -tearoff no
   $w.help.menu add command -label "Keybindings" -command "[namespace current]::help_keys $self" -underline 0
   $w.help.menu add command -label "About" -command "[namespace current]::help_about [winfo parent $w]" -underline 0
-  pack $w.help -side right
+  pack $w.help -side left
 }
 
 

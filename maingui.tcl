@@ -87,22 +87,21 @@ proc itrajcomp::init {} {
   #-----
   frame $win_main.tabcontent
   pack $win_main.tabcontent -side bottom -padx 1 -fill x
-  pack [buttonbar::create $win_main.tabs $win_main.tabcontent] -side top -fill x
+  pack [buttonbar::create $menubar $win_main.tabcontent] -side top -fill x
 
   # Frame for molecule/frame selection
-  [namespace current]::TabSel $win_main
+  [namespace current]::TabSel $menubar
 
   # Calculation Tab
-  [namespace current]::TabCalc $win_main
+  [namespace current]::TabCalc $menubar
 
   # Results tab
-  buttonbar::add $win_main.tabs res
-  buttonbar::name $win_main.tabs res "Results"
-
+  buttonbar::add $menubar res
+  buttonbar::name $menubar res "Results"
 
   # Update GUI
   #-----------
-  buttonbar::showframe $win_main.tabs calc
+  buttonbar::showframe $menubar calc
   [namespace current]::TabCalcUpdate
   update idletasks
 }
@@ -134,7 +133,7 @@ proc itrajcomp::Menubar {w} {
   menu $w.help.menu -tearoff no
   $w.help.menu add command -label "About" -command [namespace current]::help_about
   $w.help.menu add command -label "Help..." -command "vmd_open_url http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp/index.html"
-  pack $w.help -side right
+  pack $w.help -side left
 }
 
 proc itrajcomp::Statusbar {w} {
@@ -156,8 +155,8 @@ proc itrajcomp::TabSel {w} {
   # Selection tab
   variable samemols 0
 
-  variable tab_sel [buttonbar::add $w.tabs sel]
-  buttonbar::name $w.tabs sel "Selection"
+  variable tab_sel [buttonbar::add $w sel]
+  buttonbar::name $w sel "Selection"
  
   # Set 1
   [namespace current]::SelWidget $tab_sel 1
@@ -235,8 +234,8 @@ proc itrajcomp::SelWidget {w id} {
 
 proc itrajcomp::TabCalc {w} {
   # Calculation tab
-  variable tab_calc [buttonbar::add $w.tabs calc]
-  buttonbar::name $w.tabs calc "Calculation"
+  variable tab_calc [buttonbar::add $w calc]
+  buttonbar::name $w calc "Calculation"
 
   button $tab_calc.new -text "New object" -command "[namespace current]::NewObject"
   pack $tab_calc.new -side top
@@ -362,7 +361,7 @@ proc itrajcomp::Samemols {status} {
 
   # Flass the Selection tab to let the user know samemols changed
   if {$samemols != $old_status} {
-    $win_main.tabs.middle.c.f.sel flash
+    $win_main.tabs.c.f.sel flash
   }
 }
 
