@@ -319,15 +319,19 @@ proc itrajcomp::itcObjGraph {self} {
 	set graph_opts(header2) "frame"
 	[namespace parent]::GraphFrames $self
       }
-      atoms {
-	set graph_opts(header1) "index"
-	set graph_opts(header2) "name"
-	[namespace parent]::GraphSegments $self
-      }
-      residues {
-	set graph_opts(header1) "residue"
-	set graph_opts(header2) "resname"
-	[namespace parent]::GraphSegments $self
+      segments {
+	switch $opts(segment) {
+	  byres {
+	    set graph_opts(header1) "residue"
+	    set graph_opts(header2) "resname"
+	    [namespace parent]::GraphSegments $self
+	  }
+	  byatom {
+	    set graph_opts(header1) "index"
+	    set graph_opts(header2) "name"
+	    [namespace parent]::GraphSegments $self
+	  }
+	}
       }
     }
     # TODO: zoom to a better level depending on the size of the matrix and the space available

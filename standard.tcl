@@ -36,7 +36,9 @@ proc itrajcomp::AddStandardCalc {} {
     [namespace current]::AddCalc $type $desc [file join $env(ITRAJCOMPDIR) $type.tcl]
   }
 
-#  foreach type {dist covar} desc {"Covariance" "Distance"} {
+#  foreach type {dist covar} desc {"Distance" "Covariance"} {
 #    [namespace current]::AddCalc $type $desc [file join $env(ITRAJCOMPDIR) $type.tcl]
 #  }
+  [namespace current]::AddCalc dist "Distance" [file join $env(ITRAJCOMPDIR) dist.tcl]
+
 }

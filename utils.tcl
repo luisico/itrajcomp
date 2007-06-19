@@ -332,6 +332,7 @@ proc itrajcomp::CheckNatoms {self} {
 proc itrajcomp::ParseKey {self key} {
   # Parse a key to get mol, frame and selection back
   array set graph_opts [array get ${self}::graph_opts]
+  array set opts [array get ${self}::opts]
   array set sets [array get ${self}::sets]
   set indices [split $key :]
 
@@ -341,17 +342,21 @@ proc itrajcomp::ParseKey {self key} {
       set tab_rep [set ${self}::tab_rep]
       set s [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
     }
-    atoms {
-      set m [lindex [set $sets(mol_all)] 0]
-      set f [join [set $sets(frame1)] " "]
-      set s "index [lindex $indices 0]"
-    }
-    residues {
-      set m [lindex [set $sets(mol_all)] 0]
-      set f [join [set $sets(frame1)] " "]
-      set tab_rep [set ${self}::tab_rep]
-      set extra [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
-      set s "residue [lindex $indices 0] and ($extra)"
+    segments {
+      switch $opts(segment) {
+	byres {
+	  set m [lindex [set ${self}::sets(mol_all)] 0]
+	  set f [join [set ${self}::sets(frame1)] " "]
+	  set tab_rep [set ${self}::tab_rep]
+	  set extra [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
+	  set s "residue [lindex $indices 0] and ($extra)"
+	}
+	byatom {
+	  set m [lindex [set ${self}::sets(mol_all)] 0]
+	  set f [join [set ${self}::sets(frame1)] " "]
+	  set s "index [lindex $indices 0]"
+	}
+      }
     }
   }
 
@@ -360,9 +365,14 @@ proc itrajcomp::ParseKey {self key} {
 
 
 
-proc itrajcomp::Normalize {{type "expmin"} self} {
+proc itrajcomp::Normalize {self {type "none"}} {
   # Normalize data
   # TODO: add this to all calctypes
+
+  if {$type == "none"} {
+    return
+  }
+
   array set data [array get ${self}::data]
   set keys [array names data]
   set min [set ${self}::min]

@@ -298,6 +298,8 @@ proc itrajcomp::DelCalc {type} {
   
   grid forget $tab_calc.type.${type}_n $tab_calc.type.${type}_d
   pack forget $tab_calc.opt.$type
+  destroy $tab_calc.type.${type}_n $tab_calc.type.${type}_d $tab_calc.opt.$type
+
 }
 
 
@@ -361,7 +363,7 @@ proc itrajcomp::Samemols {status} {
 
   # Flass the Selection tab to let the user know samemols changed
   if {$samemols != $old_status} {
-    $win_main.tabs.c.f.sel flash
+    $win_main.menubar.tabs.c.sel flash
   }
 }
 

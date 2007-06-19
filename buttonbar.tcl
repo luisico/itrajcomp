@@ -3,7 +3,7 @@ namespace eval buttonbar {}
 proc buttonbar::create {w frame} {
   variable buttonbar
 
-  puts [winfo height $w]
+  #puts [winfo height $w]
   frame $w.tabs -relief sunken -bd 1 -width 500
   pack $w.tabs -side left -anchor nw
 

@@ -34,10 +34,8 @@ proc itrajcomp::GraphSegments {self} {
     variable rep_list
     variable rep_num
     variable colors
-    variable segments
 
-    set nsegments [llength $segments]
-    #puts "$nsegments -> $segments"
+    set nsegments [llength $segments(number)]
 
     foreach key $keys {
       lassign [split $key ,:] i j k l
@@ -52,12 +50,12 @@ proc itrajcomp::GraphSegments {self} {
     set offy 0
     set width 3
     for {set i 0} {$i < $nsegments} {incr i} {
-      set key1 "[lindex $segments $i]:$part2([lindex $segments $i])"
+      set key1 "[lindex $segments(number) $i]:$part2([lindex $segments(number) $i])"
       set rep_list($key1) {}
       set rep_num($key1) 0
       set offy 0
       for {set k 0} {$k < $nsegments} {incr k} {
-	set key2 "[lindex $segments $k]:$part2([lindex $segments $k])"
+	set key2 "[lindex $segments(number) $k]:$part2([lindex $segments(number) $k])"
 	set rep_list($key2) {}
 	set rep_num($key2) 0
 	set key "$key1,$key2"
@@ -106,32 +104,32 @@ proc itrajcomp::LoopSegments {self} {
 
   namespace eval [namespace current]::${self}:: {
     
-    set nreg [llength $segments]
+    set nreg [llength $segments(number)]
     # Calculate max numbers of iterations
     set maxkeys [expr ($nreg*$nreg+$nreg)/2]
     
     set z 1
     set count 0
     for {set reg1 0} {$reg1 < $nreg} {incr reg1} {
-      set i [lindex $segments $reg1]
-      set j [lindex $names $reg1]
+      set i [lindex $segments(number) $reg1]
+      set j [lindex $segments(name) $reg1]
       set key1 "$i:$j"
       #-> prehook1
-      [namespace parent]::calc_${type}_prehook1 $self
+      [namespace parent]::calc_$opts(type)_prehook1 $self
       for {set reg2 0} {$reg2 < $nreg} {incr reg2} {
-	set k [lindex $segments $reg2]
-	set l [lindex $names $reg2]
+	set k [lindex $segments(number) $reg2]
+	set l [lindex $segments(name) $reg2]
 	set key2 "$k:$l"
 	#-> prehook2
-	[namespace parent]::calc_${type}_prehook2 $self
+	[namespace parent]::calc_$opts(type)_prehook2 $self
 	if {[info exists data($key2,$key1)]} {
 	  continue
 	} else {
 	  #-> hook
-	  set data($key1,$key2) [[namespace parent]::calc_${type}_hook $self]
+	  set data($key1,$key2) [[namespace parent]::calc_$opts(type)_hook $self]
 	  #puts "$i $k , $key1 $key2 , $data($key1,$key2)"
 	  incr count
-	  [namespace current]::ProgressBar $count $maxkeys
+	  [namespace parent]::ProgressBar $count $maxkeys
 	  if {$z} {
 	    set min $data($key1,$key2)
 	    set max $data($key1,$key2)
@@ -146,6 +144,19 @@ proc itrajcomp::LoopSegments {self} {
 	}
       }
     }
+
+    # Create keys and values variables
+    set keys [lsort -dictionary [array names data]]
+    foreach key $keys {
+      lappend vals $data($key)
+    }
+
+    # TODO: normalize on the fly in the graph, not here. We need to have two sets of data for this to work: one with the original data, another with the data plotted (and transformed).
+    if {[info exists opts(normalize)]} {
+      [namespace parent]::Normalize $self $opts(normalize)
+    }
+
+    return 0
   }
 }
 
@@ -153,15 +164,52 @@ proc itrajcomp::LoopSegments {self} {
 # TODO: generalize more
 proc itrajcomp::DefineSegments {self} {
   namespace eval [namespace current]::${self}:: {
-    if {$byres} {
-      set segments [lsort -unique -integer [[atomselect [lindex $mol_all 0] $sel1] get residue]]
-      set names {}
-      foreach r $segments {
-	lappend names [lindex [[atomselect [lindex $mol_all 0] "residue $r"] get resname] 0]
+    switch $opts(segment) {
+      byres {
+	set segments(number) [lsort -unique -integer [[atomselect [lindex $sets(mol_all) 0] $sets(sel1)] get residue]]
+	set segments(name) {}
+	foreach r $segments(number) {
+	  lappend segments(name) [string totitle [lindex [[atomselect [lindex $sets(mol_all) 0] "residue $r"] get resname] 0]]
+	}
       }
-    } else {
-      set segments [[atomselect [lindex $mol_all 0] $sel1] get index]
-      set names [[atomselect [lindex $mol_all 0] $sel1] get name]
+      byatom {
+	set segments(number) [[atomselect [lindex $sets(mol_all) 0] $sets(sel1)] get index]
+	set segments(name) [[atomselect [lindex $sets(mol_all) 0] $sets(sel1)] get name]
+      }
     }
+  }
+}
+
+proc itrajcomp::CoorSegments {self} {
+  namespace eval [namespace current]::${self}:: {
+    switch $opts(segment) {
+      byres {
+	foreach r $segments(number) {
+	  #puts "DEBUG: seg $r"
+	  foreach i $sets(mol_all) {
+	    set s1 [atomselect $i "residue $r and ($sets(sel1))"]
+	    #puts "DEBUG: mol $i"
+	    foreach j [lindex $sets(frame1) [lsearch -exact $sets(mol_all) $i]] {
+	      $s1 frame $j
+	      #puts "DEBUG: frame $j"
+	      lappend coor($i:$j) [measure center $s1]
+	    }
+	  }
+	}
+      }
+      byatom {
+	foreach i $sets(mol_all) {
+	  set s1 [atomselect $i $sets(sel1)]
+	  #puts "DEBUG: mol $i"
+	  foreach j [lindex $sets(frame1) [lsearch -exact $sets(mol_all) $i]] {
+	    $s1 frame $j
+	    #puts "DEBUG: frame $j"
+	    set coor($i:$j) [$s1 get {x y z}]
+	    #puts "DEBUG: coor $coor($i:$j)"
+	  }
+	}
+      }
+    }
+    #puts [array get coor]
   }
 }
