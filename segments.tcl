@@ -35,6 +35,7 @@ proc itrajcomp::GraphSegments {self} {
     variable rep_num
     variable colors
 
+    $plot delete all
     set nsegments [llength $segments(number)]
 
     foreach key $keys {
@@ -48,7 +49,7 @@ proc itrajcomp::GraphSegments {self} {
     
     set offx 0
     set offy 0
-    set width 3
+    set width 0
     for {set i 0} {$i < $nsegments} {incr i} {
       set key1 "[lindex $segments(number) $i]:$part2([lindex $segments(number) $i])"
       set rep_list($key1) {}
@@ -87,7 +88,6 @@ proc itrajcomp::GraphSegments {self} {
       
     }
     set offx [expr $offx+$i]
-    
   }
 }
 
@@ -109,6 +109,8 @@ proc itrajcomp::LoopSegments {self} {
     set maxkeys [expr ($nreg*$nreg+$nreg)/2]
     
     set z 1
+    set min0 0
+    set max0 0
     set count 0
     for {set reg1 0} {$reg1 < $nreg} {incr reg1} {
       set i [lindex $segments(number) $reg1]
@@ -122,39 +124,36 @@ proc itrajcomp::LoopSegments {self} {
 	set key2 "$k:$l"
 	#-> prehook2
 	[namespace parent]::calc_$opts(type)_prehook2 $self
-	if {[info exists data($key2,$key1)]} {
+	if {[info exists data0($key2,$key1)]} {
 	  continue
 	} else {
 	  #-> hook
-	  set data($key1,$key2) [[namespace parent]::calc_$opts(type)_hook $self]
-	  #puts "$i $k , $key1 $key2 , $data($key1,$key2)"
+	  set data0($key1,$key2) [[namespace parent]::calc_$opts(type)_hook $self]
+	  #puts "$i $k , $key1 $key2 , $data0($key1,$key2)"
 	  incr count
 	  [namespace parent]::ProgressBar $count $maxkeys
 	  if {$z} {
-	    set min $data($key1,$key2)
-	    set max $data($key1,$key2)
+	    set min0 $data0($key1,$key2)
+	    set max0 $data0($key1,$key2)
 	    set z 0
 	  }
-	  if {$data($key1,$key2) > $max} {
-	    set max $data($key1,$key2)
+	  if {$data0($key1,$key2) > $max0} {
+	    set max0 $data0($key1,$key2)
 	  }
-	  if {$data($key1,$key2) < $min} {
-	    set min $data($key1,$key2)
+	  if {$data0($key1,$key2) < $min0} {
+	    set min0 $data0($key1,$key2)
 	  }
 	}
       }
     }
 
     # Create keys and values variables
-    set keys [lsort -dictionary [array names data]]
+    set keys [lsort -dictionary [array names data0]]
     foreach key $keys {
-      lappend vals $data($key)
+      lappend vals $data0($key)
     }
 
-    # TODO: normalize on the fly in the graph, not here. We need to have two sets of data for this to work: one with the original data, another with the data plotted (and transformed).
-    if {[info exists opts(normalize)]} {
-      [namespace parent]::Normalize $self $opts(normalize)
-    }
+    [namespace parent]::TransformData $self
 
     return 0
   }

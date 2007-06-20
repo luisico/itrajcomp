@@ -35,12 +35,13 @@ proc itrajcomp::GraphFrames {self} {
     variable rep_num
     variable colors
 
+    $plot delete all
     set maxkeys [llength $keys]
     set count 0
     
     set offx 0
     set offy 0
-    set width 3
+    set width 0
     for {set i 0} {$i < [llength $sets(mol1)]} {incr i} {
       set f1 [lindex $sets(frame1) $i]
       for {set j 0} { $j < [llength $f1]} {incr j} {
@@ -60,7 +61,7 @@ proc itrajcomp::GraphFrames {self} {
 	    set y [expr ($l+$offy)*($grid+$width)]
 	    set add_rep($key) 0
 	    set colors($key) [[namespace parent]::ColorScale $data($key) $max $min]
-	    #puts "$i $j -> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
+	    #puts "$i $j -> $x $offx           $k $l - > $y $offy     = $data($key)    $colors($key)"
 	    $plot create rectangle $x $y [expr $x+$grid] [expr $y+$grid] -fill $colors($key) -outline $colors($key) -tag $key -width $width
 	    
 	    $plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
@@ -120,6 +121,8 @@ proc itrajcomp::LoopFrames {self} {
     
     # Calculate for each pair reference(mol,frame)-target(mol,frame)
     set z 1
+    set min0 0
+    set max0 0
     set count 0
     foreach i $sets(mol1) {
       set s1 [atomselect $i $sets(sel1)]
@@ -135,27 +138,27 @@ proc itrajcomp::LoopFrames {self} {
 	    if {$opts(diagonal) && $j != $l} {
 	      continue
 	    }
-	    if {[info exists data($k:$l,$i:$j)]} {
-	      #	set data($i:$j,$k:$l) $data($k:$l,$i:$j)
+	    if {[info exists data0($k:$l,$i:$j)]} {
+	      #	set data0($i:$j,$k:$l) $data0($k:$l,$i:$j)
 	      continue
 	    } else {
 	      $s2 frame $l
 	      #-> hook
-	      set data($i:$j,$k:$l) [[namespace parent]::calc_$opts(type)_hook $self]
-	      #puts "$i $j $k $l $data($i:$j,$k:$l)"
+	      set data0($i:$j,$k:$l) [[namespace parent]::calc_$opts(type)_hook $self]
+	      #puts "$i $j $k $l $data0($i:$j,$k:$l)"
 	      incr count
 	      [namespace parent]::ProgressBar $count $maxkeys
 	      # Calculate max and min
 	      if {$z} {
-		set min $data($i:$j,$k:$l)
-		set max $data($i:$j,$k:$l)
+		set min0 $data0($i:$j,$k:$l)
+		set max0 $data0($i:$j,$k:$l)
 		set z 0
 	      }
-	      if {$data($i:$j,$k:$l) > $max} {
-		set max $data($i:$j,$k:$l)
+	      if {$data0($i:$j,$k:$l) > $max0} {
+		set max0 $data0($i:$j,$k:$l)
 	      }
-	      if {$data($i:$j,$k:$l) < $min} {
-		set min $data($i:$j,$k:$l)
+	      if {$data0($i:$j,$k:$l) < $min0} {
+		set min0 $data0($i:$j,$k:$l)
 	      }
 	    }
 	  }
@@ -164,10 +167,12 @@ proc itrajcomp::LoopFrames {self} {
     }
     
     # Create keys and values variables
-    set keys [lsort -dictionary [array names data]]
+    set keys [lsort -dictionary [array names data0]]
     foreach key $keys {
-      lappend vals $data($key)
+      lappend vals $data0($key)
     }
+
+    [namespace parent]::TransformData $self
     
     return 0
   }

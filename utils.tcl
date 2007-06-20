@@ -364,48 +364,91 @@ proc itrajcomp::ParseKey {self key} {
 }
 
 
-
-proc itrajcomp::Normalize {self {type "none"}} {
-  # Normalize data
-  # TODO: add this to all calctypes
-
-  if {$type == "none"} {
-    return
+proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
+  # Source data
+  if {$type == "copy" || [set ${self}::transform_source] == 0} {
+    array set data0 [array get ${self}::data0]
+    set keys [array names data0]
+    set min0 [set ${self}::min0]
+    set max0 [set ${self}::max0]
+  } else {
+    array set data0 [array get ${self}::data]
+    set keys [array names data0]
+    set min0 [set ${self}::min]
+    set max0 [set ${self}::max]
   }
 
-  array set data [array get ${self}::data]
-  set keys [array names data]
-  set min [set ${self}::min]
-  set max [set ${self}::max]
-  
-  # minmax: min gets 0, max gets 1
-  # exp: exponential
-  # expmin: exponential shifted
   switch $type {
-    minmax {
-      set minmax [expr $max - $min]
+    copy {
+      set min $min0
+      set max $max0
+      array set data [array get data0]
+    }
+    inverse {
+      set z 1
+      set min 0
+      set max 0
       foreach key $keys {
-	set data($key) [expr ($data($key)-$min) / $minmax]
+	if {$data0($key) != 0} {
+	  set data($key) [expr 1.0/$data0($key)]
+	} else {
+	  set data($key) $data0($key)
+	}
+	
+	# Calculate max and min
+	if {$z} {
+	  set min $data($key)
+	  set max $data($key)
+	  set z 0
+	}
+	if {$data($key) > $max} {
+	  set max $data($key)
+	}
+	if {$data($key) < $min} {
+	  set min $data($key)
+	}
       }
     }
-    exp {
+    norm_minmax {
+      set minmax [expr $max0 - $min0]
       foreach key $keys {
-	set data($key) [expr 1 - exp(-$data($key))]
+	set data($key) [expr ($data0($key)-$min0) / $minmax]
       }
+      set min 0
+      set max 1
     }
-    expmin {
+    norm_exp {
       foreach key $keys {
-	set data($key) [expr 1 - exp(-($data($key)-$min))]
+	set data($key) [expr 1 - exp(-$data0($key))]
       }
+      set min 0
+      set max 1
+    }
+    norm_expmin {
+      foreach key $keys {
+	set data($key) [expr 1 - exp(-($data0($key)-$min0))]
+      }
+      set min 0
+      set max 1
     }
   }
 
-  set ${self}::min 0
-  set ${self}::max 1
+  # Send back to object
+  set ${self}::min $min
+  set ${self}::max $max
   array set ${self}::data [array get data]
+  # TODO: vals should also be updated? used in save and load, mostly
+
+  # Update plot
+  if {$graph == 1} {
+    # TODO: only works with frames (not segments)
+    [namespace current]::UpdateGraph $self
+    #[namespace current]::GraphFrames $self
+  }
 
   return
 }
+
 
 proc itrajcomp::wlist {{w .}} {
   # Return a list of TKwidgets

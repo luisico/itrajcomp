@@ -46,7 +46,6 @@ proc itrajcomp::calc_dist_options {} {
   variable calc_dist_frame
   variable calc_dist_opts
   set calc_dist_opts(segment)   "byatom"
-  set calc_dist_opts(normalize) "none"
 
   # by segment
   frame $calc_dist_frame.segment
@@ -56,16 +55,6 @@ proc itrajcomp::calc_dist_options {} {
   foreach entry [list byatom byres] {
     radiobutton $calc_dist_frame.segment.$entry -text $entry -variable [namespace current]::calc_dist_opts(segment) -value $entry
     pack $calc_dist_frame.segment.$entry -side left
-  }
-
-  # normalization
-  frame $calc_dist_frame.norm
-  pack $calc_dist_frame.norm -side top -anchor nw
-  label $calc_dist_frame.norm.l -text "Normalization:"
-  pack $calc_dist_frame.norm.l -side left
-  foreach entry [list none exp expmin minmax] {
-    radiobutton $calc_dist_frame.norm.$entry -text $entry -variable [namespace current]::calc_dist_opts(normalize) -value $entry
-    pack $calc_dist_frame.norm.$entry -side left
   }
 
   # Graph options

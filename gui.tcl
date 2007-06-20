@@ -57,7 +57,7 @@ proc itrajcomp::itcObjGui {self} {
     #-----
     set menubar [frame $win_obj.menubar -relief raised -bd 2]
     pack $win_obj.menubar -padx 1 -fill x
-    [namespace parent]::itcObjMenubar $self $menubar
+    [namespace parent]::itcObjMenubar $self
     
     # Tabs
     #-----
@@ -86,31 +86,46 @@ proc itrajcomp::itcObjGui {self} {
 }
 
 
-proc itrajcomp::itcObjMenubar {self w} {
+proc itrajcomp::itcObjMenubar {self} {
   # Menu for an itcObj
     
-  menubutton $w.file -text "File" -menu $w.file.menu -width 4 -underline 0
-  menu $w.file.menu -tearoff no
-  #$w.file.menu add command -label "Save" -command "" -underline 0
-  $w.file.menu add cascade -label "Save As..." -menu $w.file.menu.saveas -underline 0
-  menu $w.file.menu.saveas
-  foreach as [set [namespace current]::save_format_list] {
-    $w.file.menu.saveas add command -label $as -command "[namespace current]::SaveDataBrowse $self $as"
+  namespace eval [namespace current]::${self}:: {
+    menubutton $menubar.file -text "File" -menu $menubar.file.menu -underline 0
+    menu $menubar.file.menu -tearoff no
+    #$menubar.file.menu add command -label "Save" -command "" -underline 0
+    $menubar.file.menu add cascade -label "Save As..." -menu $menubar.file.menu.saveas -underline 0
+    menu $menubar.file.menu.saveas -tearoff no
+    foreach as [set [namespace parent]::save_format_list] {
+      $menubar.file.menu.saveas add command -label $as -command "[namespace parent]::SaveDataBrowse $self $as"
+    }
+    $menubar.file.menu add command -label "View" -command "[namespace parent]::ViewData $self" -underline 0
+    $menubar.file.menu add command -label "Destroy" -command "[namespace parent]::Destroy $self" -underline 0
+    pack $menubar.file -side left
+    
+    menubutton $menubar.transform -text "Transform" -menu $menubar.transform.menu -underline 0
+    menu $menubar.transform.menu
+    set transform_source 0
+    $menubar.transform.menu add checkbutton -label "From current" -variable "[namespace current]::transform_source"
+    $menubar.transform.menu add command -label "Original" -command "[namespace parent]::TransformData $self copy 1" -underline 0
+    $menubar.transform.menu add command -label "Inverse" -command "[namespace parent]::TransformData $self inverse 1" -underline 0
+    $menubar.transform.menu add cascade -label "Normalize" -menu $menubar.transform.menu.normalize -underline 0
+    menu $menubar.transform.menu.normalize -tearoff no
+    foreach norm {minmax exp expmin} {
+      $menubar.transform.menu.normalize add command -label $norm -command "[namespace parent]::TransformData $self norm_$norm 1"
+    }
+    pack $menubar.transform -side left
+    
+    menubutton $menubar.analysis -text "Analysis" -menu $menubar.analysis.menu -underline 0
+    menu $menubar.analysis.menu -tearoff no
+    $menubar.analysis.menu add command -label "Descriptive" -command "[namespace parent]::StatDescriptive $self 1" -underline 0
+    pack $menubar.analysis -side left
+    
+    menubutton $menubar.help -text "Help" -menu $menubar.help.menu -underline 0
+    menu $menubar.help.menu -tearoff no
+    $menubar.help.menu add command -label "Keybindings" -command "[namespace parent]::help_keys $self 1" -underline 0
+    $menubar.help.menu add command -label "About" -command "[namespace parent]::help_about [winfo parent $menubar]" -underline 0
+    pack $menubar.help -side left
   }
-  $w.file.menu add command -label "View" -command "[namespace current]::ViewData $self" -underline 0
-  $w.file.menu add command -label "Destroy" -command "[namespace current]::Destroy $self" -underline 0
-  pack $w.file -side left
-  
-  menubutton $w.analysis -text "Analysis" -menu $w.analysis.menu -width 5 -underline 0
-  menu $w.analysis.menu -tearoff no
-  $w.analysis.menu add command -label "Descriptive" -command "[namespace current]::StatDescriptive $self" -underline 0
-  pack $w.analysis -side left
-  
-  menubutton $w.help -text "Help" -menu $w.help.menu -width 4 -underline 0
-  menu $w.help.menu -tearoff no
-  $w.help.menu add command -label "Keybindings" -command "[namespace current]::help_keys $self" -underline 0
-  $w.help.menu add command -label "About" -command "[namespace current]::help_about [winfo parent $w]" -underline 0
-  pack $w.help -side left
 }
 
 
@@ -313,30 +328,41 @@ proc itrajcomp::itcObjGraph {self} {
     button $tab_graph.r.zoom.decr.5 -text "-5" -width 2 -padx 1 -pady 0 -command "[namespace parent]::Zoom $self -5" -font [list helvetica 6]
     pack $tab_graph.r.zoom.decr.1 $tab_graph.r.zoom.decr.5 -side left
 
-    switch $graph_opts(type) {
-      frames {
-	set graph_opts(header1) "mol"
-	set graph_opts(header2) "frame"
-	[namespace parent]::GraphFrames $self
-      }
-      segments {
-	switch $opts(segment) {
-	  byres {
-	    set graph_opts(header1) "residue"
-	    set graph_opts(header2) "resname"
-	    [namespace parent]::GraphSegments $self
-	  }
-	  byatom {
-	    set graph_opts(header1) "index"
-	    set graph_opts(header2) "name"
-	    [namespace parent]::GraphSegments $self
-	  }
-	}
-      }
-    }
+    [namespace parent]::UpdateGraph $self
+
     # TODO: zoom to a better level depending on the size of the matrix and the space available
     [namespace parent]::Zoom $self -5
   }
+}
+
+
+proc itrajcomp::UpdateGraph {self} {
+  # Update the graph
+
+  switch [set ${self}::graph_opts(type)] {
+    frames {
+      set ${self}::graph_opts(header1) "mol"
+      set ${self}::graph_opts(header2) "frame"
+      [namespace current]::GraphFrames $self
+    }
+    segments {
+      switch [set ${self}::opts(segment)] {
+	byres {
+	  set ${self}::graph_opts(header1) "residue"
+	  set ${self}::graph_opts(header2) "resname"
+	  [namespace current]::GraphSegments $self
+	}
+	byatom {
+	  set ${self}::graph_opts(header1) "index"
+	  set ${self}::graph_opts(header2) "name"
+	  [namespace current]::GraphSegments $self
+	}
+      }
+    }
+  }
+  
+  [namespace current]::UpdateScale $self
+
 }
 
 
