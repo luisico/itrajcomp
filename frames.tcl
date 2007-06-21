@@ -30,7 +30,8 @@
 proc itrajcomp::GraphFrames {self} {
   # Create matrix graph for objects
   namespace eval [namespace current]::${self}:: {
-    variable add_rep
+    variable map_active
+    variable rep_active
     variable rep_list
     variable rep_num
     variable colors
@@ -59,8 +60,9 @@ proc itrajcomp::GraphFrames {self} {
 	    if {![info exists data($key)]} continue
 	    set x [expr ($j+$offx)*($grid+$width)]
 	    set y [expr ($l+$offy)*($grid+$width)]
-	    set add_rep($key) 0
+	    set map_active($key) 0
 	    set colors($key) [[namespace parent]::ColorScale $data($key) $max $min]
+	    set colors_act($key) [[namespace parent]::ColorScale $data($key) $max $min 0.40]
 	    #puts "$i $j -> $x $offx           $k $l - > $y $offy     = $data($key)    $colors($key)"
 	    $plot create rectangle $x $y [expr $x+$grid] [expr $y+$grid] -fill $colors($key) -outline $colors($key) -tag $key -width $width
 	    

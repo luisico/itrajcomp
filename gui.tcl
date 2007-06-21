@@ -242,7 +242,7 @@ proc itrajcomp::itcObjInfo {self} {
 proc itrajcomp::itcObjGraph {self} {
   # construct graph gui
   namespace eval [namespace current]::${self}:: {
-    variable add_rep
+    variable map_active
     variable info_key1
     variable info_key2
     variable info_value
@@ -370,9 +370,13 @@ proc itrajcomp::itcObjRep {self} {
   # construct representations gui
   namespace eval [namespace current]::${self}:: {
 
+    variable rep_sw 1
     foreach x [list 1] {
-      frame $tab_rep.disp$x
-      pack $tab_rep.disp$x -side left -expand yes -fill x
+      labelframe $tab_rep.disp$x -text "Representation"
+      pack $tab_rep.disp$x -side top -expand yes -fill x
+
+      checkbutton $tab_rep.disp$x.sw -text "On/Off" -variable [namespace current]::rep_sw -command "[namespace parent]::UpdateSelection $self"
+      pack $tab_rep.disp$x.sw -side left
 
       # Selection
       #----------
@@ -428,10 +432,24 @@ proc itrajcomp::itcObjRep {self} {
       pack $style.color.m $style.color.id -side left
     }
 
+    # For segment graphs draw lines
+    if {$graph_opts(type) == "segments"} {
+      variable connect_sw 1
+#      variable connect_all 1
+      labelframe $tab_rep.connect -text "Connecting lines"
+      pack $tab_rep.connect -side top -expand yes -fill x
+
+      checkbutton $tab_rep.connect.sw -text "On/Off" -variable [namespace current]::connect_sw -command "[namespace parent]::UpdateSelection $self"
+      pack $tab_rep.connect.sw -side left
+#      checkbutton $tab_rep.connect.all -text "All" -variable [namespace current]::connect_all -command "[namespace parent]::UpdateSelection $self"
+#      pack $tab_rep.connect.all -side left
+    }
+
     # Update button
     #--------------
-    button $tab_rep.but -text "Update"  -command "[namespace parent]::UpdateSelection $self"
-    pack $tab_rep.but -side left
+    button $tab_rep.but -text "Update" -command "[namespace parent]::UpdateSelection $self"
+    pack $tab_rep.but -side top
+
   }
 }
 
@@ -511,6 +529,11 @@ proc itrajcomp::Zoom {self zoom} {
 
 proc itrajcomp::AddRep {self key} {
   # Add graphic representation
+  
+  if {[set ${self}::rep_sw] == 0} {
+    return
+  }
+
   set tab_rep [set ${self}::tab_rep]
   array set graph_opts [array get ${self}::graph_opts]
 
@@ -528,8 +551,11 @@ proc itrajcomp::AddRep {self key} {
     } else {
       set color $graph_opts(rep_color1)
     }
-    lassign [[namespace current]::ParseKey $self $key] m f s
-    set rep_list [[namespace current]::AddRep1 $m $f $s $graph_opts(rep_style1) $color]
+    lassign [[namespace current]::ParseKey $self $key] mols f s
+    set rep_list {}
+    foreach m $mols {
+      lappend rep_list "$m:[[namespace current]::AddRep1 $m $f $s $graph_opts(rep_style1) $color]"
+    }
     
   }
   set ${self}::rep_list($key) $rep_list
@@ -545,9 +571,77 @@ proc itrajcomp::DelRep {self key} {
   #puts "del $key = $rep_num"
   if {$rep_num == 0} {
     lassign [[namespace current]::ParseKey $self $key] m f s
-    [namespace current]::DelRep1 [set ${self}::rep_list($key)] $m
+    [namespace current]::DelRep1 [set ${self}::rep_list($key)]
   }
   set ${self}::rep_num($key) $rep_num
+}
+
+
+proc itrajcomp::AddConnect {self key} {
+  # Add a line between two points (atoms or center of residue selection)
+
+  set indices [split $key ,]
+  lassign $indices key1 key2
+  #lassign [[namespace current]::ParseKey $self $key] mols frames sel0
+  set mols [set ${self}::sets(mol1)]
+  set frames [set ${self}::sets(frame1)]
+  set tab_rep [set ${self}::tab_rep]
+  set extra [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
+
+  set connect_lines {}
+
+  for {set i 0} {$i < [llength $mols]} {incr i} {
+    set m [lindex $mols $i]
+    # TODO: move the color of graphics to a common place, so that we don't create a graphics object each time
+    graphics $m color 4
+  
+    switch [set ${self}::opts(segment)] {
+      byatom {
+   	set sel1 [atomselect $m "index [lindex [split $key1 :] 0]"]
+	set sel2 [atomselect $m "index [lindex [split $key2 :] 0]"]
+      }
+      byres {
+    	set sel1 [atomselect $m "residue [lindex [split $key1 :] 0] and ($extra)"]
+	set sel2 [atomselect $m "residue [lindex [split $key2 :] 0] and ($extra)"]
+      }
+    }
+
+#    if {[set ${self}::connect_all] == 1} {
+      set molframes [lindex $frames $i]
+#    } else {
+#      set molframes [molinfo $m get frame]
+#    }
+    foreach f $molframes {
+      $sel1 frame $f
+      $sel2 frame $f
+      switch [set ${self}::opts(segment)] {
+	byatom {
+	  lassign [$sel1 get {x y z}] coor1
+	  lassign [$sel2 get {x y z}] coor2
+	}
+	byres {
+	  set coor1 [measure center $sel1]
+	  set coor2 [measure center $sel2]
+	}
+      }
+      lappend connect_lines "$m:[graphics $m line $coor1 $coor2 width 1 style dashed]"
+      #puts "line $m $f $key $key2"
+    }
+  }
+
+  set ${self}::connect_lines($key) $connect_lines
+}
+
+
+proc itrajcomp::DelConnect {self key} {
+  # Delete a line between two atoms
+  if {[info exists ${self}::connect_lines($key)]} {
+    foreach line [set ${self}::connect_lines($key)] {
+      lassign [split $line :] m id
+      graphics $m delete $id
+    }
+    unset ${self}::connect_lines($key)
+  }
 }
 
 
@@ -569,8 +663,8 @@ proc itrajcomp::MapAdd {self key {check 0}} {
   set indices [split $key ,]
   lassign $indices key1 key2
   
-  set add_rep [set ${self}::add_rep($key)]
-  if {$add_rep == 1} {
+  set map_active [set ${self}::map_active($key)]
+  if {$map_active == 1} {
     return
   }
 
@@ -579,10 +673,19 @@ proc itrajcomp::MapAdd {self key {check 0}} {
   }
   
   set plot [set ${self}::plot]
+  set color [set ${self}::colors_act($key)]
+  $plot itemconfigure $key -fill $color
   $plot itemconfigure $key -outline black
-  set ${self}::add_rep($key) 1
+  set ${self}::map_active($key) 1
+    set ${self}::rep_active($key) 1
   [namespace current]::AddRep $self $key1
   [namespace current]::AddRep $self $key2
+  
+  if {[set ${self}::graph_opts(type)] == "segments"} {
+    if {[set ${self}::connect_sw] == 1} {
+      [namespace current]::AddConnect $self $key
+    }
+  }
 }
 
 proc itrajcomp::MapDel {self key {check 0}} {
@@ -590,8 +693,8 @@ proc itrajcomp::MapDel {self key {check 0}} {
   set indices [split $key ,]
   lassign $indices key1 key2
 
-  set add_rep [set ${self}::add_rep($key)]
-  if {$add_rep == 0} {
+  set map_active [set ${self}::map_active($key)]
+  if {$map_active == 0} {
     return
   }
   if {$check && $key1 == $key2} {
@@ -600,22 +703,29 @@ proc itrajcomp::MapDel {self key {check 0}} {
   
   set plot [set ${self}::plot]
   set color [set ${self}::colors($key)]
+  $plot itemconfigure $key -fill $color
   $plot itemconfigure $key -outline $color
-  set ${self}::add_rep($key) 0
+  set ${self}::map_active($key) 0
+  unset ${self}::rep_active($key)
   [namespace current]::DelRep $self $key1
   [namespace current]::DelRep $self $key2
 
+  lassign [[namespace current]::ParseKey $self $key] mols frames sel
+  
+  if {[set ${self}::graph_opts(type)] == "segments"} {
+    [namespace current]::DelConnect $self $key
+  }
 }
 
 proc itrajcomp::MapPoint {self key data {mod 0}} {
   # Add/delete matrix cell to/from representation
-  set add_rep [set ${self}::add_rep($key)]
+  set map_active [set ${self}::map_active($key)]
   
-  if {$add_rep == 0 || $mod} {
+  if {$map_active == 0 || $mod} {
     [namespace current]::MapAdd $self $key
     set mod 1
   }
-  if {$add_rep == 1 && !$mod} {
+  if {$map_active == 1 && !$mod} {
     [namespace current]::MapDel $self $key
   }
 
@@ -635,7 +745,7 @@ proc itrajcomp::MapCluster3 {self key {mod1 0} {mod2 0}} {
   #    mod2 = 1: less/equal than selected cell
   #    mod2 =-1: greater/equal than selected cell
 
-  variable add_rep
+  variable map_active
 
   set keys [set ${self}::keys]
   set plot [set ${self}::plot]
@@ -763,7 +873,8 @@ proc itrajcomp::MapCluster2 {self key {mod1 0} {mod2 0} } {
 	$plot itemconfigure $mykey -outline $color
 	[namespace current]::AddRep $self $key1
 	[namespace current]::AddRep $self $key2
-	set ${self}::add_rep($mykey) 1
+	set ${self}::map_active($mykey) 1
+	set ${self}::rep_active($mykey) 1
       }
     }
     if {!$mod1 || $mod1 == -1} {
@@ -772,7 +883,8 @@ proc itrajcomp::MapCluster2 {self key {mod1 0} {mod2 0} } {
 	$plot itemconfigure $mykey -outline $color
 	[namespace current]::AddRep $self $key1
 	[namespace current]::AddRep $self $key2
-	set ${self}::add_rep($mykey) 1
+	set ${self}::map_active($mykey) 1
+	set ${self}::rep_active($mykey) 1
       }
     }
   }
@@ -784,21 +896,28 @@ proc itrajcomp::MapClear {self} {
   set plot [set ${self}::plot]
   
   foreach key [set ${self}::keys] {
-    if {[set ${self}::add_rep($key)] == 1 } {
-      $plot itemconfigure $key -outline [set ${self}::colors($key)]
-      set ${self}::add_rep($key) 0
+    if {[set ${self}::map_active($key)] == 1 } {
+      $plot itemconfigure $key -fill [set ${self}::colors($key)]
+      set ${self}::map_active($key) 0
+      unset ${self}::rep_active($key)
     }
   }
 
   foreach key [array names ${self}::rep_list] {
     if {[set ${self}::rep_num($key)] > 0} {
       lassign [[namespace current]::ParseKey $self $key] m f s
-      [namespace current]::DelRep1 [set ${self}::rep_list($key)] $m
+      [namespace current]::DelRep1 [set ${self}::rep_list($key)]
+      [namespace current]::DelConnect $self $key
       set ${self}::rep_num($key) 0
     }
   }
   #[namespace current]::RepList $self
   
+  if {[set ${self}::graph_opts(type)] == "segments"} {
+    foreach k [array names ${self}::connect_lines] {
+      [namespace current]::DelConnect $self $k
+    }
+  }
 }
 
 
@@ -807,34 +926,92 @@ proc itrajcomp::UpdateSelection {self} {
   array set opts [array get ${self}::opts]
   array set graph_opts [array get ${self}::graph_opts]
   array set rep_list [array get ${self}::rep_list]
- 
+  set plot [set ${self}::plot]
+
+  # On/Off representation
+  set rep_sw [set ${self}::rep_sw]
+  array set rep_active [array get ${self}::rep_active]
+  foreach id [$plot find all] {
+    set key [$plot gettags $id]
+    set indices [split $key ,]
+    lassign $indices key1 key2
+    if {[$plot itemcget $id -outline] == "black"} {
+      if {[info exists rep_active($key)]} {
+	if {$rep_sw == 0} {
+	  unset ${self}::rep_active($key)
+	  [namespace current]::DelRep $self $key1
+	  [namespace current]::DelRep $self $key2
+	}
+      } else {
+	if {$rep_sw == 1} {
+	  set ${self}::rep_active($key) 1
+	  [namespace current]::AddRep $self $key1
+	  [namespace current]::AddRep $self $key2
+	}
+      }
+    }
+  }
+  
+  # Representation style
   foreach key [array names rep_list] {
     if {[set ${self}::rep_num($key)] > 0} {
-      lassign [[namespace current]::ParseKey $self $key] m f s
-      set repname [mol repindex $m $rep_list($key)]
-      mol modselect $repname $m $s
-      switch $graph_opts(rep_style1) {
-	HBonds {
-	  if {[info exists opts(cutoff)]} {
-	    if {[info exists opts(angle)]} {
-	      mol modstyle $repname $m $graph_opts(rep_style1) $opts(cutoff) $opts(angle)
+      lassign [[namespace current]::ParseKey $self $key] mols f s
+      
+      foreach r $rep_list($key) {
+	lassign [split $r :] m rep
+	
+	set repname [mol repindex $m $rep]
+	
+	# Selection
+	mol modselect $repname $m $s
+	
+	# Style
+	switch $graph_opts(rep_style1) {
+	  HBonds {
+	    if {[info exists opts(cutoff)]} {
+	      if {[info exists opts(angle)]} {
+		mol modstyle $repname $m $graph_opts(rep_style1) $opts(cutoff) $opts(angle)
+	      } else {
+		mol modstyle $repname $m $graph_opts(rep_style1) $opts(cutoff)
+	      }
 	    } else {
-	      mol modstyle $repname $m $graph_opts(rep_style1) $opts(cutoff)
+	      mol modstyle $repname $m $graph_opts(rep_style1)
 	    }
-	  } else {
+	  }
+	  default {
 	    mol modstyle $repname $m $graph_opts(rep_style1)
 	  }
 	}
-	default {
-	  mol modstyle $repname $m $graph_opts(rep_style1)
+	  
+	# Color
+	switch $graph_opts(rep_color1) {
+	  ColorID {
+	    mol modcolor $repname $m $graph_opts(rep_color1) $graph_opts(rep_colorid1)
+	  }
+	  default {
+	    mol modcolor $repname $m $graph_opts(rep_color1)
+	  }
 	}
+	
       }
-      switch $graph_opts(rep_color1) {
-	ColorID {
-	  mol modcolor $repname $m $graph_opts(rep_color1) $graph_opts(rep_colorid1)
-	}
-	default {
-	  mol modcolor $repname $m $graph_opts(rep_color1)
+    }
+  }
+
+  # On/Off connecting lines
+  if {[set ${self}::graph_opts(type)] == "segments"} {
+    set connect_sw [set ${self}::connect_sw]
+    array set connect_lines [array get ${self}::connect_lines]
+    foreach id [$plot find all] {
+      set key [$plot gettags $id]
+      if {[$plot itemcget $id -outline] == "black"} {
+	if {[info exists connect_lines($key)]} {
+	  if {$connect_sw == 0} {
+	    [namespace current]::DelConnect $self $key
+	  }
+	} else {
+	  if {$connect_sw == 1} {
+	    [namespace current]::AddConnect $self $key
+	  }
 	}
       }
     }
@@ -884,8 +1061,8 @@ proc itrajcomp::help_keys {self} {
 proc itrajcomp::RepList {self} {
   # Print list of representations (for debuggin purposes)
   # TODO: not use, remove? or move to a debugging proc
+  array set map_active [array get ${self}::map_active]
   array set rep_list [array get ${self}::rep_list]
-  array set add_rep [array get ${self}::add_rep]
   array set rep_num [array get ${self}::rep_num]
 
   foreach key [lsort [array names rep_list]] {
@@ -894,8 +1071,8 @@ proc itrajcomp::RepList {self} {
   foreach key [lsort [array names rep_num]] {
     puts "rep_num: $key $rep_num($key)"
   }
-  foreach key [lsort [array names add_rep]] {
-    puts "add_rep: $key $add_rep($key)"
+  foreach key [lsort [array names map_active]] {
+    puts "map_active: $key $map_active($key)"
   }
   puts "-----"
 }

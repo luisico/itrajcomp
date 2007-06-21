@@ -30,10 +30,13 @@
 proc itrajcomp::GraphSegments {self} {
   # Create graph for object with segment information (atoms, residue,...)
   namespace eval [namespace current]::${self}:: {
-    variable add_rep
+    variable map_active
+    variable rep_active
     variable rep_list
     variable rep_num
     variable colors
+    variable colors_act
+    variable connect_lines
 
     $plot delete all
     set nsegments [llength $segments(number)]
@@ -67,8 +70,9 @@ proc itrajcomp::GraphSegments {self} {
 	}
 	set x [expr ($i+$offx)*($grid+$width)]
 	set y [expr ($k+$offy)*($grid+$width)]
-	set add_rep($key) 0
-	set colors($key) [[namespace parent]::ColorScale $data($key) $max $min]
+	set map_active($key) 0
+	set colors($key) [[namespace parent]::ColorScale $data($key) $max $min 1.0]
+	set colors_act($key) [[namespace parent]::ColorScale $data($key) $max $min 0.40 1.0]
 	#puts "-> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
 	$plot create rectangle $x $y [expr $x+$grid] [expr $y+$grid] -fill $colors($key) -outline $colors($key) -tag $key -width $width
 	

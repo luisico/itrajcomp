@@ -40,32 +40,12 @@ proc itrajcomp::AddRep1 {i j sel style color} {
 }
 
 
-proc itrajcomp::AddRep2 {i j k l sel} {
-  # Add a pair (matrix cell) of representation to vmd
-  mol rep Lines 2
-  mol selection $sel
-  mol addrep $i
-  set name1 [mol repname $i [expr [molinfo $i get numreps]-1]]
-  mol drawframes $i [expr [molinfo $i get numreps]-1] $j
-  mol addrep $k
-  mol drawframes $k [expr [molinfo $k get numreps]-1] $l
-  set name2 [mol repname $k [expr [molinfo $k get numreps]-1]]
-  #puts "create $name1:$name2"
-  return "$name1:$name2"
-}
-
-
-proc itrajcomp::DelRep1 {name i} {
+proc itrajcomp::DelRep1 {reps} {
   # Delete 1 representation from vmd
-  mol delrep [mol repindex $i $name] $i
-}
-
-
-proc itrajcomp::DelRep2 {name i k} {
-  # Delete a pair (matrix cell) of representations from vmd
-  mol delrep [mol repindex $i [lindex $name 0]] $i
-  mol delrep [mol repindex $k [lindex $name 1]] $k
-  #puts "delete [lindex $name 0]:[lindex $name 1]"
+  foreach r $reps {
+    lassign [split $r :] i name
+    mol delrep [mol repindex $i $name] $i
+  }
 }
 
 
@@ -345,14 +325,14 @@ proc itrajcomp::ParseKey {self key} {
     segments {
       switch $opts(segment) {
 	byres {
-	  set m [lindex [set ${self}::sets(mol_all)] 0]
+	  set m [join [set ${self}::sets(mol_all)] " "]
 	  set f [join [set ${self}::sets(frame1)] " "]
 	  set tab_rep [set ${self}::tab_rep]
 	  set extra [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
 	  set s "residue [lindex $indices 0] and ($extra)"
 	}
 	byatom {
-	  set m [lindex [set ${self}::sets(mol_all)] 0]
+	  set m [join [set ${self}::sets(mol_all)] " "]
 	  set f [join [set ${self}::sets(frame1)] " "]
 	  set s "index [lindex $indices 0]"
 	}
@@ -460,15 +440,15 @@ proc itrajcomp::wlist {{w .}} {
 }
 
 
-proc itrajcomp::ColorScale {val max min} {
+proc itrajcomp::ColorScale {val max min {s 1.0} {l 1.0}} {
   # Color scale transformation
   if {$max == 0} {
     set max 1.0
   }
 
   set h [expr 2.0/3.0]
-  set l 1.0
-  set s 1.0
+  #set l 1.0 luminosity
+  #set s .5 saturation
 
   lassign [hls2rgb [expr ($h - $h*($val-$min)/($max-$min))] $l $s] r g b
 
