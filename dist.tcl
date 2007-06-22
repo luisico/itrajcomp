@@ -1,3 +1,28 @@
+#
+#         iTrajComp v1.0
+#
+# interactive Trajectory Comparison
+#
+# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+
+# Author
+# ------
+#      Luis Gracia, PhD
+#      Department of Physiology & Biophysics
+#      Weill Medical College of Cornell University
+#      1300 York Avenue, Box 75
+#      New York, NY 10021
+#      lug2002@med.cornell.edu
+
+# Description
+# -----------
+# 
+
+# Documentation
+# ------------
+#      The documentation can be found in the README.txt file and
+#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+
 # dist.tcl
 #    Functions to calculate the distance matrix.
 
@@ -14,6 +39,7 @@ proc itrajcomp::calc_dist {self} {
   # Precalculate coordinates of each segment
   [namespace current]::CoorSegments $self
 
+  # Calculate distance matrix
   return [[namespace current]::LoopSegments $self]
 }
 
@@ -45,7 +71,7 @@ proc itrajcomp::calc_dist_options {} {
   # Options for dist gui
   variable calc_dist_frame
   variable calc_dist_opts
-  set calc_dist_opts(segment)   "byatom"
+  set calc_dist_opts(segment) "byatom"
 
   # by segment
   frame $calc_dist_frame.segment

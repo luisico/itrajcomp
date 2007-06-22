@@ -157,6 +157,7 @@ proc itrajcomp::LoopSegments {self} {
       lappend vals $data0($key)
     }
 
+    # Create data set for the graph
     [namespace parent]::TransformData $self
 
     return 0
@@ -164,7 +165,6 @@ proc itrajcomp::LoopSegments {self} {
 }
 
 
-# TODO: generalize more
 proc itrajcomp::DefineSegments {self} {
   namespace eval [namespace current]::${self}:: {
     switch $opts(segment) {
@@ -182,6 +182,7 @@ proc itrajcomp::DefineSegments {self} {
     }
   }
 }
+
 
 proc itrajcomp::CoorSegments {self} {
   namespace eval [namespace current]::${self}:: {
