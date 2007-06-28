@@ -28,7 +28,6 @@
 
 
 proc itrajcomp::calc_rmsd {self} {
-  
   # Check number of atoms in selections, and combined list of molecules
   if {[[namespace current]::CheckNatoms $self] == -1} {
     return -code return
@@ -59,20 +58,50 @@ proc itrajcomp::calc_rmsd_hook {self} {
       set tmatrix [measure fit $s1 $s2]
       $move_sel move $tmatrix
     }
-    return [measure rmsd $s1 $s2]
+    if {$::itrajcomp::fast_rmsd} {
+      if {$opts(byres)} {
+	set rmsd [measure rmsd $s1 $s2 byres]
+      } else {
+	set rmsd [measure rmsd $s1 $s2 byatom]
+      }
+    } else {
+      set rmsd [measure rmsd $s1 $s2]
+    }
+    return $rmsd
   }
 }
 
 
 proc itrajcomp::calc_rmsd_options {} {
+  # Test for hacked VMD version with fast_rmsd enabled.
+  variable fast_rmsd
+  if {![info exists fast_rmsd]} {
+    set fast_rmsd 1
+    if [catch { set test [measure rmsd [atomselect top "index 1"] [atomselect top "index 1"] byatom] } msg] {
+      set fast_rmsd 0
+    }
+  }
+
   # Options for rmsd gui
   variable calc_rmsd_frame
+  variable calc_rmsd_datatype
+
   variable calc_rmsd_opts
   set calc_rmsd_opts(align) 0
 
   checkbutton $calc_rmsd_frame.align -text "align" -variable [namespace current]::calc_rmsd_opts(align)
   pack $calc_rmsd_frame.align -side top -anchor nw
 
+  if {$fast_rmsd} {
+    set calc_rmsd_datatype(mode) "dual"
+    set calc_rmsd_datatype(ascii) 0
+    set calc_rmsd_opts(byres) 0
+    checkbutton $calc_rmsd_frame.byres -text "byres" -variable [namespace current]::calc_rmsd_opts(byres)
+    pack $calc_rmsd_frame.byres -side top -anchor nw
+  } else {
+    set calc_rmsd_datatype(mode) "single"
+  }
+  
   # Graph options
   variable calc_rmsd_graph
   array set calc_rmsd_graph {

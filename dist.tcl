@@ -60,9 +60,11 @@ proc itrajcomp::calc_dist_hook {self} {
 	lappend dist [veclength [vecsub $coor2 $coor1]]
       }
     }
-    # TODO: add flexible data storage, to add more than one data output
-    #vecstddev $dist
-    return [vecmean $dist]
+    
+    # mode=dual:     set result [concat [vecmean $dist] $dist]
+    # mode=single:   set result [vecmean $dist]
+    # mode=multiple: set result $dist
+    return $dist
   }
 }
 
@@ -70,6 +72,9 @@ proc itrajcomp::calc_dist_hook {self} {
 proc itrajcomp::calc_dist_options {} {
   # Options for dist gui
   variable calc_dist_frame
+  variable calc_dist_datatype
+  set calc_dist_datatype(mode) "multiple"
+
   variable calc_dist_opts
   set calc_dist_opts(segment) "byatom"
 

@@ -122,7 +122,7 @@ proc itrajcomp::itcObjMenubar {self} {
     
     menubutton $menubar.help -text "Help" -menu $menubar.help.menu -underline 0
     menu $menubar.help.menu -tearoff no
-    $menubar.help.menu add command -label "Keybindings" -command "[namespace parent]::help_keys $self 1" -underline 0
+    $menubar.help.menu add command -label "Keybindings" -command "[namespace parent]::help_keys $self" -underline 0
     $menubar.help.menu add command -label "About" -command "[namespace parent]::help_about [winfo parent $menubar]" -underline 0
     pack $menubar.help -side left
   }
@@ -189,25 +189,30 @@ proc itrajcomp::itcObjInfo {self} {
     labelframe $tab_info.sel2 -text "Selection 2"
     pack $tab_info.sel2 -side top -anchor nw -expand yes -fill x
 
-    set row 1
-    grid columnconfigure $tab_info.sel2 2 -weight 1
-    
-    label $tab_info.sel2.mol_l -text "Molecule(s):"
-    label $tab_info.sel2.mol_v -text "$sets(mol2_def) ($sets(mol2))"
-    grid $tab_info.sel2.mol_l -row $row -column 1 -sticky nw
-    grid $tab_info.sel2.mol_v -row $row -column 2 -sticky nw
-
-    incr row
-    label $tab_info.sel2.frame_l -text "Frame(s):"
-    label $tab_info.sel2.frame_v -text "$sets(frame2_def) ([[namespace parent]::SplitFrames $sets(frame2)])"
-    grid $tab_info.sel2.frame_l -row $row -column 1 -sticky nw
-    grid $tab_info.sel2.frame_v -row $row -column 2 -sticky nw
-
-    incr row
-    label $tab_info.sel2.atom_l -text "Atom Sel:"
-    label $tab_info.sel2.atom_v -text "$sets(sel2)"
-    grid $tab_info.sel2.atom_l -row $row -column 1 -sticky nw
-    grid $tab_info.sel2.atom_v -row $row -column 2 -sticky nw
+    if {$sets(samemols)} {
+      label $tab_info.sel2.same -text "Same as selection 1"
+      pack $tab_info.sel2.same -side top -anchor nw
+    } else {
+      set row 1
+      grid columnconfigure $tab_info.sel2 2 -weight 1
+      
+      label $tab_info.sel2.mol_l -text "Molecule(s):"
+      label $tab_info.sel2.mol_v -text "$sets(mol2_def) ($sets(mol2))"
+      grid $tab_info.sel2.mol_l -row $row -column 1 -sticky nw
+      grid $tab_info.sel2.mol_v -row $row -column 2 -sticky nw
+      
+      incr row
+      label $tab_info.sel2.frame_l -text "Frame(s):"
+      label $tab_info.sel2.frame_v -text "$sets(frame2_def) ([[namespace parent]::SplitFrames $sets(frame2)])"
+      grid $tab_info.sel2.frame_l -row $row -column 1 -sticky nw
+      grid $tab_info.sel2.frame_v -row $row -column 2 -sticky nw
+      
+      incr row
+      label $tab_info.sel2.atom_l -text "Atom Sel:"
+      label $tab_info.sel2.atom_v -text "$sets(sel2)"
+      grid $tab_info.sel2.atom_l -row $row -column 1 -sticky nw
+      grid $tab_info.sel2.atom_v -row $row -column 2 -sticky nw
+    }
 
     # Molecules list
     labelframe $tab_info.mols -text "Molecules list"
@@ -268,6 +273,20 @@ proc itrajcomp::itcObjGraph {self} {
     pack $tab_graph.l.graph.xs -side bottom -fill x
     pack $tab_graph.l.graph.ys -side right -fill y
     pack $plot -side right -expand yes -fill both
+
+    # Data to display (index)
+    if {[llength $datatype(sets)] > 0 } {
+      set type_frame [frame $tab_graph.l.type]
+      pack $type_frame -side top -anchor nw
+      
+      label $type_frame.l -text "Set:"
+      pack $type_frame.l -side left -anchor nw
+      for {set i 0} {$i < [llength $datatype(sets)]} {incr i} {
+	set t [lindex $datatype(sets) $i]
+	radiobutton $type_frame.$t -text $t -variable [namespace current]::data_index -value $i -command "[namespace parent]::TransformData $self copy 1"
+	pack $type_frame.$t -side left -anchor nw
+      }
+    }
 
     # Info
     set info_frame [frame $tab_graph.l.info]
@@ -493,6 +512,7 @@ proc itrajcomp::StatDescriptive {self} {
 
   set mean [format "$graph_opts(format_data)" $mean]
   set sd [format "$graph_opts(format_data)" $sd]
+  # TODO: use itrajcomp:stats
 
   tk_messageBox -title "$self Stats"  -parent [set ${self}::win_obj] -message \
     "Descriptive statistics
@@ -641,6 +661,37 @@ proc itrajcomp::DelConnect {self key} {
       graphics $m delete $id
     }
     unset ${self}::connect_lines($key)
+  }
+}
+
+
+proc itrajcomp::ExplorePoint {self key} {
+  # Print data for this cell
+  switch [set ${self}::datatype(mode)] {
+    single {
+      set cell [set ${self}::data0($key)]
+      set stats ""
+    }
+    multiple {
+      set cell [set ${self}::data0($key)]
+      set stats [set ${self}::data1($key)]
+    }
+    dual {
+      if {[set ${self}::datatype(ascii)]} {
+	set cell "[lindex [set ${self}::data0($key)] 0] ([lindex [set ${self}::data0($key)] 1])"
+	set stats ""
+      } else {
+	set cell "[lindex [set ${self}::data0($key)] 0] ([lindex [set ${self}::data0($key)] 1])"
+	set stats [lrange [set ${self}::data1($key)] 1 end]
+      }
+    }
+  }
+
+  puts "Data for cell $key"
+  puts "   $cell"
+  if {$stats != ""} {
+    puts "Stats (avg, std, min, max):"
+    puts "   $stats"
   }
 }
 
@@ -1032,24 +1083,26 @@ proc itrajcomp::help_keys {self} {
   set vn [package present itrajcomp]
 
   set r [toplevel ".${self}_keybindings"]
-  wm title $r "iTrajComp - Keybindings $vn"
+  wm title $r "iTrajComp v$vn - Keybindings"
   text $r.data -exportselection yes -width 80 -font [list helvetica 10]
   pack $r.data -side right -expand yes -fill both
   $r.data insert end "iTrajComp v$vn Keybindings\n\n" title
   $r.data insert end "B1\t" button
-  $r.data insert end "Select/Deselect one point.\n"
+  $r.data insert end "Select/Deselect one cell.\n"
+  $r.data insert end "B2\t" button
+  $r.data insert end "Explore data for cell.\n"
   $r.data insert end "Shift-B1\t" button
-  $r.data insert end "Selects all points in column/row of data.\n"
+  $r.data insert end "Selects all cells in column/row of data.\n"
   $r.data insert end "Shift-B2\t" button
-  $r.data insert end "Selects all points in column/row with values <= than data clicked.\n"
+  $r.data insert end "Selects all cells in column/row with values <= than data clicked.\n"
   $r.data insert end "Shift-B3\t" button
-  $r.data insert end "Selects all points in column/row with values => than data clicked.\n"
+  $r.data insert end "Selects all cells in column/row with values => than data clicked.\n"
   $r.data insert end "Ctrl-B1\t" button
-  $r.data insert end "Selects all points.\n"
+  $r.data insert end "Selects all cells.\n"
   $r.data insert end "Ctrl-B2\t" button
-  $r.data insert end "Selects all points with values <= than data clicked.\n"
+  $r.data insert end "Selects all cells with values <= than data clicked.\n"
   $r.data insert end "Ctrl-B3\t" button
-  $r.data insert end "Selects all points with values => than data clicked.\n\n\n"
+  $r.data insert end "Selects all cells with values => than data clicked.\n\n\n"
   $r.data insert end "Copyright (C) Luis Gracia <lug2002@med.cornell.edu>\n"
 
   $r.data tag configure title -font [list helvetica 12 bold]

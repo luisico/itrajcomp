@@ -68,6 +68,7 @@ proc itrajcomp::GraphFrames {self} {
 	    
 	    $plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
 	    $plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
+	    $plot bind $key <B2-ButtonRelease>  "[namespace parent]::ExplorePoint $self $key" 
 	    $plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  0"
 	    $plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0 -1"
 	    $plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  1"
@@ -122,9 +123,6 @@ proc itrajcomp::LoopFrames {self} {
     }
     
     # Calculate for each pair reference(mol,frame)-target(mol,frame)
-    set z 1
-    set min0 0
-    set max0 0
     set count 0
     foreach i $sets(mol1) {
       set s1 [atomselect $i $sets(sel1)]
@@ -150,31 +148,19 @@ proc itrajcomp::LoopFrames {self} {
 	      #puts "$i $j $k $l $data0($i:$j,$k:$l)"
 	      incr count
 	      [namespace parent]::ProgressBar $count $maxkeys
-	      # Calculate max and min
-	      if {$z} {
-		set min0 $data0($i:$j,$k:$l)
-		set max0 $data0($i:$j,$k:$l)
-		set z 0
-	      }
-	      if {$data0($i:$j,$k:$l) > $max0} {
-		set max0 $data0($i:$j,$k:$l)
-	      }
-	      if {$data0($i:$j,$k:$l) < $min0} {
-		set min0 $data0($i:$j,$k:$l)
-	      }
 	    }
 	  }
 	}
       }
     }
-    
+     
     # Create keys and values variables
     set keys [lsort -dictionary [array names data0]]
     foreach key $keys {
       lappend vals $data0($key)
     }
 
-    [namespace parent]::TransformData $self
+    [namespace parent]::PrepareData $self
     
     return 0
   }

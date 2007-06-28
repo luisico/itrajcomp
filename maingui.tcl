@@ -363,7 +363,10 @@ proc itrajcomp::Samemols {status} {
 
   # Flass the Selection tab to let the user know samemols changed
   if {$samemols != $old_status} {
+    set oldcolor [$win_main.menubar.tabs.c.sel cget -activebackground]
+    $win_main.menubar.tabs.c.sel configure -activebackground "yellow"
     $win_main.menubar.tabs.c.sel flash
+    $win_main.menubar.tabs.c.sel configure -activebackground $oldcolor
   }
 }
 
@@ -423,6 +426,9 @@ proc itrajcomp::NewObject {} {
   set obj [eval [namespace current]::Objnew ":auto"]
 
   # Pass sel options
+  if {[llength [info procs "calc_${calctype}_options_update"]]} {
+    [namespace current]::calc_${calctype}_options_update
+  }
   set temp [[namespace current]::SelOptions]
   if {$temp == -1} {
     return -code return
@@ -433,6 +439,28 @@ proc itrajcomp::NewObject {} {
   # Pass calc options
   variable calc_${calctype}_opts
   array set ${obj}::opts [array get calc_${calctype}_opts]
+
+  # Pass datatypes
+  variable calc_${calctype}_datatype
+  array set datatype [array get calc_${calctype}_datatype]
+  # Todo: set a default mode in case is not given by user.
+  switch $datatype(mode) {
+    single {
+      set datatype(sets) [list $calctype]
+    }
+    multiple {
+      set datatype(sets) [list avg std min max]
+    }
+    dual {
+      if {[info exists datatype(ascii)] && $datatype(ascii) == 1} {
+	set datatype(sets) [list $calctype]
+      } else {
+	set datatype(sets) [list $calctype avg std min max]
+      }
+    }
+  }
+  array set ${obj}::datatype [array get datatype]
+  
   variable diagonal
   set ${obj}::opts(type) $calctype
   set ${obj}::opts(diagonal) $diagonal
@@ -529,7 +557,8 @@ proc itrajcomp::SelOptions {} {
 	    sel1 $sel1\
 	    sel2 $sel2\
 	    rep_sel1 $sel1\
-	    mol_all $mol_all
+	    mol_all $mol_all\
+	    samemols $samemols
 	 ]
 }
 

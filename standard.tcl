@@ -32,7 +32,7 @@ proc itrajcomp::AddStandardCalc {} {
   variable calctype "rmsd"
   global env
 
-  foreach type {rmsd contacts hbonds labels} desc {"Root mean square deviation" "Number of contacts" "Number of hydrogen bonds" "VMD labels: distance, angles, dihedrals"} {
+  foreach type {rmsd rgyr contacts hbonds labels} desc {"Root mean square deviation" "Radius of gyrantion difference" "Number of contacts" "Number of hydrogen bonds" "VMD labels: distance, angles, dihedrals"} {
     [namespace current]::AddCalc $type $desc [file join $env(ITRAJCOMPDIR) $type.tcl]
   }
 

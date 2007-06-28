@@ -78,6 +78,7 @@ proc itrajcomp::GraphSegments {self} {
 	
 	$plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
 	$plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
+	$plot bind $key <B2-ButtonRelease>  "[namespace parent]::ExplorePoint $self $key" 
 	$plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  0"
 	$plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0 -1"
 	$plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  1"
@@ -112,9 +113,7 @@ proc itrajcomp::LoopSegments {self} {
     # Calculate max numbers of iterations
     set maxkeys [expr ($nreg*$nreg+$nreg)/2]
     
-    set z 1
-    set min0 0
-    set max0 0
+    # Calculate min max later, when tranforming data0 -> data
     set count 0
     for {set reg1 0} {$reg1 < $nreg} {incr reg1} {
       set i [lindex $segments(number) $reg1]
@@ -136,17 +135,6 @@ proc itrajcomp::LoopSegments {self} {
 	  #puts "$i $k , $key1 $key2 , $data0($key1,$key2)"
 	  incr count
 	  [namespace parent]::ProgressBar $count $maxkeys
-	  if {$z} {
-	    set min0 $data0($key1,$key2)
-	    set max0 $data0($key1,$key2)
-	    set z 0
-	  }
-	  if {$data0($key1,$key2) > $max0} {
-	    set max0 $data0($key1,$key2)
-	  }
-	  if {$data0($key1,$key2) < $min0} {
-	    set min0 $data0($key1,$key2)
-	  }
 	}
       }
     }
@@ -158,7 +146,7 @@ proc itrajcomp::LoopSegments {self} {
     }
 
     # Create data set for the graph
-    [namespace parent]::TransformData $self
+    [namespace parent]::PrepareData $self
 
     return 0
   }

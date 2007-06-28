@@ -57,7 +57,8 @@ proc itrajcomp::calc_labels {self} {
 
 proc itrajcomp::calc_labels_hook {self} {
   namespace eval [namespace current]::${self}:: {
-    set rms 0
+    set rms {}
+    set rmstot 0
     foreach v [array names alldata] {
       set v1 [lindex $alldata($v) $j]
       set v2 [lindex $alldata($v) $l]
@@ -65,11 +66,13 @@ proc itrajcomp::calc_labels_hook {self} {
       if {$val > 180 && ($opts(label_type) eq "Dihedrals" || $opts(label_type) eq "Angles")} {
 	set val [expr abs($val -360)]
       }
-      set rms [expr $rms + $val*$val]
+      set tmp [expr $val*$val]
+      set rmstot [expr $rmstot + $tmp]
+      lappend rms $tmp
       #puts "DEBUG: $v1 $v2 $val [expr $val*$val] $rms"
     }
-    
-    return [expr sqrt($rms/([llength [array names alldata]]+1))]
+    set rmstot [expr sqrt($rmstot/([llength [array names alldata]]+1))]
+    return [list $rmstot $rms]
   }
 }
 
@@ -77,6 +80,10 @@ proc itrajcomp::calc_labels_hook {self} {
 proc itrajcomp::calc_labels_options {} {
   # Options for labels
   variable calc_labels_frame
+  variable calc_labels_datatype
+  set calc_labels_datatype(mode) "dual"
+  set calc_labels_datatype(ascii) 0
+
   variable calc_labels_opts
   set calc_labels_opts(label_type)  "Dihedrals"
   set calc_labels_opts(labels_status) ""
@@ -141,7 +148,7 @@ proc itrajcomp::calc_labels_options_update {} {
       }
       append label ")"
       $calc_labels_frame.labs.id.m add checkbutton -label $label -variable [namespace current]::labels_status_array($i) -command "[namespace current]::labels_update_status $i"
-      puts [array get labels_status_array]
+      #puts [array get labels_status_array]
     }
   }
 

@@ -46,6 +46,7 @@ proc itrajcomp::Objnew {{self ":auto"} args} {
   array set defaults {
     keys {} vals {}
     min 0 max 0
+    data_index 0
   }
   foreach {key val} $args {
     set defaults($key) $val

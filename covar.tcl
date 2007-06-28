@@ -154,6 +154,9 @@ proc itrajcomp::calc_covar_hook {self} {
 proc itrajcomp::calc_covar_options {} {
   # Options for covar
   variable calc_covar_frame
+  variable calc_covar_datatype
+  set calc_covar_datatype(mode) "single"
+
   variable calc_covar_opts
   set calc_covar_opts(segment) "byres"
   

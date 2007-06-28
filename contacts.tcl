@@ -34,7 +34,10 @@ proc itrajcomp::calc_contacts {self} {
 
 proc itrajcomp::calc_contacts_hook {self} {
   namespace eval [namespace current]::${self}:: {
-    return [llength [lindex [measure contacts $opts(cutoff) $s1 $s2] 0]]
+    set contacts [measure contacts $opts(cutoff) $s1 $s2]
+    set number_contacts [llength [lindex $contacts 0]]
+    return [list $number_contacts $contacts]
+    #return $number_contacts
   }
 }
 
@@ -42,9 +45,13 @@ proc itrajcomp::calc_contacts_hook {self} {
 proc itrajcomp::calc_contacts_options {} {
   # Options for contacts
   variable calc_contacts_frame
+  variable calc_contacts_datatype
+  set calc_contacts_datatype(mode) "dual"
+  set calc_contacts_datatype(ascii) 1
+    
   variable calc_contacts_opts
   set calc_contacts_opts(cutoff) 5.0
-    
+
   frame $calc_contacts_frame.cutoff
   pack $calc_contacts_frame.cutoff -side top -anchor nw
   label $calc_contacts_frame.cutoff.l -text "Cutoff:"

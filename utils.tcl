@@ -162,6 +162,11 @@ proc itrajcomp::Range {numbers} {
   # Convert list of numbers range to a simple string
 
   set numbers [lsort -unique -integer $numbers]
+
+  if {[llength $numbers] == 1} {
+    return $numbers
+  }
+
   set start 0
   set end 0
   for {set i 1} {$i < [llength $numbers]} {incr i} {
@@ -344,69 +349,102 @@ proc itrajcomp::ParseKey {self key} {
 }
 
 
+proc itrajcomp::PrepareData {self} {
+  set data_index [set ${self}::data_index]
+  array set data0 [array get ${self}::data0]
+  set keys [array names data0]
+
+  puts "Preparing data1"
+  switch [set ${self}::datatype(mode)] {
+    single {
+      array set data1 [array get data0]
+    }
+    multiple {
+      foreach key $keys {
+	set data1($key) [[namespace current]::stats $data0($key)]
+	#puts "$key $data0($key) -> $data1($key)"
+      }
+    }
+    dual {
+      if {[set ${self}::datatype(ascii)]} {
+	foreach key $keys {
+	  set data1($key) [lindex $data0($key) 0]
+	  puts "$key $data0($key) -> $data1($key)"
+	}
+      } else {
+	foreach key $keys {
+	  set data1($key) [concat [lindex $data0($key) 0] [[namespace current]::stats [lindex $data0($key) 1]]]
+	  #puts "$key $data0($key) -> $data1($key)"
+	}
+      }
+    }
+  }
+  array set ${self}::data1 [array get data1]
+
+  # TODO: calculate min max for data1
+#  lassign [[namespace current]::minmax [array get data]] min0 max0
+#  set ${self}::min0 $min0
+#  set ${self}::max0 $max0
+
+  [namespace current]::TransformData $self
+}
+
+
 proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
+  set data_index [set ${self}::data_index]
+  
   # Source data
   if {$type == "copy" || [set ${self}::transform_source] == 0} {
-    array set data0 [array get ${self}::data0]
-    set keys [array names data0]
-    set min0 [set ${self}::min0]
-    set max0 [set ${self}::max0]
+#    array set data0 [array get ${self}::data0]
+    array set data1 [array get ${self}::data1]
+  # TODO: calculate min max for data1 (see PrepareData)
+#    set min0 [set ${self}::min0]
+#    set max0 [set ${self}::max0]
   } else {
-    array set data0 [array get ${self}::data]
-    set keys [array names data0]
+    array set data1 [array get ${self}::data]
     set min0 [set ${self}::min]
     set max0 [set ${self}::max]
   }
 
+  set keys [array names data1]
+  
   switch $type {
     copy {
-      set min $min0
-      set max $max0
-      array set data [array get data0]
+      foreach key $keys {
+	set data($key) [lindex $data1($key) $data_index]
+      }
+      lassign [[namespace current]::minmax [array get data]] min max
     }
     inverse {
-      set z 1
-      set min 0
-      set max 0
+      # TODO: does not work if using 'From current' because data1(key) is not a list.
       foreach key $keys {
-	if {$data0($key) != 0} {
-	  set data($key) [expr 1.0/$data0($key)]
+	if {[lindex $data1($key) $data_index] != 0} {
+	  set data($key) [expr 1.0/[lindex $data1($key) $data_index]]
 	} else {
-	  set data($key) $data0($key)
-	}
-	
-	# Calculate max and min
-	if {$z} {
-	  set min $data($key)
-	  set max $data($key)
-	  set z 0
-	}
-	if {$data($key) > $max} {
-	  set max $data($key)
-	}
-	if {$data($key) < $min} {
-	  set min $data($key)
+	  set data($key) [lindex $data1($key) $data_index]
 	}
       }
+      lassign [[namespace current]::minmax [array get data]] min max
     }
+    # TODO: normalization might require transform integers tos doubles (for examples for contacts)
     norm_minmax {
       set minmax [expr $max0 - $min0]
       foreach key $keys {
-	set data($key) [expr ($data0($key)-$min0) / $minmax]
+	set data($key) [expr ([lindex $data1($key) $data_index]-$min0) / $minmax]
       }
       set min 0
       set max 1
     }
     norm_exp {
       foreach key $keys {
-	set data($key) [expr 1 - exp(-$data0($key))]
+	set data($key) [expr 1 - exp(-[lindex $data1($key) $data_index])]
       }
       set min 0
       set max 1
     }
     norm_expmin {
       foreach key $keys {
-	set data($key) [expr 1 - exp(-($data0($key)-$min0))]
+	set data($key) [expr 1 - exp(-([lindex $data1($key) $data_index]-$min0))]
       }
       set min 0
       set max 1
@@ -418,6 +456,7 @@ proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
   set ${self}::max $max
   array set ${self}::data [array get data]
   # TODO: vals should also be updated? used in save and load, mostly
+  puts "$min -> $max"
 
   # Update plot
   if {$graph == 1} {
@@ -427,6 +466,57 @@ proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
   }
 
   return
+}
+
+
+proc itrajcomp::minmax {values_array} {
+  # Calculate max and min
+  array set data $values_array
+
+  set z 1
+  set min 0
+  set max 0
+  foreach key [array names data] {
+    if {$z} {
+      set min $data($key)
+      set max $data($key)
+      set z 0
+    }
+    if {$data($key) > $max} {
+      set max $data($key)
+    }
+    if {$data($key) < $min} {
+      set min $data($key)
+    }
+  }
+  return [list $min $max]
+}
+
+proc itrajcomp::stats {values} {
+  # Calculate mean, std, min, max
+
+  set mean 0.0
+  set min [lindex $values 0]
+  set max [lindex $values 0]
+  foreach val $values {
+    set mean [expr $mean + $val]
+    if {$val > $max} {
+      set max $val
+    }
+    if {$val < $min} {
+      set min $val
+    }
+  }
+  set mean [expr $mean / double([llength $values])]
+
+  set std 0.0
+  foreach val $values {
+    set tmp [expr $val - $mean]
+    set std [expr $std + $tmp*$tmp]
+  }  
+  set std [expr sqrt($std / double([llength $values]))]
+
+  return [list $mean $std $min $max]
 }
 
 
