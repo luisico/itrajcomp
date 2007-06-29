@@ -70,7 +70,7 @@ proc itrajcomp::Cluster {self} {
 	set r_max $data($key)
       }
     }
-    set r_thres [expr $r_thres_rel * $r_max]
+    set r_thres [expr {$r_thres_rel * $r_max}]
     
     ### 3.
     foreach key $keys {
@@ -79,9 +79,9 @@ proc itrajcomp::Cluster {self} {
       set key2 [lindex $indices 1]
       if {$conf($key1) == 0 || $conf($key2) == 0} continue
       if {$data($key) <= $r_thres} {
-	set csize($key1) [expr $csize($key1) +1]
+	set csize($key1) [expr {$csize($key1) +1}]
 	if {$key1 ne $key2} {
-	  set csize($key2) [expr $csize($key2) +1]
+	  set csize($key2) [expr {$csize($key2) +1}]
 	}
 	if {$clustering_graphics} {
 	  set ${self}::add_rep($key) 1
@@ -95,7 +95,7 @@ proc itrajcomp::Cluster {self} {
 	set N_max $csize($key)
       }
     }
-    set N_crit [expr $N_crit_rel * $N_max]
+    set N_crit [expr {$N_crit_rel * $N_max}]
     
     puts [format "\tN_crit_rel:  %4.2f    N_crit:  %5.2f   N_max: %5.2f" \
 	    $N_crit_rel $N_crit $N_max]

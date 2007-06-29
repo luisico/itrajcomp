@@ -155,7 +155,7 @@ proc itrajcomp::Objcombine {formula} {
     foreach s [array names self] {
       set d($s) [lindex $data($s) $z]
     }
-    set result [expr $formula]
+    set result [expr {$formula}]
     if {$zu} {
       set min $result
       set max $result

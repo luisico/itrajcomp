@@ -51,23 +51,19 @@ proc itrajcomp::calc_dist_prehook2 {self} {
 }
 
 proc itrajcomp::calc_dist_hook {self} {
-  namespace eval [namespace current]::${self}:: {
-    set dist {}
-    foreach m $sets(mol_all) {
-      foreach f [lindex $sets(frame1) [lsearch -exact $sets(mol_all) $m]] {
-	set coor1 [lindex $coor($m:$f) $reg1]
-	set coor2 [lindex $coor($m:$f) $reg2]
-	lappend dist [veclength [vecsub $coor2 $coor1]]
-      }
+  set dist {}
+  set mol_all [set ${self}::sets(mol_all)]
+  set frame1  [set ${self}::sets(frame1)]
+  set reg1 [set ${self}::reg1]
+  set reg2 [set ${self}::reg2]
+  array set coor [array get ${self}::coor]
+  foreach m $mol_all {
+    foreach f [lindex $frame1 [lsearch -exact $mol_all $m]] {
+      lappend dist [veclength [vecsub [lindex $coor($m:$f) $reg2] [lindex $coor($m:$f) $reg1]]]
     }
-    
-    # mode=dual:     set result [concat [vecmean $dist] $dist]
-    # mode=single:   set result [vecmean $dist]
-    # mode=multiple: set result $dist
-    return $dist
   }
+  return $dist
 }
-
 
 proc itrajcomp::calc_dist_options {} {
   # Options for dist gui

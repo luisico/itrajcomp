@@ -56,24 +56,25 @@ proc itrajcomp::calc_labels {self} {
 
 
 proc itrajcomp::calc_labels_hook {self} {
-  namespace eval [namespace current]::${self}:: {
-    set rms {}
-    set rmstot 0
-    foreach v [array names alldata] {
-      set v1 [lindex $alldata($v) $j]
-      set v2 [lindex $alldata($v) $l]
-      set val [expr abs($v1-$v2)]
-      if {$val > 180 && ($opts(label_type) eq "Dihedrals" || $opts(label_type) eq "Angles")} {
-	set val [expr abs($val -360)]
-      }
-      set tmp [expr $val*$val]
-      set rmstot [expr $rmstot + $tmp]
-      lappend rms $tmp
-      #puts "DEBUG: $v1 $v2 $val [expr $val*$val] $rms"
+  array set alldata [array get ${self}::alldata]
+  set label_type [set ${self}::opts(label_type)]
+  set rms {}
+  set rmstot 0
+  set names [array names alldata]
+  foreach v $names {
+    set v1 [lindex $alldata($v) [set ${self}::j]]
+    set v2 [lindex $alldata($v) [set ${self}::l]]
+    set val [expr {abs($v1-$v2)}]
+    if {$val > 180 && ($label_type eq "Dihedrals" || $label_type eq "Angles")} {
+      set val [expr {abs($val -360)}]
     }
-    set rmstot [expr sqrt($rmstot/([llength [array names alldata]]+1))]
-    return [list $rmstot $rms]
+    set tmp [expr {$val*$val}]
+    set rmstot [expr {$rmstot + $tmp}]
+    lappend rms $tmp
+    #puts "DEBUG: $v1 $v2 $val [expr $val*$val] $rms"
   }
+  set rmstot [expr {sqrt($rmstot/([llength $names]+1))} ]
+  return [list $rmstot $rms]
 }
 
 
@@ -131,7 +132,7 @@ proc itrajcomp::calc_labels_options_update {} {
   array unset labels_status_array
   if {$n > 0} {
     $calc_labels_frame.labs.id config -state normal
-    set nat [expr [llength [lindex $labels 0]] -2]
+    set nat [expr {[llength [lindex $labels 0]] -2}]
     for {set i 0} {$i < $n} {incr i} {
       set label "$i ("
       for {set j 0} {$j < $nat} {incr j} {
@@ -142,7 +143,7 @@ proc itrajcomp::calc_labels_options_update {} {
 	set resid   [$at get resid]
 	set name    [$at get name]
 	append label "$mol-$resname$resid-$name"
-	if {$j < [expr $nat-1]} {
+	if {$j < [expr {$nat-1}]} {
 	  append label ", "
 	}
       }

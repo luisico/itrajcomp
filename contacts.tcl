@@ -33,12 +33,9 @@ proc itrajcomp::calc_contacts {self} {
 
 
 proc itrajcomp::calc_contacts_hook {self} {
-  namespace eval [namespace current]::${self}:: {
-    set contacts [measure contacts $opts(cutoff) $s1 $s2]
-    set number_contacts [llength [lindex $contacts 0]]
-    return [list $number_contacts $contacts]
-    #return $number_contacts
-  }
+  set contacts [measure contacts [set ${self}::opts(cutoff)] [set ${self}::s1] [ ${self}::s2]]
+  set number_contacts [llength [lindex $contacts 0]]
+  return [list $number_contacts $contacts]
 }
 
 

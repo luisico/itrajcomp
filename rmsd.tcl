@@ -37,38 +37,34 @@ proc itrajcomp::calc_rmsd {self} {
 }
 
 proc itrajcomp::calc_rmsd_prehook1 {self} {
-  namespace eval [namespace current]::${self}:: {
-    if {$opts(align)} {
-      set move_sel [atomselect $i "all"]
-    }
+  if {[set ${self}::opts(align)]} {
+    [set ${self}::move_sel] [atomselect [set ${self}::i] "all"]
   }
 }
 
 proc itrajcomp::calc_rmsd_prehook2 {self} {
-  namespace eval [namespace current]::${self}:: {
-    if {$opts(align)} {
-      $move_sel frame $j
-    }
+  if {[set ${self}::opts(align)]} {
+    [set ${self}::move_sel] frame $j
   }
 }
 
 proc itrajcomp::calc_rmsd_hook {self} {
-  namespace eval [namespace current]::${self}:: {
-    if {$opts(align)} {
-      set tmatrix [measure fit $s1 $s2]
-      $move_sel move $tmatrix
-    }
-    if {$::itrajcomp::fast_rmsd} {
-      if {$opts(byres)} {
-	set rmsd [measure rmsd $s1 $s2 byres]
-      } else {
-	set rmsd [measure rmsd $s1 $s2 byatom]
-      }
-    } else {
-      set rmsd [measure rmsd $s1 $s2]
-    }
-    return $rmsd
+  variable fast_rmsd
+
+  if {[set ${self}::opts(align)]} {
+    set tmatrix [measure fit $s1 $s2]
+    [set ${self}::move_sel] move $tmatrix
   }
+  if {$fast_rmsd} {
+    if {[set ${self}::opts(byres)]} {
+      set rmsd [measure rmsd [set ${self}::s1] [set ${self}::s2] byres]
+    } else {
+      set rmsd [measure rmsd [set ${self}::s1] [set ${self}::s2] byatom]
+    }
+  } else {
+    set rmsd [measure rmsd [set ${self}::s1] [set ${self}::s2]]
+  }
+  return $rmsd
 }
 
 

@@ -52,20 +52,19 @@ proc itrajcomp::calc_covar {self} {
       set count 0
       foreach i $sets(mol_all) {
 	set nframes [molinfo $i get numframes]
-	set temp [measure rmsf [atomselect $i $sets(sel1)] first 0 last [expr $nframes -1] step 1]
+	set temp [measure rmsf [atomselect $i $sets(sel1)] first 0 last [expr {$nframes -1}] step 1]
 	for {set n 0} {$n < [llength $temp]} {incr n} {
-	  lset temp $n [expr [lindex $temp $n] * [lindex $temp $n] * $nframes]
+	  lset temp $n [expr {[lindex $temp $n] * [lindex $temp $n] * $nframes} ]
 	}
 	if {$count eq 0} {
 	  set rmsf $temp
 	} else {
 	  set rmsf [vecadd $rmsf $temp]
 	}
-	set count [expr $count + $nframes]
+	set count [expr {$count + $nframes} ]
       }
-      set factor [expr 1./double($count)]
       for {set n 0} {$n < [llength $rmsf]} {incr n} {
-	lset rmsf $n [expr sqrt([lindex $rmsf $n] * $factor)]
+	lset rmsf $n [expr {sqrt([lindex $rmsf $n] / double($count))} ]
       }
       #puts "DEBUG: rmsf $rmsf"
       
@@ -84,7 +83,7 @@ proc itrajcomp::calc_covar {self} {
 	  set coor [$s1 get {x y z}]
 	  if {$count eq 0} {
 	    set b $coor
-	    set a $b
+	    set a $coor
 	    for {set n 0} {$n < [llength $a]} {incr n} {
 	      lset a $n [vecdot [lindex $coor $n] [lindex $coor $n]]
 	    }
@@ -101,12 +100,14 @@ proc itrajcomp::calc_covar {self} {
 	  incr count
 	}
       }
-      set factor [expr 1./double($count)]
+      set factor [expr {1./double($count)} ]
       set rmsf $a
       for {set n 0} {$n < [llength $b]} {incr n} {
-	lset b $n [vecscale [lindex $b $n] $factor]
-	lset a $n [vecscale [lindex $a $n] $factor]
-	lset rmsf $n [expr sqrt([lindex $a $n]-[veclength2 [lindex $b $n]])]
+	set temp_a [vecscale [lindex $a $n] $factor]
+	set temp_b [vecscale [lindex $b $n] $factor]
+	lset a $n $temp_a
+	lset b $n $temp_b
+	lset rmsf $n [expr {sqrt($temp_a - [veclength2 $temp_b])} ]
       }
       #puts "DEBUG:-------"
       #puts "DEBUG: aa $a"
@@ -114,14 +115,14 @@ proc itrajcomp::calc_covar {self} {
       #puts "DEBUG: rmsf $rmsf"
       #puts "DEBUG: meas [measure rmsf $s1 first 0 last [expr [molinfo $i get numframes] -1] step 1]"
     }
-    
+
     if {$opts(segment) == "byres"} {
       set temp {}
       set start 0
       foreach r $segments(number) {
-	set end [expr $start + [[atomselect [lindex $sets(mol_all) 0] "residue $r and ($sets(sel1))"] num] -1]
+	set end [expr {$start + [[atomselect [lindex $sets(mol_all) 0] "residue $r and ($sets(sel1))"] num] -1}]
 	lappend temp [vecmean [lrange $rmsf $start $end]]
-	set start [expr $end + 1]
+	set start [expr {$end + 1}]
       }
       set rmsf $temp
     }
@@ -133,21 +134,17 @@ proc itrajcomp::calc_covar {self} {
 
 
 proc itrajcomp::calc_covar_prehook1 {self} {
-  namespace eval [namespace current]::${self}:: {
-    set rmsf1 [lindex $rmsf $reg1]
-  }
+  set ${self}::rmsf1 [lindex [set ${self}::rmsf] [set ${self}::reg1]]
 }
+
 
 proc itrajcomp::calc_covar_prehook2 {self} {
-  namespace eval [namespace current]::${self}:: {
-    set rmsf2 [lindex $rmsf $reg2]
-  }
+  set ${self}::rmsf2 [lindex [set ${self}::rmsf] [set ${self}::reg2]]
 }
 
+
 proc itrajcomp::calc_covar_hook {self} {
-  namespace eval [namespace current]::${self}:: {
-    return [expr $rmsf1*$rmsf2]
-  }
+  return [expr {[set ${self}::rmsf1] * [set ${self}::rmsf2]} ]
 }
 
 

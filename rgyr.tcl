@@ -59,11 +59,7 @@ proc itrajcomp::calc_rgyr {self} {
 
 
 proc itrajcomp::calc_rgyr_hook {self} {
-  namespace eval [namespace current]::${self}:: {
-    set result [expr $rgyr($i:$j)-$rgyr($k:$l)]
-    puts "DEBUG: $i:$j $k:$l -> $rgyr($i:$j) - $rgyr($k:$l) = $result"
-    return $result
-  }
+  return [expr {[set ${self}::rgyr([set ${self}::i]:[set ${self}::j])] - [set ${self}::rgyr([set ${self}::k]:[set ${self}::l])]} ]
 }
 
 

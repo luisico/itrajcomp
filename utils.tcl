@@ -34,8 +34,8 @@ proc itrajcomp::AddRep1 {i j sel style color} {
   mol selection $sel
   mol color $color
   mol addrep $i
-  set name1 [mol repname $i [expr [molinfo $i get numreps]-1]]
-  mol drawframes $i [expr [molinfo $i get numreps]-1] $j
+  set name1 [mol repname $i [expr {[molinfo $i get numreps]-1}]]
+  mol drawframes $i [expr {[molinfo $i get numreps]-1}] $j
   return $name1
 }
 
@@ -70,7 +70,7 @@ proc itrajcomp::ParseMols {mols idlist {sort 1} } {
       set a [expr [lindex $mols [expr $i-1]] + 1]
       set b [expr [lindex $mols [expr $i+1]] - 1]
       set mols [lreplace $mols $i $i]
-      for {set r $b} {$r >= $a} {set r [expr $r-1]} {
+      for {set r $b} {$r >= $a} {set r [expr {$r-1}]} {
 	set mols [linsert $mols $i $r]
       }
     }
@@ -116,7 +116,7 @@ proc itrajcomp::ParseFrames {def mols skip idlist} {
 	  set a [expr [lindex $idlist [expr $i-1]] + 1]
 	  set b [expr [lindex $idlist [expr $i+1]] - 1]
 	  set idlist [lreplace $idlist $i $i]
-	  for {set r $b} {$r >= $a} {set r [expr $r-1]} {
+	  for {set r $b} {$r >= $a} {set r [expr {$r-1}]} {
 	    set idlist [linsert $idlist $i $r]
 	  }
 	}
@@ -134,7 +134,7 @@ proc itrajcomp::ParseFrames {def mols skip idlist} {
 
     if {$skip} {
       set result {}
-      set s [expr $skip+1]
+      set s [expr {$skip+1}]
       for {set i 0} {$i < [llength $list]} {incr i $s} {
 	lappend result [lindex $list $i]
       }
@@ -170,9 +170,9 @@ proc itrajcomp::Range {numbers} {
   set start 0
   set end 0
   for {set i 1} {$i < [llength $numbers]} {incr i} {
-    set a [lindex $numbers [expr $i-1]]
+    set a [lindex $numbers [expr {$i-1}]]
     set b [lindex $numbers $i]
-    if { [expr $a+1] == $b } {
+    if { [expr {$a+1}] == $b } {
       set end $i
     } else {
       if {$start != $end} {
@@ -208,10 +208,10 @@ proc itrajcomp::Mean {values} {
   # Calculate the mean of a list of values
   set tot 0.0
   foreach n $values {
-    set tot [expr $tot+$n]
+    set tot [expr {$tot+$n}]
   }
   set num [llength $values]
-  set mean [expr $tot/$num]
+  set mean [expr {$tot/double($num)}]
   return $mean
 }
 
@@ -419,32 +419,32 @@ proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
       # TODO: does not work if using 'From current' because data1(key) is not a list.
       foreach key $keys {
 	if {[lindex $data1($key) $data_index] != 0} {
-	  set data($key) [expr 1.0/[lindex $data1($key) $data_index]]
+	  set data($key) [expr {1.0/[lindex $data1($key) $data_index]}]
 	} else {
 	  set data($key) [lindex $data1($key) $data_index]
 	}
       }
       lassign [[namespace current]::minmax [array get data]] min max
     }
-    # TODO: normalization might require transform integers tos doubles (for examples for contacts)
     norm_minmax {
-      set minmax [expr $max0 - $min0]
+    # TODO: normalization might require transform integers tos doubles (for examples for contacts)
+      set minmax [expr {$max0-$min0}]
       foreach key $keys {
-	set data($key) [expr ([lindex $data1($key) $data_index]-$min0) / $minmax]
+	set data($key) [expr {([lindex $data1($key) $data_index]-$min0) / $minmax}]
       }
       set min 0
       set max 1
     }
     norm_exp {
       foreach key $keys {
-	set data($key) [expr 1 - exp(-[lindex $data1($key) $data_index])]
+	set data($key) [expr {1 - exp(-[lindex $data1($key) $data_index])}]
       }
       set min 0
       set max 1
     }
     norm_expmin {
       foreach key $keys {
-	set data($key) [expr 1 - exp(-([lindex $data1($key) $data_index]-$min0))]
+	set data($key) [expr {1 - exp(-([lindex $data1($key) $data_index]-$min0))}]
       }
       set min 0
       set max 1
@@ -484,13 +484,13 @@ proc itrajcomp::minmax {values_array} {
     }
     if {$data($key) > $max} {
       set max $data($key)
-    }
-    if {$data($key) < $min} {
+    } elseif {$data($key) < $min} {
       set min $data($key)
     }
   }
   return [list $min $max]
 }
+
 
 proc itrajcomp::stats {values} {
   # Calculate mean, std, min, max
@@ -498,23 +498,23 @@ proc itrajcomp::stats {values} {
   set mean 0.0
   set min [lindex $values 0]
   set max [lindex $values 0]
+  set n [expr {double([llength $values])}]
   foreach val $values {
-    set mean [expr $mean + $val]
+    set mean [expr {$mean + $val}]
     if {$val > $max} {
       set max $val
-    }
-    if {$val < $min} {
+    } elseif {$val < $min} {
       set min $val
     }
   }
-  set mean [expr $mean / double([llength $values])]
+  set mean [expr {$mean / $n}]
 
   set std 0.0
   foreach val $values {
-    set tmp [expr $val - $mean]
-    set std [expr $std + $tmp*$tmp]
+    set tmp [expr {$val - $mean}]
+    set std [expr {$std + $tmp*$tmp}]
   }  
-  set std [expr sqrt($std / double([llength $values]))]
+  set std [expr {sqrt($std / $n)}]
 
   return [list $mean $std $min $max]
 }
@@ -536,15 +536,16 @@ proc itrajcomp::ColorScale {val max min {s 1.0} {l 1.0}} {
     set max 1.0
   }
 
-  set h [expr 2.0/3.0]
+  #set h [expr {2.0/3.0}]
+  set h 0.666666666667
   #set l 1.0 luminosity
   #set s .5 saturation
 
-  lassign [hls2rgb [expr ($h - $h*($val-$min)/($max-$min))] $l $s] r g b
+  lassign [hls2rgb [expr {($h - $h*($val-$min)/($max-$min))}] $l $s] r g b
 
-  set r [expr int($r*255)]
-  set g [expr int($g*255)]
-  set b [expr int($b*255)]
+  set r [expr {int($r*255)}]
+  set g [expr {int($g*255)}]
+  set b [expr {int($b*255)}]
   return [format "#%.2X%.2X%.2X" $r $g $b]
 }
 
@@ -575,3 +576,11 @@ proc itrajcomp::hls2rgb {h l s} {
   set b [expr {(($b-1)*$s+1)*$l}]
   return [list $r $g $b]
 }
+
+### benchmark
+#  set NREPEAT 10000
+#  scan [time {
+#    [namespace current]::stats $vals
+#  } $NREPEAT] {%d} result
+#  puts "$NREPEAT : $result"
+### benchmark

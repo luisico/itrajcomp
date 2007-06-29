@@ -498,17 +498,17 @@ proc itrajcomp::StatDescriptive {self} {
   # Mean
   set mean 0.0
   foreach mykey [array names data] {
-    set mean [expr $mean + $data($mykey)]
+    set mean [expr {$mean + $data($mykey)}]
   }
-  set mean [expr $mean / double([array size data] - 1)]
+  set mean [expr {$mean / double([array size data] - 1)}]
 
   # Std
   set sd 0.0
   foreach mykey [array names data] {
-    set temp [expr $data($mykey) - $mean]
-    set sd [expr $sd + $temp*$temp]
+    set temp [expr {$data($mykey) - $mean}]
+    set sd [expr {$sd + $temp*$temp}]
   }
-  set sd [expr sqrt($sd / double([array size data] - 1))]
+  set sd [expr {sqrt($sd / double([array size data] - 1))}]
 
   set mean [format "$graph_opts(format_data)" $mean]
   set sd [format "$graph_opts(format_data)" $sd]
@@ -538,11 +538,11 @@ proc itrajcomp::Zoom {self zoom} {
     return
   }
 
-  set old [expr 1.0*$grid]
-  set grid [expr $grid + $zoom]
+  set old [expr {1.0*$grid}]
+  set grid [expr {$grid + $zoom}]
   set ${self}::grid $grid
 
-  set factor [expr $grid/$old]
+  set factor [expr {$grid/$old}]
   $plot scale all 0 0 $factor $factor
 }
 
@@ -1150,10 +1150,10 @@ proc itrajcomp::UpdateScale {self} {
   #-------
   set c_n 50
   set c_w $sc_w
-  set c_h [expr ($sc_h-2*$offset)/$c_n]
+  set c_h [expr {($sc_h-2*$offset)/$c_n}]
 
   set int 0
-  if {[string index $graph_opts(format_scale) [expr [string length $graph_opts(format_scale)]-1] ] == "i"} {
+  if {[string index $graph_opts(format_scale) [expr {[string length $graph_opts(format_scale)]-1}] ] == "i"} {
     set int 1
   }
 
@@ -1165,16 +1165,16 @@ proc itrajcomp::UpdateScale {self} {
   $scale bind "rect$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
 
   # Intervals
-  set c_inc [expr double($max-$min)/$c_n]
-  set val [expr $min+($c_inc/2)]
+  set c_inc [expr {double($max-$min)/$c_n}]
+  set val [expr {$min+($c_inc/2)}]
   set y $offset
   for {set i 0} {$i < $c_n} {incr i} {
     set color [[namespace current]::ColorScale $val $max $min]
-    $scale create rectangle 0 $y $c_w [expr $y+$c_h] -fill $color -outline $color -tag "rect$val"
+    $scale create rectangle 0 $y $c_w [expr {$y+$c_h}] -fill $color -outline $color -tag "rect$val"
     $scale bind "rect$val" <B2-ButtonRelease> "[namespace current]::MapCluster2 $self $val -1 1"
     $scale bind "rect$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
-    set val [expr $val+ $c_inc]
-    set y [expr $y+$c_h]
+    set val [expr {$val+ $c_inc}]
+    set y [expr {$y+$c_h}]
   }
 
   # Lower offset
@@ -1187,24 +1187,24 @@ proc itrajcomp::UpdateScale {self} {
   # Labels
   #-------
   set l_n 10
-  set l_h [expr ($sc_h-2*$offset)/$l_n]
+  set l_h [expr {($sc_h-2*$offset)/$l_n}]
   
   # Intervals
   set val $min
   set y $offset
-  set l_inc [expr double($max-$min)/$l_n]
+  set l_inc [expr {double($max-$min)/$l_n}]
 
   for {set i 0} {$i <= $l_n} {incr i} {
     if {$int > 0} {
-      set newval [expr int($val)]
+      set newval [expr {int($val)}]
     } else {
       set newval $val
     }
-    $scale create line [expr $sc_w-5] $y $c_w $y
-    $scale create text [expr $sc_w-10] $y -text [format $graph_opts(format_scale) $newval] -anchor e -font [list helvetica 7 normal] -tag "line$val"
+    $scale create line [expr {$sc_w-5}] $y $c_w $y
+    $scale create text [expr {$sc_w-10}] $y -text [format $graph_opts(format_scale) $newval] -anchor e -font [list helvetica 7 normal] -tag "line$val"
     $scale bind "line$val" <B2-ButtonRelease> "[namespace current]::MapCluster2 $self $val -1 1"
     $scale bind "line$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
-    set val [expr $val+ $l_inc]
-    set y [expr $y+$l_h]
+    set val [expr {$val+ $l_inc}]
+    set y [expr {$y+$l_h}]
   }
 }

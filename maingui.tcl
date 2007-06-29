@@ -289,6 +289,7 @@ proc itrajcomp::AddCalc {type {description ""} {script ""} {help ""}} {
     variable calc_${type}_frame [frame $tab_calc.opt.$type]
     pack $tab_calc.opt.$type -side top -anchor nw
     [namespace current]::calc_${type}_options
+    [namespace current]::TabCalcUpdate
   }
 }
 
@@ -393,7 +394,7 @@ proc itrajcomp::ProgressBar {num max} {
     set x 0
   } else {
     set width [winfo width $wp]
-    set x [expr ($num * $width / double($max))]
+    set x [expr {($num * $width / double($max))}]
   }
   $wp coords progress 0 0 $x $height
   $wp lower progress

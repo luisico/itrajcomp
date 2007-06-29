@@ -42,11 +42,9 @@ proc itrajcomp::calc_hbonds {self} {
 
 
 proc itrajcomp::calc_hbonds_hook {self} {
-  namespace eval [namespace current]::${self}:: {
-    set hbonds [measure hbonds $opts(cutoff) $opts(angle) $s1 $s2]
-    set number_hbonds [llength [lindex $hbonds 0]]
-    return [list $number_hbonds $hbonds]
-  }
+  set hbonds [measure hbonds [set ${self}::opts(cutoff)] [set ${self}::opts(angle)] [set ${self}::s1] [set ${self}::s2]]
+  set number_hbonds [llength [lindex $hbonds 0]]
+  return [list $number_hbonds $hbonds]
 }
 
 

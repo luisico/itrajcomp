@@ -68,13 +68,13 @@ proc itrajcomp::GraphSegments {self} {
 	  #puts ""
 	  continue
 	}
-	set x [expr ($i+$offx)*($grid+$width)]
-	set y [expr ($k+$offy)*($grid+$width)]
+	set x [expr {($i+$offx)*($grid+$width)}]
+	set y [expr {($k+$offy)*($grid+$width)}]
 	set map_active($key) 0
 	set colors($key) [[namespace parent]::ColorScale $data($key) $max $min 1.0]
 	set colors_act($key) [[namespace parent]::ColorScale $data($key) $max $min 0.40 1.0]
 	#puts "-> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
-	$plot create rectangle $x $y [expr $x+$grid] [expr $y+$grid] -fill $colors($key) -outline $colors($key) -tag $key -width $width
+	$plot create rectangle $x $y [expr {$x+$grid}] [expr {$y+$grid}] -fill $colors($key) -outline $colors($key) -tag $key -width $width
 	
 	$plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
 	$plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
@@ -89,10 +89,10 @@ proc itrajcomp::GraphSegments {self} {
 	incr count
 	[namespace parent]::ProgressBar $count $maxkeys
       }
-      set offy [expr $offy+$k]
+      set offy [expr {$offy+$k}]
       
     }
-    set offx [expr $offx+$i]
+    set offx [expr {$offx+$i}]
   }
 }
 
@@ -111,7 +111,7 @@ proc itrajcomp::LoopSegments {self} {
     
     set nreg [llength $segments(number)]
     # Calculate max numbers of iterations
-    set maxkeys [expr ($nreg*$nreg+$nreg)/2]
+    set maxkeys [expr {($nreg*$nreg+$nreg)/2}]
     
     # Calculate min max later, when tranforming data0 -> data
     set count 0

@@ -58,13 +58,13 @@ proc itrajcomp::GraphFrames {self} {
 	    set rep_num($key2) 0
 	    set key "$key1,$key2"
 	    if {![info exists data($key)]} continue
-	    set x [expr ($j+$offx)*($grid+$width)]
-	    set y [expr ($l+$offy)*($grid+$width)]
+	    set x [expr {($j+$offx)*($grid+$width)}]
+	    set y [expr {($l+$offy)*($grid+$width)}]
 	    set map_active($key) 0
 	    set colors($key) [[namespace parent]::ColorScale $data($key) $max $min]
 	    set colors_act($key) [[namespace parent]::ColorScale $data($key) $max $min 0.40]
 	    #puts "$i $j -> $x $offx           $k $l - > $y $offy     = $data($key)    $colors($key)"
-	    $plot create rectangle $x $y [expr $x+$grid] [expr $y+$grid] -fill $colors($key) -outline $colors($key) -tag $key -width $width
+	    $plot create rectangle $x $y [expr {$x+$grid}] [expr {$y+$grid}] -fill $colors($key) -outline $colors($key) -tag $key -width $width
 	    
 	    $plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
 	    $plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
@@ -79,10 +79,10 @@ proc itrajcomp::GraphFrames {self} {
 	    incr count
 	    [namespace parent]::ProgressBar $count $maxkeys
 	  }
-	  set offy [expr $offy+[llength $f2]]
+	  set offy [expr {$offy+[llength $f2]}]
 	}
       }
-      set offx [expr $offx+[llength $f1]]
+      set offx [expr {$offx+[llength $f1]}]
     }
   }
 }

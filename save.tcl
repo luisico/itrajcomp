@@ -220,7 +220,7 @@ proc ::itrajcomp::SaveData_plotmtv {data keys options} {
   } else {
     set columns 0
     for {set z 0} {$z < [llength $vals]} {incr z} {
-      set columns [expr $columns + 1]
+      set columns [expr {$columns + 1}]
       #puts "$z [lindex $vals $z]"
       append output [format "  $opt(format_data)" [lindex $vals $z]]
       if {$columns > 9} {
