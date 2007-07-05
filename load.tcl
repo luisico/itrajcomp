@@ -62,6 +62,7 @@ proc itrajcomp::loadData {file format} {
   fconfigure $fid
 
   # Read header
+  set section "other"
   while {![eof $fid]} {
     gets $fid line
     #puts "line $line"
@@ -69,9 +70,12 @@ proc itrajcomp::loadData {file format} {
     regsub {^\s+}       $line ""  line
     regsub {\s+$}       $line ""  line
     #puts "temp $line"
-    if {[regexp {^\#\s*(\w+)\s+(.*)} $line junk key val]} {
-      #puts "$key --> $val"
-      set keys($key) $val
+    if {[regexp {^\#\*\s*(\w+)} $line junk section]} {
+#      set section $section
+      puts "SECTION $section"
+    } elseif {[regexp {^\#\s*(\w+)\s+(.*)} $line junk key val]} {
+#      puts "$key --> $val"
+      set ${section}($key) $val
       set offset [tell $fid]
     } else {
       seek $fid $offset
@@ -80,66 +84,65 @@ proc itrajcomp::loadData {file format} {
     }
   }
   close $fid
-  
-  set defaults [array get keys]
-  lappend defaults rep_sel1 "all"
-  switch $keys(type) {
-    dist -
-    covar {
-      lappend defaults format_data "%8.4f"
-      lappend defaults format_key "%3d %3s"
-    }
-    labels -
-    rmsd {
-      lappend defaults format_data "%8.4f"
-      lappend defaults format_key "%3d %3d"
-    }
-    hbonds -
-    contacts {
-      lappend defaults format_data "%4i"
-      lappend defaults format_key "%3d %3d"
-      
-    }
 
-
-      lappend defaults 
+  # Type of object
+  if {![info exists opts(type)]} {
+    tk_messageBox -title "Warning" -message "Type not specified in input file"
+    return
   }
   
-  set r [eval [namespace current]::Objnew ":auto" $defaults]
-  [namespace current]::processData $r $data
-  [namespace current]::NewPlot $r
+  if {[llength [info procs "calc_$opts(type)_options"]] == 0} {
+    tk_messageBox -title "Warning" -message "Could not find calc_$opts(type)_options"
+    return
+  }
 
+  # Create new object
+  set obj [eval [namespace current]::Objnew ":auto"]
+  [namespace current]::processData $obj $data
+  array set ${obj}::opts [array get opts]
+  
+  # datatype
+  set ${obj}::datatype(mode) "single"
+  set ${obj}::datatype(sets) "loaded"
+
+  # opts
+  set ${obj}::opts(type) "loaded"
+  set ${obj}::opts(diagonal) 0
+
+  # graph_opts
+  array set graph_opts {
+    formats "f" format_key ""
+    format_data "" format_scale ""
+    rep_style1 NewRibbons
+    rep_color1 Molecule
+    rep_colorid1 0
+  }
+  array set ${obj}::graph_opts [array get graph_opts]
+
+  # other options
+  set ${obj}::data_index 0
+
+  # sets
+  #?
+  [namespace current]::PrepareData $obj
+  [namespace current]::Status "Creating graph for $obj ..."
+  [namespace current]::itcObjGui $obj
 }
 
-proc itrajcomp::processData {self data} {
+proc itrajcomp::processData {self alldata} {
   # Process data loaded
   set vals {}
   set keys {}
-  set segments {}
-  set min [lindex [lindex $data 1] 4]
-  set max $min
-  for {set i 1} {$i < [llength $data]} {incr i} {
-    set d [lindex $data $i]
+  for {set i 1} {$i < [llength $alldata]} {incr i} {
+    set d [lindex $alldata $i]
     set val [lindex $d 4]
     set key "[lindex $d 0]:[lindex $d 1],[lindex $d 2]:[lindex $d 3]"
-    lappend vals $val
     lappend keys $key
-    lappend segments [lindex $d 0] [lindex $d 2]
-    set temp($key) $val
-    if {$val < $min} {
-      set min $val
-    } elseif {$val > $max} {
-      set max $val
-    }
+    set data($key) $val
   }
 
-  set ${self}::min $min
-  set ${self}::max $max
-  set ${self}::segments [lsort -integer -unique $segments]
   set ${self}::keys $keys
-  set ${self}::vals $vals
-  array set ${self}::data [array get temp]
-
+  array set ${self}::data [array get data]
 }
 
 proc itrajcomp::loadData_tab {fid} {

@@ -27,7 +27,6 @@
 #    Utility functions.
 
 
-# TODO: most of procs here are vmd related, rename to vmd?
 proc itrajcomp::AddRep1 {i j sel style color} {
   # Add 1 representation to vmd
   mol rep $style
@@ -354,37 +353,58 @@ proc itrajcomp::PrepareData {self} {
   array set data0 [array get ${self}::data0]
   set keys [array names data0]
 
-  puts "Preparing data1"
   switch [set ${self}::datatype(mode)] {
     single {
       array set data1 [array get data0]
+      lassign [[namespace current]::minmax [array get data1]] min1 max1
     }
+
     multiple {
       foreach key $keys {
 	set data1($key) [[namespace current]::stats $data0($key)]
-	#puts "$key $data0($key) -> $data1($key)"
+	for {set i 0} {$i < [llength $data1($key)]} {incr i} {
+	  lappend values($i) [lindex $data1($key) $i]
+	}
+      }
+      set min1 {}
+      set max1 {}
+      set ni $i
+      for {set i 0} {$i < $ni} {incr i} {
+	lassign [[namespace current]::stats $values($i) 0] mean min max
+	lappend min1 $min
+	lappend max1 $max
       }
     }
+
     dual {
       if {[set ${self}::datatype(ascii)]} {
 	foreach key $keys {
 	  set data1($key) [lindex $data0($key) 0]
-	  puts "$key $data0($key) -> $data1($key)"
 	}
+	lassign [[namespace current]::minmax [array get data1]] min1 max1
       } else {
 	foreach key $keys {
 	  set data1($key) [concat [lindex $data0($key) 0] [[namespace current]::stats [lindex $data0($key) 1]]]
-	  #puts "$key $data0($key) -> $data1($key)"
+	  for {set i 0} {$i < [llength $data1($key)]} {incr i} {
+	    lappend values($i) [lindex $data1($key) $i]
+	  }
+	}
+	set min1 {}
+	set max1 {}
+	set ni $i
+	for {set i 0} {$i < $ni} {incr i} {
+	  lassign [[namespace current]::stats $values($i) 0] mean min max
+	  lappend min1 $min
+	  lappend max1 $max
 	}
       }
     }
+
   }
   array set ${self}::data1 [array get data1]
 
-  # TODO: calculate min max for data1
-#  lassign [[namespace current]::minmax [array get data]] min0 max0
-#  set ${self}::min0 $min0
-#  set ${self}::max0 $max0
+  set ${self}::min1 $min1
+  set ${self}::max1 $max1
 
   [namespace current]::TransformData $self
 }
@@ -392,18 +412,17 @@ proc itrajcomp::PrepareData {self} {
 
 proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
   set data_index [set ${self}::data_index]
+  set formats [set ${self}::graph_opts(formats)]
   
   # Source data
-  if {$type == "copy" || [set ${self}::transform_source] == 0} {
-#    array set data0 [array get ${self}::data0]
+  if {$type == "copy" || [set ${self}::transform_data1] == 1} {
     array set data1 [array get ${self}::data1]
-  # TODO: calculate min max for data1 (see PrepareData)
-#    set min0 [set ${self}::min0]
-#    set max0 [set ${self}::max0]
+    set min1 [lindex [set ${self}::min1] $data_index]
+    set max1 [lindex [set ${self}::max1] $data_index]
   } else {
     array set data1 [array get ${self}::data]
-    set min0 [set ${self}::min]
-    set max0 [set ${self}::max]
+    set min1 [set ${self}::min]
+    set max1 [set ${self}::max]
   }
 
   set keys [array names data1]
@@ -415,39 +434,43 @@ proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
       }
       lassign [[namespace current]::minmax [array get data]] min max
     }
+
     inverse {
-      # TODO: does not work if using 'From current' because data1(key) is not a list.
       foreach key $keys {
 	if {[lindex $data1($key) $data_index] != 0} {
-	  set data($key) [expr {1.0/[lindex $data1($key) $data_index]}]
+	  set data($key) [expr {1.0 / [lindex $data1($key) $data_index]}]
 	} else {
 	  set data($key) [lindex $data1($key) $data_index]
 	}
       }
       lassign [[namespace current]::minmax [array get data]] min max
+      set formats "f"
     }
+
     norm_minmax {
-    # TODO: normalization might require transform integers tos doubles (for examples for contacts)
-      set minmax [expr {$max0-$min0}]
+      set minmax [expr {$max1-$min1}]
       foreach key $keys {
-	set data($key) [expr {([lindex $data1($key) $data_index]-$min0) / $minmax}]
+	set data($key) [expr {([lindex $data1($key) $data_index]-$min1) / $minmax}]
       }
       set min 0
       set max 1
+      set formats "f"
     }
+
     norm_exp {
       foreach key $keys {
-	set data($key) [expr {1 - exp(-[lindex $data1($key) $data_index])}]
+	set data($key) [expr {1.0 - exp(-[lindex $data1($key) $data_index])}]
       }
-      set min 0
-      set max 1
+      lassign [[namespace current]::minmax [array get data]] min max
+      set formats "f"
     }
+
     norm_expmin {
       foreach key $keys {
-	set data($key) [expr {1 - exp(-([lindex $data1($key) $data_index]-$min0))}]
+	set data($key) [expr {1.0 - exp(-([lindex $data1($key) $data_index]-$min1))}]
       }
-      set min 0
-      set max 1
+      lassign [[namespace current]::minmax [array get data]] min max
+      set formats "f"
     }
   }
 
@@ -456,13 +479,15 @@ proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
   set ${self}::max $max
   array set ${self}::data [array get data]
   # TODO: vals should also be updated? used in save and load, mostly
-  puts "$min -> $max"
+
+  # Update output format of values
+  lassign [[namespace current]::_format $formats] format_data format_scale
+  set ${self}::graph_opts(format_data) $format_data
+  set ${self}::graph_opts(format_scale) $format_scale
 
   # Update plot
   if {$graph == 1} {
-    # TODO: only works with frames (not segments)
     [namespace current]::UpdateGraph $self
-    #[namespace current]::GraphFrames $self
   }
 
   return
@@ -492,7 +517,7 @@ proc itrajcomp::minmax {values_array} {
 }
 
 
-proc itrajcomp::stats {values} {
+proc itrajcomp::stats {values {calc_std 1}} {
   # Calculate mean, std, min, max
 
   set mean 0.0
@@ -509,14 +534,20 @@ proc itrajcomp::stats {values} {
   }
   set mean [expr {$mean / $n}]
 
-  set std 0.0
-  foreach val $values {
-    set tmp [expr {$val - $mean}]
-    set std [expr {$std + $tmp*$tmp}]
-  }  
-  set std [expr {sqrt($std / $n)}]
-
-  return [list $mean $std $min $max]
+  if {$calc_std} {
+    set std 0.0
+    #set sumc 0.0   ### http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    foreach val $values {
+      set tmp [expr {$val - $mean}]
+      set std [expr {$std + $tmp*$tmp}]
+      #set sumc [expr {$sumc + $tmp}]
+    }  
+    #set std2 [expr {sqrt( ($std - ($sumc*$sumc)/$n) / ($n-1) )}]
+    set std [expr {sqrt($std / ($n-1))}]
+    return [list $mean $std $min $max]
+  } else {
+    return [list $mean $min $max]
+  }
 }
 
 
@@ -575,6 +606,57 @@ proc itrajcomp::hls2rgb {h l s} {
   set g [expr {(($g-1)*$s+1)*$l}]
   set b [expr {(($b-1)*$s+1)*$l}]
   return [list $r $g $b]
+}
+
+
+proc itrajcomp::flash_widget {w {color yellow}} {
+  # Flash a widget with yellow
+
+  set oldcolor [$w cget -background]
+  $w configure -background $color
+  
+  if [catch { 
+    $w flash
+  } msg] {
+    [namespace current]::_flash_widget $w 0 $oldcolor
+  }
+
+  $w configure -background $oldcolor
+}
+
+
+proc itrajcomp::_flash_widget {w i color} {
+  set oldcolor [$w cget -background]
+  $w config -background $color
+  incr i
+  if {$i > 4} {
+    return
+  }
+  after 60 [list [namespace current]::_flash_widget $w $i $oldcolor]
+}
+
+
+proc itrajcomp::highlight_widget {w {time 1000} {color yellow}} {
+  # Highlight a widget with yellow
+  set oldcolor [$w cget -background]
+  $w config -background $color
+  after $time [list $w config -background $oldcolor]
+}
+
+
+proc itrajcomp::_format {formats} {
+  switch $formats {
+    f {
+      set data "%8.4f"
+      set scale "%4.2f"
+    }
+    i {
+      set data "%8i"
+      set scale "%4i"
+    }
+  }
+
+  return [list $data $scale]
 }
 
 ### benchmark

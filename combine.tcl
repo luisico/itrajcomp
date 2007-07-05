@@ -29,8 +29,6 @@
 
 proc itrajcomp::Combine {} {
   # Combine to objects
-  # TODO: move to combine.tcl
-  # TODO: combine is broken
   variable c
   set debug 0
 
@@ -100,29 +98,31 @@ proc itrajcomp::Objcombine {formula} {
     set self($obj) "itcObj$obj"
     lappend selflist $obj
   }
-  set s0 [lindex $selflist 0]
 
   if {[llength [array names self]] == 0} {
-    puts "No objects in formula"
+    tk_messageBox -title "Warning" -message "No objects found in formula!"
     return
   }
 
+  set s0 [lindex $selflist 0]
+
   foreach s [array names self] {
-    set mol1($s)       [set $self($s)::mol1]
-    set mol2($s)       [set $self($s)::mol2]
-    set frame1($s)     [set $self($s)::frame1]
-    set frame2($s)     [set $self($s)::frame2]
-    set sel1($s)       [set $self($s)::sel1]
-    set sel2($s)       [set $self($s)::sel2]
-    set type($s)       [set $self($s)::type]
-    set format_data($s) [set $self($s)::format_data]
-    set format_key($s) [set $self($s)::format_key]
-    set keys($s)       [set $self($s)::keys]
-    set data($s)       [set $self($s)::vals]
+    set mol1($s)        [set $self($s)::sets(mol1)]
+    set mol2($s)        [set $self($s)::sets(mol2)]
+    set frame1($s)      [set $self($s)::sets(frame1)]
+    set frame2($s)      [set $self($s)::sets(frame2)]
+    set sel1($s)        [set $self($s)::sets(sel1)]
+    set sel2($s)        [set $self($s)::sets(sel2)]
+    set type($s)        [set $self($s)::graph_opts(type)]
+    set format_data($s) [set $self($s)::graph_opts(format_data)]
+    set format_key($s)  [set $self($s)::graph_opts(format_key)]
+    set keys($s)        [set $self($s)::keys]
+    set data1($s)       [array get $self($s)::data1]
+    set data_index($s)  [set $self($s)::data_index]
   }
   
   # ToDo: check more things, like data has same format
-  foreach check [list "type"] {
+  foreach check [list "opts(type)"] {
     set test [set $self($s0)::$check]
     for {set i 1} {$i < [llength $selflist]} {incr i} {
       if {[set $self([lindex $selflist $i])::$check] != $test} {
@@ -132,6 +132,7 @@ proc itrajcomp::Objcombine {formula} {
     }
   }
 
+  # Keys must be the same
   set test [llength [set $self($s0)::keys]]
   for {set i 1} {$i < [llength $selflist]} {incr i} {
     if {[llength [set $self([lindex $selflist $i])::keys]] != $test} {
@@ -140,55 +141,58 @@ proc itrajcomp::Objcombine {formula} {
     }
   }
 
-  # By now parameters for combined object come from object with smaller number
-  set defaults [list mol1 $mol1($s0) frame1 $frame1($s0) mol2 $mol2($s0) frame2 $frame2($s0) sel1 $sel1($s0) sel2 $sel2($s0) rep_sel1 "all" type "combination" format_data $format_data($s0) format_key $format_key($s0)]
-  set r [eval [namespace current]::Objnew ":auto" $defaults]
-  
-  set zu 1
-  for {set z 0} {$z < [llength $keys($s0)]} {incr z} {
-    set key [lindex $keys($s0) $z]
-    set indices [split $key :,]
-    set i [lindex $indices 0]
-    set j [lindex $indices 1]
-    set k [lindex $indices 2]
-    set l [lindex $indices 3]
+  # Create new object
+  set obj [eval [namespace current]::Objnew ":auto"]
+
+  # sets (by now parameters for combined object come from object with smaller number)
+  array set ${obj}::sets [array get $self($s0)::sets]
+
+  # datatype
+  set ${obj}::datatype(mode) "single"
+  set ${obj}::datatype(sets) "combined"
+ 
+  # opts
+  set ${obj}::opts(type) "combine"
+  set ${obj}::opts(diagonal) [set $self($s0)::opts(diagonal)]
+  # TODO: is not working with segments
+  if {$type($s0) == "segments"} {
+    set ${obj}::opts(segment) [set $self($s0)::opts(segment)]
+    array set ${obj}::segments [array get $self($s0)::segments]
+  }
+
+  # graph_opts
+  array set graph_opts {
+    formats "f" format_key ""
+    format_data "" format_scale ""
+    rep_style1 NewRibbons
+    rep_color1 Molecule
+    rep_colorid1 0
+  }
+  set graph_opts(type) $type($s0)
+  array set ${obj}::graph_opts [array get graph_opts]
+
+  # other options
+  set ${obj}::data_index 0
+
+  # Combine with formula
+  foreach key $keys($s0) {
     foreach s [array names self] {
-      set d($s) [lindex $data($s) $z]
+      array set d1 $data1($s)
+      #puts $data1($s)
+      #puts [array get d1]
+      set d($s) [lindex $d1($key) $data_index($s)]
+      #puts "$s -- $key -- $data_index($s)  --- $d($s)"
     }
-    set result [expr {$formula}]
-    if {$zu} {
-      set min $result
-      set max $result
-      set zu 0
-    }
-    if {$result > $max} {
-      set max $result
-    }
-    if {$result < $min} {
-      set min $result
-    }
-    set ${r}::data($i:$j,$k:$l) $result
-    puts -nonewline [format "%4d %6d   %4d %6d" $i $j $k $l]
+    set result [expr $formula]
+    set ${obj}::data0($key) $result
+    puts -nonewline "$key"
     foreach s $selflist {
       puts -nonewline [format " %8.3f" $d($s)]
     }
     puts [format "   = %8.3f" $result]
   }
-  set ${r}::min $min
-  set ${r}::max $max
 
-  namespace eval [namespace current]::${r}:: {
-    variable min
-    variable max
-    variable data
-    variable keys
-    variable vals
-    set keys [lsort -dictionary [array names data]]
-    foreach key $keys {
-      lappend vals $data($key)
-    }
-  }
-
-  [namespace current]::itcObjGui $r
-
+  [namespace current]::PrepareData $obj
+  [namespace current]::Status "Creating graph for $obj ..."
+  [namespace current]::itcObjGui $obj
 }

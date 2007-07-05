@@ -151,12 +151,13 @@ proc itrajcomp::calc_covar_hook {self} {
 proc itrajcomp::calc_covar_options {} {
   # Options for covar
   variable calc_covar_frame
-  variable calc_covar_datatype
+  variable calc_covar_datatyper
   set calc_covar_datatype(mode) "single"
 
   variable calc_covar_opts
   set calc_covar_opts(segment) "byres"
-  
+  set calc_covar_opts(force_samemols) 1
+
   # by segment
   frame $calc_covar_frame.segment
   pack $calc_covar_frame.segment -side top -anchor nw
@@ -170,16 +171,8 @@ proc itrajcomp::calc_covar_options {} {
   # Graph options
   variable calc_covar_graph
   array set calc_covar_graph {
-    type         "segments"\
-    format_data  "%8.4f"\
-    format_key   "%3d %3s"\
-    format_scale "%4.2f"\
+    type         "segments"
+    formats      "f"
     rep_style1   "CPK"
   }
-}
-
-
-proc itrajcomp::calc_covar_options_update {} {
-  # Update options gui
-  [namespace current]::Samemols on
 }

@@ -42,7 +42,6 @@ proc itrajcomp::Objnew {{self ":auto"} args} {
     set self "itcObj[incr itcObjId]"
   }
   
-#  interp alias {} $self: {} namespace eval ::itrajcomp::$self
   array set defaults {
     keys {} vals {}
     min 0 max 0
@@ -54,7 +53,6 @@ proc itrajcomp::Objnew {{self ":auto"} args} {
   namespace eval [namespace current]::$self variable [array get defaults]
   namespace eval [namespace current]::${self}:: variable self $self
 
-#  interp alias {} $self {} [namespace current]::Objdispatch $self
   return $self
 }
 
@@ -62,14 +60,7 @@ proc itrajcomp::Objdelete {self} {
   # Dete an object
   if {[info command [namespace current]::del] != ""} {[namespace current]::del $self}
   namespace delete [namespace current]::$self
-#  interp alias {} $self {} {}
-#  interp alias {} $self: {} {}
   uplevel 1 "catch {unset $self}" ;# remove caller's reference
-}
-
-proc itrajcomp::Objdispatch {self {cmd Objmethods} args} {
-  # TODO: not used, remove?
-  uplevel 1 [list [namespace current]::$cmd $self] $args
 }
 
 proc itrajcomp::Objmethods {self} {
@@ -115,14 +106,3 @@ proc itrajcomp::Objclean {} {
     [namespace current]::Objdelete [string trimleft $self [namespace current]]
   }
 }
-# proc itrajcomp::set {self args} {
-#   set key [lindex $args 0]
-#   set val [lrange $args 1 end]
-#   set ::itrajcomp::${self}::$key $val
-# }
-
-# proc itrajcomp::get {self args} {
-#   set key [lindex $args 0]
-#   return ::itrajcomp::${self}::$key
-# }
-

@@ -73,6 +73,7 @@ proc itrajcomp::calc_dist_options {} {
 
   variable calc_dist_opts
   set calc_dist_opts(segment) "byatom"
+  set calc_dist_opts(force_samemols) 1
 
   # by segment
   frame $calc_dist_frame.segment
@@ -87,16 +88,8 @@ proc itrajcomp::calc_dist_options {} {
   # Graph options
   variable calc_dist_graph
   array set calc_dist_graph {
-    type         "segments"\
-    format_data  "%8.4f"\
-    format_key   "%3d %3s"\
-    format_scale "%4.2f"\
+    type         "segments"
+    formats      "f"
     rep_style1   "CPK"
   }
-}
-
-
-proc itrajcomp::calc_dist_options_update {} {
-  # Update options gui
-  [namespace current]::Samemols on
 }

@@ -33,7 +33,7 @@ proc itrajcomp::calc_contacts {self} {
 
 
 proc itrajcomp::calc_contacts_hook {self} {
-  set contacts [measure contacts [set ${self}::opts(cutoff)] [set ${self}::s1] [ ${self}::s2]]
+  set contacts [measure contacts [set ${self}::opts(cutoff)] [set ${self}::s1] [set ${self}::s2]]
   set number_contacts [llength [lindex $contacts 0]]
   return [list $number_contacts $contacts]
 }
@@ -58,10 +58,8 @@ proc itrajcomp::calc_contacts_options {} {
   # Graph options
   variable calc_contacts_graph
   array set calc_contacts_graph {
-    type         "frames"\
-    format_data  "%4i"\
-    format_key   "%3d %3d"\
-    format_scale "%4i"\
+    type         "frames"
+    formats      "i"
     rep_style1   "NewRibbons"
   }
 }

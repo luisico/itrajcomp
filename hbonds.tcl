@@ -74,10 +74,8 @@ proc itrajcomp::calc_hbonds_options {} {
  # Graph options
   variable calc_hbonds_graph
   array set calc_hbonds_graph {
-    type         "frames"\
-    format_data  "%4i"\
-    format_key   "%3d %3d"\
-    format_scale "%4i"\
+    type         "frames"
+    formats      "f"
     rep_style1   "NewRibbons"
   }
 }

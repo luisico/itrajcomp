@@ -74,10 +74,8 @@ proc itrajcomp::calc_rgyr_options {} {
   # Graph options
   variable calc_rgyr_graph
   array set calc_rgyr_graph {
-    type         "frames"\
-    format_data  "%8.4f"\
-    format_key   "%3d %3d"\
-    format_scale "%4.2f"\
+    type         "frames"
+    formats      "f"
     rep_style1   "NewRibbons"
   }
 }

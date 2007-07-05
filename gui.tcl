@@ -42,11 +42,11 @@ proc itrajcomp::itcObjGui {self} {
     variable save_format  tab
     variable win_obj
 
-    set win_obj [toplevel ".${self}_plot"]
+    set win_obj [toplevel ".${self}_main"]
 
     wm protocol $win_obj WM_DELETE_WINDOW "[namespace parent]::Destroy $self"
 
-    # TODO: update title window when the entry $win_obj.title.title changes
+    # TODO: provide option to rename the window (dialog?)
     set title "$self: $opts(type)"
     foreach v [array names opts] {
       append title " $v=$opts($v)"
@@ -104,9 +104,9 @@ proc itrajcomp::itcObjMenubar {self} {
     
     menubutton $menubar.transform -text "Transform" -menu $menubar.transform.menu -underline 0
     menu $menubar.transform.menu
-    set transform_source 0
-    $menubar.transform.menu add checkbutton -label "From current" -variable "[namespace current]::transform_source"
-    $menubar.transform.menu add command -label "Original" -command "[namespace parent]::TransformData $self copy 1" -underline 0
+    set transform_data1 1
+    $menubar.transform.menu add checkbutton -label "Source is raw data" -variable "[namespace current]::transform_data1"
+    $menubar.transform.menu add command -label "Reset to raw data" -command "[namespace parent]::TransformData $self copy 1" -underline 0
     $menubar.transform.menu add command -label "Inverse" -command "[namespace parent]::TransformData $self inverse 1" -underline 0
     $menubar.transform.menu add cascade -label "Normalize" -menu $menubar.transform.menu.normalize -underline 0
     menu $menubar.transform.menu.normalize -tearoff no
@@ -117,7 +117,7 @@ proc itrajcomp::itcObjMenubar {self} {
     
     menubutton $menubar.analysis -text "Analysis" -menu $menubar.analysis.menu -underline 0
     menu $menubar.analysis.menu -tearoff no
-    $menubar.analysis.menu add command -label "Descriptive" -command "[namespace parent]::StatDescriptive $self 1" -underline 0
+    $menubar.analysis.menu add command -label "Descriptive" -command "[namespace parent]::StatDescriptive $self" -underline 0
     pack $menubar.analysis -side left
     
     menubutton $menubar.help -text "Help" -menu $menubar.help.menu -underline 0
@@ -172,7 +172,6 @@ proc itrajcomp::itcObjInfo {self} {
     grid $tab_info.sel1.mol_l -row $row -column 1 -sticky nw
     grid $tab_info.sel1.mol_v -row $row -column 2 -sticky nw
 
-    # TODO: put frames for each mol in a different row
     incr row
     label $tab_info.sel1.frame_l -text "Frame(s):"
     label $tab_info.sel1.frame_v -text "$sets(frame1_def) ([[namespace parent]::SplitFrames $sets(frame1)])"
@@ -217,7 +216,6 @@ proc itrajcomp::itcObjInfo {self} {
     # Molecules list
     labelframe $tab_info.mols -text "Molecules list"
     pack $tab_info.mols -side top -anchor nw -expand yes -fill x
-
     set row 1
     grid columnconfigure $tab_info.mols 3 -weight 1
     
@@ -255,7 +253,7 @@ proc itrajcomp::itcObjGraph {self} {
     variable map_add 0
     variable map_del 0
     variable highlight 0.2
-    variable grid 10
+    variable grid 1
 
     frame $tab_graph.l
     frame $tab_graph.r
@@ -266,7 +264,7 @@ proc itrajcomp::itcObjGraph {self} {
     frame $tab_graph.l.graph -relief raised -bd 2
     pack $tab_graph.l.graph -side top -anchor nw -expand yes -fill both
 
-    variable plot [canvas $tab_graph.l.graph.c -height 400 -width 400 -scrollregion {0 0 2000 2000} -xscrollcommand "$tab_graph.l.graph.xs set" -yscrollcommand "$tab_graph.l.graph.ys set" -xscrollincrement 10 -yscrollincrement 10 -bg white]
+    variable plot [canvas $tab_graph.l.graph.c -height 400 -width 400 -xscrollcommand "$tab_graph.l.graph.xs set" -yscrollcommand "$tab_graph.l.graph.ys set" -xscrollincrement 10 -yscrollincrement 10 -bg white]
     scrollbar $tab_graph.l.graph.xs -orient horizontal -command "$plot xview"
     scrollbar $tab_graph.l.graph.ys -orient vertical   -command "$plot yview"
 
@@ -347,10 +345,13 @@ proc itrajcomp::itcObjGraph {self} {
     button $tab_graph.r.zoom.decr.5 -text "-5" -width 2 -padx 1 -pady 0 -command "[namespace parent]::Zoom $self -5" -font [list helvetica 6]
     pack $tab_graph.r.zoom.decr.1 $tab_graph.r.zoom.decr.5 -side left
 
-    [namespace parent]::UpdateGraph $self
+    # Zoom with the mousewheel
+    bind $plot <Button-4> "[namespace parent]::Zoom $self 1"
+    bind $plot <Button-5> "[namespace parent]::Zoom $self -1"
 
-    # TODO: zoom to a better level depending on the size of the matrix and the space available
-    [namespace parent]::Zoom $self -5
+    # Update and fit graph
+    [namespace parent]::UpdateGraph $self
+    [namespace parent]::FitGraph $self
   }
 }
 
@@ -362,9 +363,11 @@ proc itrajcomp::UpdateGraph {self} {
     frames {
       set ${self}::graph_opts(header1) "mol"
       set ${self}::graph_opts(header2) "frame"
+      set ${self}::graph_opts(format_key) "%3d %3d"
       [namespace current]::GraphFrames $self
     }
     segments {
+      set ${self}::graph_opts(format_key) "%3d %3s"
       switch [set ${self}::opts(segment)] {
 	byres {
 	  set ${self}::graph_opts(header1) "residue"
@@ -381,7 +384,29 @@ proc itrajcomp::UpdateGraph {self} {
   }
   
   [namespace current]::UpdateScale $self
+}
 
+
+proc itrajcomp::FitGraph {self} {
+  # Fit graph by zooming
+
+  set plot [set ${self}::plot]
+  lassign [$plot bbox all] x1 y1 widthP heightP
+  set widthC [$plot cget -width]
+  set heightC [$plot cget -height]
+  set factor 0
+  if {$widthP < $widthC} {
+    set factor [expr {int($widthC/$widthP)}]
+  }
+  if {$heightP < $heightC} {
+    set factor2 [expr {int($heightC/$heightP)}]
+    if {$factor2 < $factor} {
+      set factor $factor2
+    }
+  }
+  if {$factor} {
+    [namespace current]::Zoom $self $factor
+  }
 }
 
 
@@ -493,32 +518,26 @@ proc itrajcomp::ViewData {self} {
 proc itrajcomp::StatDescriptive {self} {
   # Create window to view statistics
   array set data [array get ${self}::data]
-  array set graph_opts [array get ${self}::graph_opts]
 
-  # Mean
-  set mean 0.0
-  foreach mykey [array names data] {
-    set mean [expr {$mean + $data($mykey)}]
+  set values {}
+  foreach key [array names data] {
+    lappend values $data($key)
   }
-  set mean [expr {$mean / double([array size data] - 1)}]
+  lassign [[namespace current]::stats $values] mean std min max
 
-  # Std
-  set sd 0.0
-  foreach mykey [array names data] {
-    set temp [expr {$data($mykey) - $mean}]
-    set sd [expr {$sd + $temp*$temp}]
-  }
-  set sd [expr {sqrt($sd / double([array size data] - 1))}]
-
-  set mean [format "$graph_opts(format_data)" $mean]
-  set sd [format "$graph_opts(format_data)" $sd]
-  # TODO: use itrajcomp:stats
-
+  lassign [[namespace current]::_format f] format_data format_scale
+  set mean [format "$format_data" $mean]
+  set std  [format "$format_data" $std]
+  set min  [format "$format_data" $min]
+  set max  [format "$format_data" $max]
+  
   tk_messageBox -title "$self Stats"  -parent [set ${self}::win_obj] -message \
     "Descriptive statistics
-----------------------
-Mean: $mean
- Std: $sd
+----------------------------------------
+Mean:\t$mean
+Std:\t$std
+Min:\t$min
+Max:\t$max
 
 "
 
@@ -530,11 +549,22 @@ proc itrajcomp::Zoom {self zoom} {
   set grid [set ${self}::grid]
   set plot [set ${self}::plot]
 
+  set maxzoom 40
+  set minzoom 1
+
   if {$zoom < 0} {
-    if {$grid <= 1} return
+    if {[expr {$grid+$zoom}] < $minzoom} {
+      set zoom [expr {$minzoom - $grid}]
+    }
+
   } elseif {$zoom > 0} {
-    if {$grid >= 20} return
-  } else {
+    if {[expr {$grid+$zoom}] > $maxzoom} {
+      set zoom [expr {$maxzoom - $grid}]
+    }
+  }
+  if {$zoom == 0} {
+    set tab_graph [set ${self}::tab_graph]
+    [namespace current]::flash_widget $tab_graph.r.zoom.val
     return
   }
 
@@ -544,6 +574,14 @@ proc itrajcomp::Zoom {self zoom} {
 
   set factor [expr {$grid/$old}]
   $plot scale all 0 0 $factor $factor
+
+  # Update scrollbars
+  set bbox [$plot bbox all]
+  if {[llength $bbox]} {
+    $plot configure -scrollregion $bbox
+  } else {
+    $plot configure -scrollregion [list 0 0 [expr {[winfo width $plot]}] [expr {[winfo height $plot]}]]
+  }
 }
 
 
@@ -612,7 +650,7 @@ proc itrajcomp::AddConnect {self key} {
 
   for {set i 0} {$i < [llength $mols]} {incr i} {
     set m [lindex $mols $i]
-    # TODO: move the color of graphics to a common place, so that we don't create a graphics object each time
+    # TODO: use same color as in the cell
     graphics $m color 4
   
     switch [set ${self}::opts(segment)] {
@@ -626,6 +664,7 @@ proc itrajcomp::AddConnect {self key} {
       }
     }
 
+    # TODO: connect_all
 #    if {[set ${self}::connect_all] == 1} {
       set molframes [lindex $frames $i]
 #    } else {
@@ -1113,7 +1152,6 @@ proc itrajcomp::help_keys {self} {
 
 proc itrajcomp::RepList {self} {
   # Print list of representations (for debuggin purposes)
-  # TODO: not use, remove? or move to a debugging proc
   array set map_active [array get ${self}::map_active]
   array set rep_list [array get ${self}::rep_list]
   array set rep_num [array get ${self}::rep_num]
@@ -1139,6 +1177,8 @@ proc itrajcomp::UpdateScale {self} {
   set min [set ${self}::min]
   set max [set ${self}::max]
 
+  set format_scale $graph_opts(format_scale)
+
   set sc_h [winfo height $scale]
   set sc_w [winfo width $scale]
   set offset 10.
@@ -1153,7 +1193,7 @@ proc itrajcomp::UpdateScale {self} {
   set c_h [expr {($sc_h-2*$offset)/$c_n}]
 
   set int 0
-  if {[string index $graph_opts(format_scale) [expr {[string length $graph_opts(format_scale)]-1}] ] == "i"} {
+  if {[string index $format_scale [expr {[string length $format_scale]-1}] ] == "i"} {
     set int 1
   }
 
@@ -1201,7 +1241,7 @@ proc itrajcomp::UpdateScale {self} {
       set newval $val
     }
     $scale create line [expr {$sc_w-5}] $y $c_w $y
-    $scale create text [expr {$sc_w-10}] $y -text [format $graph_opts(format_scale) $newval] -anchor e -font [list helvetica 7 normal] -tag "line$val"
+    $scale create text [expr {$sc_w-10}] $y -text [format $format_scale $newval] -anchor e -font [list helvetica 7 normal] -tag "line$val"
     $scale bind "line$val" <B2-ButtonRelease> "[namespace current]::MapCluster2 $self $val -1 1"
     $scale bind "line$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
     set val [expr {$val+ $l_inc}]

@@ -6,7 +6,30 @@ echo "Packing version ${version:?}"
 plugin=itrajcomp
 dir=$plugin
 tar=$plugin-v$version.tgz
-files=( pkgIndex.tcl README.txt maingui.tcl buttonbar.tcl utils.tcl object.tcl save.tcl load.tcl combine.tcl gui.tcl standard.tcl user.tcl frames.tcl segments.tcl rmsd.tcl covar.tcl dist.tcl contacts.tcl hbonds.tcl labels.tcl rgyr.tcl )
+files=(
+README.txt
+buttonbar.tcl
+#clustering.tcl
+combine.tcl
+contacts.tcl
+covar.tcl
+dist.tcl
+frames.tcl
+gui.tcl
+hbonds.tcl
+labels.tcl
+load.tcl
+maingui.tcl
+object.tcl
+pkgIndex.tcl
+rgyr.tcl
+rmsd.tcl
+save.tcl
+segments.tcl
+standard.tcl
+user.tcl
+utils.tcl
+)
 
 for f in ${files[@]}; do
     if [ ! -r $f ]; then

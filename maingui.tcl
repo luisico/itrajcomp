@@ -35,7 +35,7 @@ namespace eval itrajcomp {
   
   global env
   variable open_format_list [list tab matrix plotmtv plotmtv_binary]
-  variable save_format_list [list tab matrix plotmtv plotmtv_binary postscript]
+  variable save_format_list [list tab tab_raw matrix plotmtv plotmtv_binary postscript]
 
   # TODO: tmpdir not used
   variable tmpdir
@@ -284,6 +284,12 @@ proc itrajcomp::AddCalc {type {description ""} {script ""} {help ""}} {
   grid $tab_calc.type.${type}_n -row $calc_id -column 1 -sticky nw
   grid $tab_calc.type.${type}_d -row $calc_id -column 2 -sticky nw
 
+  # Default options
+  variable calc_${type}_opts
+  array set calc_${type}_opts {
+    force_samemols 0
+  }
+  
   # Options
   if {[llength [info procs "calc_${type}_options"]]} {
     variable calc_${type}_frame [frame $tab_calc.opt.$type]
@@ -308,7 +314,6 @@ proc itrajcomp::TabCalcUpdate {} {
   # Refresh the tab for calculations
   variable tab_calc
   variable calctype
-  variable samemols
   
   foreach opt [winfo children $tab_calc.opt] {
     if {[winfo name $opt] == "general"} {
@@ -319,6 +324,12 @@ proc itrajcomp::TabCalcUpdate {} {
     } else {
       pack $opt -side top -anchor nw
     }
+  }
+
+  # Turn on samemols if requested
+  variable calc_${calctype}_opts
+  if {[set "calc_${calctype}_opts(force_samemols)"]} {
+    [namespace current]::Samemols on
   }
 
   # Some user specifics
@@ -332,7 +343,6 @@ proc itrajcomp::SwitchSamemols {} {
   # Switch selection 2
   variable samemols
   
-  # TODO: if calctype is dist or covar, 'same mols' cannot be activated
   set status "off"
   if {$samemols} {
     set status "on"
@@ -346,9 +356,17 @@ proc itrajcomp::Samemols {status} {
   variable samemols
   variable tab_sel
   variable win_main
+  variable calctype
+  variable calc_${calctype}_opts
 
   set old_status $samemols
   if {$status == off} {
+    if {[set "calc_${calctype}_opts(force_samemols)"]} {
+      set samemols 1
+      set vn [package present itrajcomp]
+      tk_messageBox -title "iTrajComp v$vn - Warning" -parent .itrajcomp -message "The current calculation type ($calctype) requires same selections"
+      return
+    }
     set state "normal"
     set samemols 0
   } else {
@@ -362,12 +380,11 @@ proc itrajcomp::Samemols {status} {
     } msg
   }
 
-  # Flass the Selection tab to let the user know samemols changed
+  # Flash the Selection tab to let the user know samemols changed
   if {$samemols != $old_status} {
-    set oldcolor [$win_main.menubar.tabs.c.sel cget -activebackground]
-    $win_main.menubar.tabs.c.sel configure -activebackground "yellow"
-    $win_main.menubar.tabs.c.sel flash
-    $win_main.menubar.tabs.c.sel configure -activebackground $oldcolor
+    [namespace current]::flash_widget $win_main.menubar.tabs.c.sel
+    variable tab_sel
+    [namespace current]::highlight_widget $tab_sel.same 5000
   }
 }
 
@@ -410,26 +427,19 @@ proc itrajcomp::Status {txt} {
 }
 
 
-proc itrajcomp::ClearStatus {} {
-  # TODO: this is not use anywhere
-  after 1000 "[namespace current]::Status {}"
-  after 1000 "[namespace current]::ProgressBar 1 0"
-}
-
-
 proc itrajcomp::NewObject {} {
   # Initialize an object
   # TODO: move to object?
 
   variable calctype
+  
+  # update GUI in to check compatibility of options
+  [namespace current]::TabCalcUpdate
 
   # Create new object
   set obj [eval [namespace current]::Objnew ":auto"]
 
   # Pass sel options
-  if {[llength [info procs "calc_${calctype}_options_update"]]} {
-    [namespace current]::calc_${calctype}_options_update
-  }
   set temp [[namespace current]::SelOptions]
   if {$temp == -1} {
     return -code return
@@ -444,7 +454,9 @@ proc itrajcomp::NewObject {} {
   # Pass datatypes
   variable calc_${calctype}_datatype
   array set datatype [array get calc_${calctype}_datatype]
-  # Todo: set a default mode in case is not given by user.
+  if {![info exists datatype(mode)]} {
+    set datatype(mode) "single"
+  }
   switch $datatype(mode) {
     single {
       set datatype(sets) [list $calctype]
@@ -470,7 +482,8 @@ proc itrajcomp::NewObject {} {
   variable calc_${calctype}_graph
   array set graph_opts {
     type ""
-    format_data "" format_key "" format_scale ""
+    formats "f" format_key ""
+    format_data "" format_scale ""
     rep_style1 NewRibbons
     rep_color1 Molecule
     rep_colorid1 0
@@ -489,7 +502,6 @@ proc itrajcomp::NewObject {} {
   # Create the new graph
   [namespace current]::Status "Creating graph for $obj ..."
   [namespace current]::itcObjGui $obj
-  #  [namespace current]::ClearStatus
 }
 
 
