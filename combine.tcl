@@ -44,10 +44,12 @@ proc itrajcomp::Combine {} {
 
   frame $c.obj.list
   pack $c.obj.list -side top -anchor w
-  listbox $c.obj.list.l -selectmode extended -exportselection no -height 5 -width 20 -yscrollcommand "$c.obj.list.scy set"
+  listbox $c.obj.list.l -selectmode single -exportselection no -height 5 -width 20 -yscrollcommand "$c.obj.list.scy set"
   scrollbar $c.obj.list.scy -orient vertical -command "$c.obj.list.l yview"
   pack $c.obj.list.l -side left -anchor w 
   pack $c.obj.list.scy -side left -anchor w -fill y
+  
+  bind $c.obj.list.l <Double-Button-1> "[namespace current]::CombineSel %W"
 
   frame $c.formula
   pack $c.formula -side top -anchor w
@@ -62,16 +64,29 @@ proc itrajcomp::Combine {} {
   CombineUpdate $c.obj.list.l
 }
 
+
+proc itrajcomp::CombineSel {widget} {
+  # Add selected object to the formula
+  variable c
+
+  set sel [$widget curselection]
+  set obj [$widget get $sel]
+  set num [string trim $obj {itcObj}]
+  puts "$sel - $obj - $num"
+  $c.formula.e insert insert "\$$num"
+}
+
+
 proc itrajcomp::CombineUpdate {widget} {
   # Update the list of object to combine
-  variable combobj
+  #  variable combobj
 
   $widget selection set 0 end
   foreach i [lsort -integer -decreasing [$widget curselection]] {
     $widget delete 0 $i
   }
   
-  set combobj {}
+  #  set combobj {}
   foreach obj [[namespace current]::Objlist] {
     set name [namespace tail $obj]
     set num [string trim $name {itcObj}]
@@ -81,12 +96,12 @@ proc itrajcomp::CombineUpdate {widget} {
   foreach num [lsort -integer [array names objects]] {
     set name $objects($num)
     $widget insert end "$name"
-    lappend combobj $num
+    #    lappend combobj $num
   }
 }
 
 proc itrajcomp::Objcombine {formula} {
-  variable combobj
+  #  variable combobj
 
   #puts "FORMULA: $formula"
   set line $formula
@@ -126,8 +141,8 @@ proc itrajcomp::Objcombine {formula} {
     set test [set $self($s0)::$check]
     for {set i 1} {$i < [llength $selflist]} {incr i} {
       if {[set $self([lindex $selflist $i])::$check] != $test} {
-	tk_messageBox -title "Warning" -message "$check is not the same among the objects, cannot combine objects" -type ok
-	return
+        tk_messageBox -title "Warning" -message "$check is not the same among the objects, cannot combine objects" -type ok
+        return
       }
     }
   }
@@ -150,7 +165,7 @@ proc itrajcomp::Objcombine {formula} {
   # datatype
   set ${obj}::datatype(mode) "single"
   set ${obj}::datatype(sets) "combined"
- 
+  
   # opts
   set ${obj}::opts(type) "combine"
   set ${obj}::opts(diagonal) [set $self($s0)::opts(diagonal)]
@@ -195,4 +210,5 @@ proc itrajcomp::Objcombine {formula} {
   [namespace current]::PrepareData $obj
   [namespace current]::Status "Creating graph for $obj ..."
   [namespace current]::itcObjGui $obj
+  [namespace current]::UpdateRes
 }

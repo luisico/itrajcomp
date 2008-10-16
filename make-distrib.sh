@@ -42,6 +42,6 @@ done
 cd ../
 tar zcvf $tar $dirfiles
 mv $tar $dir/versions
-chmod go+rX $dir/versions/$tar
+chmod 644 $dir/versions/$tar
 cd $dir
 

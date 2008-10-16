@@ -71,10 +71,10 @@ proc itrajcomp::loadData {file format} {
     regsub {\s+$}       $line ""  line
     #puts "temp $line"
     if {[regexp {^\#\*\s*(\w+)} $line junk section]} {
-#      set section $section
+      #      set section $section
       puts "SECTION $section"
     } elseif {[regexp {^\#\s*(\w+)\s+(.*)} $line junk key val]} {
-#      puts "$key --> $val"
+      #      puts "$key --> $val"
       set ${section}($key) $val
       set offset [tell $fid]
     } else {

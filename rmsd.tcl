@@ -38,13 +38,14 @@ proc itrajcomp::calc_rmsd {self} {
 
 proc itrajcomp::calc_rmsd_prehook1 {self} {
   if {[set ${self}::opts(align)]} {
-    [set ${self}::move_sel] [atomselect [set ${self}::i] "all"]
+    # FIXME: as workaround this code was moved to frames.tcl
+    #set ${self}::move_sel [atomselect [set ${self}::i] "all"]
   }
 }
 
 proc itrajcomp::calc_rmsd_prehook2 {self} {
   if {[set ${self}::opts(align)]} {
-    [set ${self}::move_sel] frame $j
+    [set ${self}::move_sel] frame [set ${self}::j]
   }
 }
 
@@ -52,7 +53,7 @@ proc itrajcomp::calc_rmsd_hook {self} {
   variable fast_rmsd
 
   if {[set ${self}::opts(align)]} {
-    set tmatrix [measure fit $s1 $s2]
+    set tmatrix [measure fit [set ${self}::s1] [set ${self}::s2]]
     [set ${self}::move_sel] move $tmatrix
   }
   if {$fast_rmsd} {

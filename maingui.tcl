@@ -63,10 +63,15 @@ proc itrajcomp::init {} {
     wm deiconify $win_main
     return
   }
-  
+
+  # GUI look
+  option add *itrajcomp.*borderWidth 1
+  option add *itrajcomp.*Button.padY 0
+  option add *itrajcomp.*Menubutton.padY 0
+
   # Create the main window
   set win_main [toplevel .itrajcomp]
-#  catch {destroy $win_main}
+  #  catch {destroy $win_main}
   wm title $win_main "iTrajComp"
   wm iconname $win_main "iTrajComp" 
   wm resizable $win_main 1 0
@@ -96,8 +101,7 @@ proc itrajcomp::init {} {
   [namespace current]::TabCalc $menubar
 
   # Results tab
-  buttonbar::add $menubar res
-  buttonbar::name $menubar res "Results"
+  [namespace current]::TabRes $menubar
 
   # Update GUI
   #-----------
@@ -157,7 +161,7 @@ proc itrajcomp::TabSel {w} {
 
   variable tab_sel [buttonbar::add $w sel]
   buttonbar::name $w sel "Selection"
- 
+  
   # Set 1
   [namespace current]::SelWidget $tab_sel 1
 
@@ -260,6 +264,101 @@ proc itrajcomp::TabCalc {w} {
   # Add calc types
   [namespace current]::AddStandardCalc
   [namespace current]::AddUserCalc
+}
+
+
+proc itrajcomp::TabRes {w} {
+  # Results tab
+  variable tab_res [buttonbar::add $w res]
+  buttonbar::name $w res "Results"
+
+  variable dataframe [frame $tab_res.dataframe -relief ridge -bd 2]
+  pack $dataframe -side top -fill both -expand yes
+
+  grid columnconfigure $dataframe 3 -weight 2
+  grid columnconfigure $dataframe 4 -weight 2
+  grid rowconfigure    $dataframe 1 -weight 1
+
+  label $dataframe.header_id    -text "Id"         -width 2  -relief sunken
+  label $dataframe.header_state -text "S"          -width 1  -relief sunken
+  label $dataframe.header_type  -text "Type"       -width 10 -relief sunken
+  label $dataframe.header_opts  -text "Options"    -width 20 -relief sunken
+  label $dataframe.header_sel   -text "Selections" -width 20 -relief sunken
+  grid $dataframe.header_id    -column 0 -row 0
+  grid $dataframe.header_state -column 1 -row 0
+  grid $dataframe.header_type  -column 2 -row 0 -sticky we
+  grid $dataframe.header_opts  -column 3 -row 0 -sticky we
+  grid $dataframe.header_sel   -column 4 -row 0 -sticky we
+
+  variable datalist
+  set datalist(id)    [listbox $dataframe.body_id    -width 2  -height 10 -relief sunken -exportselection 0 -yscrollcommand [namespace current]::dataframe_yset -selectmode extended]
+  set datalist(state) [listbox $dataframe.body_state -width 1  -height 10 -relief sunken -exportselection 0 -yscrollcommand [namespace current]::dataframe_yset -selectmode extended]
+  set datalist(type)  [listbox $dataframe.body_type  -width 10 -height 10 -relief sunken -exportselection 0 -yscrollcommand [namespace current]::dataframe_yset -selectmode extended]
+  set datalist(opts)  [listbox $dataframe.body_opts  -width 20 -height 10 -relief sunken -exportselection 0 -yscrollcommand [namespace current]::dataframe_yset -selectmode extended]
+  set datalist(sel)   [listbox $dataframe.body_sel   -width 20 -height 10 -relief sunken -exportselection 0 -yscrollcommand [namespace current]::dataframe_yset -selectmode extended]
+  grid $dataframe.body_id    -column 0 -row 1 -sticky ns
+  grid $dataframe.body_state -column 1 -row 1 -sticky ns
+  grid $dataframe.body_type  -column 2 -row 1 -sticky nswe
+  grid $dataframe.body_opts  -column 3 -row 1 -sticky nswe
+  grid $dataframe.body_sel   -column 4 -row 1 -sticky nswe
+
+  bind $dataframe.body_state <Double-Button-1> "[namespace current]::dataframe_mapper %W"
+
+  foreach key [array names datalist] {
+    bind $dataframe.body_$key <<ListboxSelect>> "[namespace current]::dataframe_sel %W"
+  }
+
+
+  # Scrollbar
+  scrollbar $dataframe.scrbar -orient vert -command [namespace current]::dataframe_yview
+  grid $dataframe.scrbar -column 5 -row 0 -rowspan 3 -sticky ns
+
+  [namespace current]::UpdateRes
+}
+
+
+proc itrajcomp::UpdateRes {} {
+  variable datalist
+  variable dataframe
+
+  # Empty table
+  foreach v [array names datalist] {
+    $datalist($v) delete 0 end
+  }
+
+  # Fill table in order
+  foreach obj [[namespace current]::Objlist] {
+    set name [namespace tail $obj]
+    set num [string trim $name {itcObj}]
+    set objects($num) $name
+  }
+
+  foreach num [lsort -integer [array names objects]] {
+    set name $objects($num)
+    set window ".${name}_main"
+    $datalist(id) insert end "$num"
+    case [wm state $window] {
+      iconic {
+        set state .
+      }
+      normal {
+        set state S
+      }
+      withdrawn {
+        set state -
+      }
+      default {
+        set state ?
+      }
+    }
+    $datalist(state) insert end $state
+    $datalist(type) insert end [set ${name}::opts(type)]
+    $datalist(opts) insert end [[namespace current]::concat_opts $name]
+    $datalist(sel) insert end "([set ${name}::sets(mol1_def)], [set ${name}::sets(frame1_def)]), ([set ${name}::sets(mol2_def)], [set ${name}::sets(frame2_def)])"
+  }
+
+  [namespace current]::dataframe_color
+
 }
 
 
@@ -466,9 +565,9 @@ proc itrajcomp::NewObject {} {
     }
     dual {
       if {[info exists datatype(ascii)] && $datatype(ascii) == 1} {
-	set datatype(sets) [list $calctype]
+        set datatype(sets) [list $calctype]
       } else {
-	set datatype(sets) [list $calctype avg std min max]
+        set datatype(sets) [list $calctype avg std min max]
       }
     }
   }
@@ -502,6 +601,9 @@ proc itrajcomp::NewObject {} {
   # Create the new graph
   [namespace current]::Status "Creating graph for $obj ..."
   [namespace current]::itcObjGui $obj
+  
+  # Update results table
+  [namespace current]::UpdateRes
 }
 
 
@@ -563,16 +665,16 @@ proc itrajcomp::SelOptions {} {
   set sel2 [ParseSel [$tab_sel.mol2.a.sel get 1.0 end] $selmod2]
 
   return [list\
-	    mol1 $mol1       mol1_def $mol1_def\
-	    frame1 $frame1   frame1_def $frame1_def\
-	    mol2 $mol2       mol2_def $mol2_def\
-	    frame2 $frame2   frame2_def $frame2_def\
-	    sel1 $sel1\
-	    sel2 $sel2\
-	    rep_sel1 $sel1\
-	    mol_all $mol_all\
-	    samemols $samemols
-	 ]
+            mol1 $mol1       mol1_def $mol1_def\
+            frame1 $frame1   frame1_def $frame1_def\
+            mol2 $mol2       mol2_def $mol2_def\
+            frame2 $frame2   frame2_def $frame2_def\
+            sel1 $sel1\
+            sel2 $sel2\
+            rep_sel1 $sel1\
+            mol_all $mol_all\
+            samemols $samemols
+         ]
 }
 
 

@@ -59,35 +59,35 @@ proc itrajcomp::GraphSegments {self} {
       set rep_num($key1) 0
       set offy 0
       for {set k 0} {$k < $nsegments} {incr k} {
-	set key2 "[lindex $segments(number) $k]:$part2([lindex $segments(number) $k])"
-	set rep_list($key2) {}
-	set rep_num($key2) 0
-	set key "$key1,$key2"
-	#puts -nonewline "$key "
-	if {![info exists data($key)]} {
-	  #puts ""
-	  continue
-	}
-	set x [expr {($i+$offx)*($grid+$width)}]
-	set y [expr {($k+$offy)*($grid+$width)}]
-	set map_active($key) 0
-	set colors($key) [[namespace parent]::ColorScale $data($key) $max $min 1.0]
-	set colors_act($key) [[namespace parent]::ColorScale $data($key) $max $min 0.40 1.0]
-	#puts "-> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
-	$plot create rectangle $x $y [expr {$x+$grid}] [expr {$y+$grid}] -fill $colors($key) -outline $colors($key) -tag $key -width $width
-	
-	$plot bind $key <Enter>            "[namespace parent]::ShowPoint $self $key $data($key) 1"
-	$plot bind $key <B1-ButtonRelease>  "[namespace parent]::MapPoint $self $key $data($key)" 
-	$plot bind $key <B2-ButtonRelease>  "[namespace parent]::ExplorePoint $self $key" 
-	$plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  0"
-	$plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0 -1"
-	$plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  1"
-	$plot bind $key <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  0  0"
-	$plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $key -1  0"
-	$plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  1  0"
+        set key2 "[lindex $segments(number) $k]:$part2([lindex $segments(number) $k])"
+        set rep_list($key2) {}
+        set rep_num($key2) 0
+        set key "$key1,$key2"
+        #puts -nonewline "$key "
+        if {![info exists data($key)]} {
+          #puts ""
+          continue
+        }
+        set x [expr {($i+$offx)*($grid+$width)}]
+        set y [expr {($k+$offy)*($grid+$width)}]
+        set map_active($key) 0
+        set colors($key) [[namespace parent]::ColorScale $data($key) $max $min 1.0]
+        set colors_act($key) [[namespace parent]::ColorScale $data($key) $max $min 0.40 1.0]
+        #puts "-> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
+        $plot create rectangle $x $y [expr {$x+$grid}] [expr {$y+$grid}] -fill $colors($key) -outline $colors($key) -tag $key -width $width
+        
+        $plot bind $key <Enter>                    "[namespace parent]::ShowPoint $self $key $data($key) 1"
+        $plot bind $key <B1-ButtonRelease>      	 "[namespace parent]::MapPoint $self $key $data($key)" 
+        $plot bind $key <B2-ButtonRelease>         "[namespace parent]::ExplorePoint $self $key" 
+        $plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  0"
+        $plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0 -1"
+        $plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  1"
+        $plot bind $key <Control-B1-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  0  0"
+        $plot bind $key <Control-B2-ButtonRelease> "[namespace parent]::MapCluster2 $self $key -1  0"
+        $plot bind $key <Control-B3-ButtonRelease> "[namespace parent]::MapCluster2 $self $key  1  0"
 
-	incr count
-	[namespace parent]::ProgressBar $count $maxkeys
+        incr count
+        [namespace parent]::ProgressBar $count $maxkeys
       }
       set offy [expr {$offy+$k}]
       
@@ -122,20 +122,20 @@ proc itrajcomp::LoopSegments {self} {
       #-> prehook1
       [namespace parent]::calc_$opts(type)_prehook1 $self
       for {set reg2 0} {$reg2 < $nreg} {incr reg2} {
-	set k [lindex $segments(number) $reg2]
-	set l [lindex $segments(name) $reg2]
-	set key2 "$k:$l"
-	#-> prehook2
-	[namespace parent]::calc_$opts(type)_prehook2 $self
-	if {[info exists data0($key2,$key1)]} {
-	  continue
-	} else {
-	  #-> hook
-	  set data0($key1,$key2) [[namespace parent]::calc_$opts(type)_hook $self]
-	  #puts "$i $k , $key1 $key2 , $data0($key1,$key2)"
-	  incr count
-	  [namespace parent]::ProgressBar $count $maxkeys
-	}
+        set k [lindex $segments(number) $reg2]
+        set l [lindex $segments(name) $reg2]
+        set key2 "$k:$l"
+        #-> prehook2
+        [namespace parent]::calc_$opts(type)_prehook2 $self
+        if {[info exists data0($key2,$key1)]} {
+          continue
+        } else {
+          #-> hook
+          set data0($key1,$key2) [[namespace parent]::calc_$opts(type)_hook $self]
+          #puts "$i $k , $key1 $key2 , $data0($key1,$key2)"
+          incr count
+          [namespace parent]::ProgressBar $count $maxkeys
+        }
       }
     }
 
@@ -157,15 +157,15 @@ proc itrajcomp::DefineSegments {self} {
   namespace eval [namespace current]::${self}:: {
     switch $opts(segment) {
       byres {
-	set segments(number) [lsort -unique -integer [[atomselect [lindex $sets(mol_all) 0] $sets(sel1)] get residue]]
-	set segments(name) {}
-	foreach r $segments(number) {
-	  lappend segments(name) [string totitle [lindex [[atomselect [lindex $sets(mol_all) 0] "residue $r"] get resname] 0]]
-	}
+        set segments(number) [lsort -unique -integer [[atomselect [lindex $sets(mol_all) 0] $sets(sel1)] get residue]]
+        set segments(name) {}
+        foreach r $segments(number) {
+          lappend segments(name) [string totitle [lindex [[atomselect [lindex $sets(mol_all) 0] "residue $r"] get resname] 0]]
+        }
       }
       byatom {
-	set segments(number) [[atomselect [lindex $sets(mol_all) 0] $sets(sel1)] get index]
-	set segments(name) [[atomselect [lindex $sets(mol_all) 0] $sets(sel1)] get name]
+        set segments(number) [[atomselect [lindex $sets(mol_all) 0] $sets(sel1)] get index]
+        set segments(name) [[atomselect [lindex $sets(mol_all) 0] $sets(sel1)] get name]
       }
     }
   }
@@ -176,30 +176,30 @@ proc itrajcomp::CoorSegments {self} {
   namespace eval [namespace current]::${self}:: {
     switch $opts(segment) {
       byres {
-	foreach r $segments(number) {
-	  #puts "DEBUG: seg $r"
-	  foreach i $sets(mol_all) {
-	    set s1 [atomselect $i "residue $r and ($sets(sel1))"]
-	    #puts "DEBUG: mol $i"
-	    foreach j [lindex $sets(frame1) [lsearch -exact $sets(mol_all) $i]] {
-	      $s1 frame $j
-	      #puts "DEBUG: frame $j"
-	      lappend coor($i:$j) [measure center $s1]
-	    }
-	  }
-	}
+        foreach r $segments(number) {
+          #puts "DEBUG: seg $r"
+          foreach i $sets(mol_all) {
+            set s1 [atomselect $i "residue $r and ($sets(sel1))"]
+            #puts "DEBUG: mol $i"
+            foreach j [lindex $sets(frame1) [lsearch -exact $sets(mol_all) $i]] {
+              $s1 frame $j
+              #puts "DEBUG: frame $j"
+              lappend coor($i:$j) [measure center $s1]
+            }
+          }
+        }
       }
       byatom {
-	foreach i $sets(mol_all) {
-	  set s1 [atomselect $i $sets(sel1)]
-	  #puts "DEBUG: mol $i"
-	  foreach j [lindex $sets(frame1) [lsearch -exact $sets(mol_all) $i]] {
-	    $s1 frame $j
-	    #puts "DEBUG: frame $j"
-	    set coor($i:$j) [$s1 get {x y z}]
-	    #puts "DEBUG: coor $coor($i:$j)"
-	  }
-	}
+        foreach i $sets(mol_all) {
+          set s1 [atomselect $i $sets(sel1)]
+          #puts "DEBUG: mol $i"
+          foreach j [lindex $sets(frame1) [lsearch -exact $sets(mol_all) $i]] {
+            $s1 frame $j
+            #puts "DEBUG: frame $j"
+            set coor($i:$j) [$s1 get {x y z}]
+            #puts "DEBUG: coor $coor($i:$j)"
+          }
+        }
       }
     }
     #puts [array get coor]

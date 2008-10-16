@@ -57,7 +57,7 @@ proc ::itrajcomp::saveData {self {fileout ""} {format "tab"} {options ""}} {
       fconfigure $fileout_id
       # Binary needs this (http://wiki.tcl.tk/1180)
       if {$format eq "plotmtv_binary"} {
-	fconfigure $fileout_id -translation binary
+        fconfigure $fileout_id -translation binary
       }
     } else {
       set fileout_id stdout
@@ -71,10 +71,10 @@ proc ::itrajcomp::saveData {self {fileout ""} {format "tab"} {options ""}} {
       close $fileout_id
       # TODO: move this to the plotmtv code?
       if {$format eq "plotmtv" || $format eq "plotmtv_binary"} {
-	set status [catch {exec plotmtv $fileout &} msg]
-	if { $status } {
-	  tk_messageBox -title "Warning" -message "Could not open plotmtv\n\nError returned:\n $msg" -type ok -parent [set ${self}::win_obj]
-	} 
+        set status [catch {exec plotmtv $fileout &} msg]
+        if { $status } {
+          tk_messageBox -title "Warning" -message "Could not open plotmtv\n\nError returned:\n $msg" -type ok -parent [set ${self}::win_obj]
+        } 
       }
     } else {
       return $output
@@ -161,20 +161,20 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
     append output [format "%8s %8s   %8s %8s" "$graph_opts(header1)1" "$graph_opts(header2)1" "$graph_opts(header1)2" "$graph_opts(header2)2  "]
     switch $datatype(mode) {
       single {
-	append output [format " $fd" [lindex $datatype(sets) 0]]
+        append output [format " $fd" [lindex $datatype(sets) 0]]
       }
       multiple {
-	set ndata [llength $data([lindex $keys 0])]
-	for {set i 0} {$i < $ndata} {incr i} {
-	  append output [format " $fd" "val$i"]
-	}
+        set ndata [llength $data([lindex $keys 0])]
+        for {set i 0} {$i < $ndata} {incr i} {
+          append output [format " $fd" "val$i"]
+        }
       }
       dual {
-	append output [format " $fd" [lindex $datatype(sets) 0]]
-	set ndata [llength [lindex $data([lindex $keys 0]) 1]]
-	for {set i 0} {$i < $ndata} {incr i} {
-	  append output [format " $fd" "val$i"]
-	}
+        append output [format " $fd" [lindex $datatype(sets) 0]]
+        set ndata [llength [lindex $data([lindex $keys 0]) 1]]
+        for {set i 0} {$i < $ndata} {incr i} {
+          append output [format " $fd" "val$i"]
+        }
       }
     }
     append output "\n"
@@ -187,22 +187,22 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
       set l [lindex $indices 3]
       append output [format "%8s %8s   %8s %8s  " $i $j $k $l]
       switch $datatype(mode) {
-	single {
-	  append output [format " $graph_opts(format_data)" $data($key)]
-	}
-	multiple {
-	  for {set i 0} {$i < $ndata} {incr i} {
-	    append output [format " $graph_opts(format_data)" [lindex $data($key) $i]]
-	  }
-	}
-	dual {
-	  append output [format " $graph_opts(format_data)" [lindex $data($key) 0]]
-	  set values [lindex $data($key) 1]
-	  puts $values
-	  foreach val $values {
-	    append output [format " $graph_opts(format_data)" $val]
-	  }
-	}
+        single {
+          append output [format " $graph_opts(format_data)" $data($key)]
+        }
+        multiple {
+          for {set i 0} {$i < $ndata} {incr i} {
+            append output [format " $graph_opts(format_data)" [lindex $data($key) $i]]
+          }
+        }
+        dual {
+          append output [format " $graph_opts(format_data)" [lindex $data($key) 0]]
+          set values [lindex $data($key) 1]
+          puts $values
+          foreach val $values {
+            append output [format " $graph_opts(format_data)" $val]
+          }
+        }
       }
       append output "\n"
     }
@@ -224,7 +224,7 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
       set l [lindex $indices 3]
       append output [format "%8s %8s   %8s %8s  " $i $j $k $l [lindex $data($key) $data_index]]
       for {set s 0} {$s < [llength $datatype(sets)]} {incr s} {
-	append output [format " $graph_opts(format_data)" [lindex $data($key) $s]]
+        append output [format " $graph_opts(format_data)" [lindex $data($key) $s]]
       }
       append output "\n"
     }
@@ -306,39 +306,39 @@ proc itrajcomp::create_matrix {self} {
   switch [set ${self}::graph_opts(type)] {
     frames {
       for {set i 0} {$i < [llength $sets(mol1)]} {incr i} {
-	set f1 [lindex $sets(frame1) $i]
-	for {set j 0} { $j < [llength $f1]} {incr j} {
-	  incr nx
-	  for {set k 0} {$k < [llength $sets(mol2)]} {incr k} {
-	    set f2 [lindex $sets(frame2) $k]
-	    for {set l 0} { $l < [llength $f2]} {incr l} {
-	      lappend vals [lindex $data($i:$j,$k:$l) $data_index]
-	      if {$nx == 1} {
-		incr ny
-	      }
-	    }
-	  }
-	}
+        set f1 [lindex $sets(frame1) $i]
+        for {set j 0} { $j < [llength $f1]} {incr j} {
+          incr nx
+          for {set k 0} {$k < [llength $sets(mol2)]} {incr k} {
+            set f2 [lindex $sets(frame2) $k]
+            for {set l 0} { $l < [llength $f2]} {incr l} {
+              lappend vals [lindex $data($i:$j,$k:$l) $data_index]
+              if {$nx == 1} {
+                incr ny
+              }
+            }
+          }
+        }
       }
     }
     segments {
       foreach key $keys {
-	lassign [split $key ,:] i j k l
-	set part2($i) $j
-	set part2($k) $l
+        lassign [split $key ,:] i j k l
+        set part2($i) $j
+        set part2($k) $l
       }
       array set segments [array get ${self}::segments]
       set nsegments [llength $segments(number)]
       for {set i 0} {$i < $nsegments} {incr i} {
-	set key1 "[lindex $segments(number) $i]:$part2([lindex $segments(number) $i])"
-	incr nx
-	for {set k 0} {$k < $nsegments} {incr k} {
-	  set key2 "[lindex $segments(number) $k]:$part2([lindex $segments(number) $k])"
-	  lappend vals [lindex $data($key1,$key2) $data_index]
-	  if {$nx == 1} {
-	    incr ny
-	  }
-	}
+        set key1 "[lindex $segments(number) $i]:$part2([lindex $segments(number) $i])"
+        incr nx
+        for {set k 0} {$k < $nsegments} {incr k} {
+          set key2 "[lindex $segments(number) $k]:$part2([lindex $segments(number) $k])"
+          lappend vals [lindex $data($key1,$key2) $data_index]
+          if {$nx == 1} {
+            incr ny
+          }
+        }
       }
     }
   }

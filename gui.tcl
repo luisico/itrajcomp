@@ -45,6 +45,8 @@ proc itrajcomp::itcObjGui {self} {
     set win_obj [toplevel ".${self}_main"]
 
     wm protocol $win_obj WM_DELETE_WINDOW "[namespace parent]::Destroy $self"
+    bind $win_obj <Unmap> "[namespace parent]::UpdateRes"
+    bind $win_obj <Map> "[namespace parent]::UpdateRes"
 
     # TODO: provide option to rename the window (dialog?)
     set title "$self: $opts(type)"
@@ -88,7 +90,7 @@ proc itrajcomp::itcObjGui {self} {
 
 proc itrajcomp::itcObjMenubar {self} {
   # Menu for an itcObj
-    
+  
   namespace eval [namespace current]::${self}:: {
     menubutton $menubar.file -text "File" -menu $menubar.file.menu -underline 0
     menu $menubar.file.menu -tearoff no
@@ -99,6 +101,7 @@ proc itrajcomp::itcObjMenubar {self} {
       $menubar.file.menu.saveas add command -label $as -command "[namespace parent]::SaveDataBrowse $self $as"
     }
     $menubar.file.menu add command -label "View" -command "[namespace parent]::ViewData $self" -underline 0
+    $menubar.file.menu add command -label "Hide" -command "wm withdraw .${self}_main" -underline 0
     $menubar.file.menu add command -label "Destroy" -command "[namespace parent]::Destroy $self" -underline 0
     pack $menubar.file -side left
     
@@ -233,9 +236,9 @@ proc itrajcomp::itcObjInfo {self} {
       grid $tab_info.mols.n$m -row $row -column 2 -sticky nw
 
       foreach file [eval concat [molinfo $m get filename]] {
-	label $tab_info.mols.f$m$row -text "$file"
-	grid $tab_info.mols.f$m$row -row $row -column 3 -sticky nw
-	incr row
+        label $tab_info.mols.f$m$row -text "$file"
+        grid $tab_info.mols.f$m$row -row $row -column 3 -sticky nw
+        incr row
       }
     }
   }
@@ -280,9 +283,9 @@ proc itrajcomp::itcObjGraph {self} {
       label $type_frame.l -text "Set:"
       pack $type_frame.l -side left -anchor nw
       for {set i 0} {$i < [llength $datatype(sets)]} {incr i} {
-	set t [lindex $datatype(sets) $i]
-	radiobutton $type_frame.$t -text $t -variable [namespace current]::data_index -value $i -command "[namespace parent]::TransformData $self copy 1"
-	pack $type_frame.$t -side left -anchor nw
+        set t [lindex $datatype(sets) $i]
+        radiobutton $type_frame.$t -text $t -variable [namespace current]::data_index -value $i -command "[namespace parent]::TransformData $self copy 1"
+        pack $type_frame.$t -side left -anchor nw
       }
     }
 
@@ -308,9 +311,9 @@ proc itrajcomp::itcObjGraph {self} {
     checkbutton $info_frame.mapdel -text "Del" -variable [namespace current]::map_del -command "set [namespace current]::map_add 0"
     pack $info_frame.mapdel -side left
     
-#    label $info_frame.high_label -text "Highlight:"
-#    entry $info_frame.high_entry -width 3 -textvariable [namespace current]::highlight
-#    pack $info_frame.high_label $info_frame.high_entry -side left
+    #    label $info_frame.high_label -text "Highlight:"
+    #    entry $info_frame.high_entry -width 3 -textvariable [namespace current]::highlight
+    #    pack $info_frame.high_label $info_frame.high_entry -side left
 
     # Scale
     labelframe $tab_graph.r.scale -text "Scale"
@@ -369,20 +372,19 @@ proc itrajcomp::UpdateGraph {self} {
     segments {
       set ${self}::graph_opts(format_key) "%3d %3s"
       switch [set ${self}::opts(segment)] {
-	byres {
-	  set ${self}::graph_opts(header1) "residue"
-	  set ${self}::graph_opts(header2) "resname"
-	  [namespace current]::GraphSegments $self
-	}
-	byatom {
-	  set ${self}::graph_opts(header1) "index"
-	  set ${self}::graph_opts(header2) "name"
-	  [namespace current]::GraphSegments $self
-	}
+        byres {
+          set ${self}::graph_opts(header1) "residue"
+          set ${self}::graph_opts(header2) "resname"
+          [namespace current]::GraphSegments $self
+        }
+        byatom {
+          set ${self}::graph_opts(header1) "index"
+          set ${self}::graph_opts(header2) "name"
+          [namespace current]::GraphSegments $self
+        }
       }
     }
   }
-  
   [namespace current]::UpdateScale $self
 }
 
@@ -430,7 +432,7 @@ proc itrajcomp::itcObjRep {self} {
       text $tab_rep.disp$x.sel.e -exportselection yes -height 2 -width 25 -wrap word
       $tab_rep.disp$x.sel.e insert end $sets(rep_sel$x)
       pack $tab_rep.disp$x.sel.e -side top -anchor w -expand yes -fill both
-    
+      
       # Style
       #------
       set style [labelframe $tab_rep.disp$x.style -text "Style"]
@@ -446,7 +448,7 @@ proc itrajcomp::itcObjRep {self} {
       menubutton $style.draw.m -text "Drawing" -menu $style.draw.m.list -textvariable [namespace current]::graph_opts(rep_style$x) -relief raised
       menu $style.draw.m.list
       foreach entry $rep_style_list {
- 	$style.draw.m.list add radiobutton -label $entry -variable [namespace current]::graph_opts(rep_style$x) -value $entry -command "[namespace parent]::UpdateSelection $self"
+        $style.draw.m.list add radiobutton -label $entry -variable [namespace current]::graph_opts(rep_style$x) -value $entry -command "[namespace parent]::UpdateSelection $self"
       }
       pack $style.draw.m
 
@@ -460,18 +462,18 @@ proc itrajcomp::itcObjRep {self} {
       menubutton $style.color.m -text "Color" -menu $style.color.m.list -textvariable [namespace current]::graph_opts(rep_color$x) -relief raised
       menu $style.color.m.list
       foreach entry $rep_color_list {
- 	if {$entry eq "ColorID"} {
- 	  $style.color.m.list add radiobutton -label $entry -variable [namespace current]::graph_opts(rep_color$x) -value $entry -command "$style.color.id config -state normal; [namespace parent]::UpdateSelection $self"
- 	} else {
- 	  $style.color.m.list add radiobutton -label $entry -variable [namespace current]::graph_opts(rep_color$x) -value $entry -command "$style.color.id config -state disable; [namespace parent]::UpdateSelection $self"
- 	}
+        if {$entry eq "ColorID"} {
+          $style.color.m.list add radiobutton -label $entry -variable [namespace current]::graph_opts(rep_color$x) -value $entry -command "$style.color.id config -state normal; [namespace parent]::UpdateSelection $self"
+        } else {
+          $style.color.m.list add radiobutton -label $entry -variable [namespace current]::graph_opts(rep_color$x) -value $entry -command "$style.color.id config -state disable; [namespace parent]::UpdateSelection $self"
+        }
       }
 
       menubutton $style.color.id -text "ColorID" -menu $style.color.id.list -textvariable [namespace current]::graph_opts(rep_colorid$x) -relief raised -state disable
       menu $style.color.id.list
       set a [colorinfo colors]
       for {set i 0} {$i < [llength $a]} {incr i} {
-  	$style.color.id.list add radiobutton -label "$i [lindex $a $i]" -variable [namespace current]::graph_opts(rep_colorid$x) -value $i -command "[namespace parent]::UpdateSelection $self"
+        $style.color.id.list add radiobutton -label "$i [lindex $a $i]" -variable [namespace current]::graph_opts(rep_colorid$x) -value $i -command "[namespace parent]::UpdateSelection $self"
       }
       pack $style.color.m $style.color.id -side left
     }
@@ -479,14 +481,14 @@ proc itrajcomp::itcObjRep {self} {
     # For segment graphs draw lines
     if {$graph_opts(type) == "segments"} {
       variable connect_sw 1
-#      variable connect_all 1
+      #      variable connect_all 1
       labelframe $tab_rep.connect -text "Connecting lines"
       pack $tab_rep.connect -side top -expand yes -fill x
 
       checkbutton $tab_rep.connect.sw -text "On/Off" -variable [namespace current]::connect_sw -command "[namespace parent]::UpdateSelection $self"
       pack $tab_rep.connect.sw -side left
-#      checkbutton $tab_rep.connect.all -text "All" -variable [namespace current]::connect_all -command "[namespace parent]::UpdateSelection $self"
-#      pack $tab_rep.connect.all -side left
+      #      checkbutton $tab_rep.connect.all -text "All" -variable [namespace current]::connect_all -command "[namespace parent]::UpdateSelection $self"
+      #      pack $tab_rep.connect.all -side left
     }
 
     # Update button
@@ -652,36 +654,36 @@ proc itrajcomp::AddConnect {self key} {
     set m [lindex $mols $i]
     # TODO: use same color as in the cell
     graphics $m color 4
-  
+    
     switch [set ${self}::opts(segment)] {
       byatom {
-   	set sel1 [atomselect $m "index [lindex [split $key1 :] 0]"]
-	set sel2 [atomselect $m "index [lindex [split $key2 :] 0]"]
+        set sel1 [atomselect $m "index [lindex [split $key1 :] 0]"]
+        set sel2 [atomselect $m "index [lindex [split $key2 :] 0]"]
       }
       byres {
-    	set sel1 [atomselect $m "residue [lindex [split $key1 :] 0] and ($extra)"]
-	set sel2 [atomselect $m "residue [lindex [split $key2 :] 0] and ($extra)"]
+        set sel1 [atomselect $m "residue [lindex [split $key1 :] 0] and ($extra)"]
+        set sel2 [atomselect $m "residue [lindex [split $key2 :] 0] and ($extra)"]
       }
     }
 
     # TODO: connect_all
-#    if {[set ${self}::connect_all] == 1} {
-      set molframes [lindex $frames $i]
-#    } else {
-#      set molframes [molinfo $m get frame]
-#    }
+    #    if {[set ${self}::connect_all] == 1} {
+    set molframes [lindex $frames $i]
+    #    } else {
+    #      set molframes [molinfo $m get frame]
+    #    }
     foreach f $molframes {
       $sel1 frame $f
       $sel2 frame $f
       switch [set ${self}::opts(segment)] {
-	byatom {
-	  lassign [$sel1 get {x y z}] coor1
-	  lassign [$sel2 get {x y z}] coor2
-	}
-	byres {
-	  set coor1 [measure center $sel1]
-	  set coor2 [measure center $sel2]
-	}
+        byatom {
+          lassign [$sel1 get {x y z}] coor1
+          lassign [$sel2 get {x y z}] coor2
+        }
+        byres {
+          set coor1 [measure center $sel1]
+          set coor2 [measure center $sel2]
+        }
       }
       lappend connect_lines "$m:[graphics $m line $coor1 $coor2 width 1 style dashed]"
       #puts "line $m $f $key $key2"
@@ -717,11 +719,11 @@ proc itrajcomp::ExplorePoint {self key} {
     }
     dual {
       if {[set ${self}::datatype(ascii)]} {
-	set cell "[lindex [set ${self}::data0($key)] 0] ([lindex [set ${self}::data0($key)] 1])"
-	set stats ""
+        set cell "[lindex [set ${self}::data0($key)] 0] ([lindex [set ${self}::data0($key)] 1])"
+        set stats ""
       } else {
-	set cell "[lindex [set ${self}::data0($key)] 0] ([lindex [set ${self}::data0($key)] 1])"
-	set stats [lrange [set ${self}::data1($key)] 1 end]
+        set cell "[lindex [set ${self}::data0($key)] 0] ([lindex [set ${self}::data0($key)] 1])"
+        set stats [lrange [set ${self}::data1($key)] 1 end]
       }
     }
   }
@@ -767,7 +769,7 @@ proc itrajcomp::MapAdd {self key {check 0}} {
   $plot itemconfigure $key -fill $color
   $plot itemconfigure $key -outline black
   set ${self}::map_active($key) 1
-    set ${self}::rep_active($key) 1
+  set ${self}::rep_active($key) 1
   [namespace current]::AddRep $self $key1
   [namespace current]::AddRep $self $key2
   
@@ -855,27 +857,27 @@ proc itrajcomp::MapCluster3 {self key {mod1 0} {mod2 0}} {
     set ref [lindex $indices 0]
     foreach mykey [array names data $ref,*] {
       if {$mod2 == 0} {
-	if {$map_add} {
-	  [namespace current]::MapAdd $self $mykey
-	} else {
-	  [namespace current]::MapDel $self $mykey
-	}
+        if {$map_add} {
+          [namespace current]::MapAdd $self $mykey
+        } else {
+          [namespace current]::MapDel $self $mykey
+        }
       } elseif {$mod2 == 1} {
-	if {$data($mykey) <= $data($key)} {
-	  if {$map_add} {
-	    [namespace current]::MapAdd $self $mykey
-	  } else {
-	    [namespace current]::MapDel $self $mykey
-	  }
-	}
+        if {$data($mykey) <= $data($key)} {
+          if {$map_add} {
+            [namespace current]::MapAdd $self $mykey
+          } else {
+            [namespace current]::MapDel $self $mykey
+          }
+        }
       } elseif {$mod2 == -1} {
-	if {$data($mykey) >= $data($key)} {
-	  if {$map_add} {
-	    [namespace current]::MapAdd $self $mykey
-	  } else {
-	    [namespace current]::MapDel $self $mykey
-	  }
-	}
+        if {$data($mykey) >= $data($key)} {
+          if {$map_add} {
+            [namespace current]::MapAdd $self $mykey
+          } else {
+            [namespace current]::MapDel $self $mykey
+          }
+        }
       }
     }
   }
@@ -889,39 +891,39 @@ proc itrajcomp::MapCluster3 {self key {mod1 0} {mod2 0}} {
     }
     foreach mykey [array names data *,$ref] {
       if {$mod2 == 0} {
-	if {$map_add} {
-	  if {!$mod1} {
-	    [namespace current]::MapAdd $self $mykey 1
-	  }
-	} else {
-	  if {!$mod1} {
-	    [namespace current]::MapDel $self $mykey 1
-	  }
-	}
+        if {$map_add} {
+          if {!$mod1} {
+            [namespace current]::MapAdd $self $mykey 1
+          }
+        } else {
+          if {!$mod1} {
+            [namespace current]::MapDel $self $mykey 1
+          }
+        }
       } elseif {$mod2 == 1} {
-	if {$data($mykey) <= $data($key)} {
-	  if {$map_add} {
-	    if {!$mod1} {
-	      [namespace current]::MapAdd $self $mykey 1
-	    }
-	  } else {
-	    if {!$mod1} {
-	      [namespace current]::MapDel $self $mykey 1
-	    }
-	  }
-	}
+        if {$data($mykey) <= $data($key)} {
+          if {$map_add} {
+            if {!$mod1} {
+              [namespace current]::MapAdd $self $mykey 1
+            }
+          } else {
+            if {!$mod1} {
+              [namespace current]::MapDel $self $mykey 1
+            }
+          }
+        }
       } elseif {$mod2 == -1} {
-	if {$data($mykey) >= $data($key)} {
-	  if {$map_add} {
-	    if {!$mod1} {
-	      [namespace current]::MapAdd $self $mykey 1
-	    }
-	  } else {
-	    if {!$mod1} {
-	      [namespace current]::MapDel $self $mykey 1
-	    }
-	  }
-	}
+        if {$data($mykey) >= $data($key)} {
+          if {$map_add} {
+            if {!$mod1} {
+              [namespace current]::MapAdd $self $mykey 1
+            }
+          } else {      
+            if {!$mod1} {
+              [namespace current]::MapDel $self $mykey 1
+            }
+          }
+        }
       }
     }
   }
@@ -959,22 +961,22 @@ proc itrajcomp::MapCluster2 {self key {mod1 0} {mod2 0} } {
     }
     if {!$mod1 || $mod1 == 1} {
       if {$data($mykey) >= $val} {
-	set color black
-	$plot itemconfigure $mykey -outline $color
-	[namespace current]::AddRep $self $key1
-	[namespace current]::AddRep $self $key2
-	set ${self}::map_active($mykey) 1
-	set ${self}::rep_active($mykey) 1
+        set color black
+        $plot itemconfigure $mykey -outline $color
+        [namespace current]::AddRep $self $key1
+        [namespace current]::AddRep $self $key2
+        set ${self}::map_active($mykey) 1
+        set ${self}::rep_active($mykey) 1
       }
     }
     if {!$mod1 || $mod1 == -1} {
       if {$data($mykey) <= $val} {
-	set color black
-	$plot itemconfigure $mykey -outline $color
-	[namespace current]::AddRep $self $key1
-	[namespace current]::AddRep $self $key2
-	set ${self}::map_active($mykey) 1
-	set ${self}::rep_active($mykey) 1
+        set color black
+        $plot itemconfigure $mykey -outline $color
+        [namespace current]::AddRep $self $key1
+        [namespace current]::AddRep $self $key2
+        set ${self}::map_active($mykey) 1
+        set ${self}::rep_active($mykey) 1
       }
     }
   }
@@ -1027,17 +1029,17 @@ proc itrajcomp::UpdateSelection {self} {
     lassign $indices key1 key2
     if {[$plot itemcget $id -outline] == "black"} {
       if {[info exists rep_active($key)]} {
-	if {$rep_sw == 0} {
-	  unset ${self}::rep_active($key)
-	  [namespace current]::DelRep $self $key1
-	  [namespace current]::DelRep $self $key2
-	}
+        if {$rep_sw == 0} {
+          unset ${self}::rep_active($key)
+          [namespace current]::DelRep $self $key1
+          [namespace current]::DelRep $self $key2
+        }
       } else {
-	if {$rep_sw == 1} {
-	  set ${self}::rep_active($key) 1
-	  [namespace current]::AddRep $self $key1
-	  [namespace current]::AddRep $self $key2
-	}
+        if {$rep_sw == 1} {
+          set ${self}::rep_active($key) 1
+          [namespace current]::AddRep $self $key1
+          [namespace current]::AddRep $self $key2
+        }
       }
     }
   }
@@ -1048,41 +1050,41 @@ proc itrajcomp::UpdateSelection {self} {
       lassign [[namespace current]::ParseKey $self $key] mols f s
       
       foreach r $rep_list($key) {
-	lassign [split $r :] m rep
-	
-	set repname [mol repindex $m $rep]
-	
-	# Selection
-	mol modselect $repname $m $s
-	
-	# Style
-	switch $graph_opts(rep_style1) {
-	  HBonds {
-	    if {[info exists opts(cutoff)]} {
-	      if {[info exists opts(angle)]} {
-		mol modstyle $repname $m $graph_opts(rep_style1) $opts(cutoff) $opts(angle)
-	      } else {
-		mol modstyle $repname $m $graph_opts(rep_style1) $opts(cutoff)
-	      }
-	    } else {
-	      mol modstyle $repname $m $graph_opts(rep_style1)
-	    }
-	  }
-	  default {
-	    mol modstyle $repname $m $graph_opts(rep_style1)
-	  }
-	}
-	  
-	# Color
-	switch $graph_opts(rep_color1) {
-	  ColorID {
-	    mol modcolor $repname $m $graph_opts(rep_color1) $graph_opts(rep_colorid1)
-	  }
-	  default {
-	    mol modcolor $repname $m $graph_opts(rep_color1)
-	  }
-	}
-	
+        lassign [split $r :] m rep
+        
+        set repname [mol repindex $m $rep]
+        
+        # Selection
+        mol modselect $repname $m $s
+        
+        # Style
+        switch $graph_opts(rep_style1) {
+          HBonds {
+            if {[info exists opts(cutoff)]} {
+              if {[info exists opts(angle)]} {
+                mol modstyle $repname $m $graph_opts(rep_style1) $opts(cutoff) $opts(angle)
+              } else {
+                mol modstyle $repname $m $graph_opts(rep_style1) $opts(cutoff)
+              }
+            } else {
+              mol modstyle $repname $m $graph_opts(rep_style1)
+            }
+          }
+          default {
+            mol modstyle $repname $m $graph_opts(rep_style1)
+          }
+        }
+        
+        # Color
+        switch $graph_opts(rep_color1) {
+          ColorID {
+            mol modcolor $repname $m $graph_opts(rep_color1) $graph_opts(rep_colorid1)
+          }
+          default {
+            mol modcolor $repname $m $graph_opts(rep_color1)
+          }
+        }
+        
       }
     }
   }
@@ -1094,15 +1096,15 @@ proc itrajcomp::UpdateSelection {self} {
     foreach id [$plot find all] {
       set key [$plot gettags $id]
       if {[$plot itemcget $id -outline] == "black"} {
-	if {[info exists connect_lines($key)]} {
-	  if {$connect_sw == 0} {
-	    [namespace current]::DelConnect $self $key
-	  }
-	} else {
-	  if {$connect_sw == 1} {
-	    [namespace current]::AddConnect $self $key
-	  }
-	}
+        if {[info exists connect_lines($key)]} {
+          if {$connect_sw == 0} {
+            [namespace current]::DelConnect $self $key
+          }
+        } else {
+          if {$connect_sw == 1} {
+            [namespace current]::AddConnect $self $key
+          }
+        }
       }
     }
   }
@@ -1114,6 +1116,7 @@ proc itrajcomp::Destroy {self} {
   [namespace current]::MapClear $self
   catch {destroy [set ${self}::win_obj]}
   [namespace current]::Objdelete $self
+  [namespace current]::UpdateRes
 }
 
 

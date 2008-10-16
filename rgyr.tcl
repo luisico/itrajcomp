@@ -46,8 +46,8 @@ proc itrajcomp::calc_rgyr {self} {
     foreach k $sets(mol2) {
       set s2 [atomselect $k $sets(sel2)]
       foreach l [lindex $sets(frame2) [lsearch -exact $sets(mol2) $k]] {
-	$s2 frame $l
-	set rgyr($k:$l) [measure rgyr $s2]
+        $s2 frame $l
+        set rgyr($k:$l) [measure rgyr $s2]
       }
     }
   }

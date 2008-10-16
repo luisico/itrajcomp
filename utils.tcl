@@ -70,7 +70,7 @@ proc itrajcomp::ParseMols {mols idlist {sort 1} } {
       set b [expr [lindex $mols [expr $i+1]] - 1]
       set mols [lreplace $mols $i $i]
       for {set r $b} {$r >= $a} {set r [expr {$r-1}]} {
-	set mols [linsert $mols $i $r]
+        set mols [linsert $mols $i $r]
       }
     }
   }
@@ -105,29 +105,29 @@ proc itrajcomp::ParseFrames {def mols skip idlist} {
     set nframes [molinfo $mol get numframes]
     if {$def == "all"} {
       for {set n 0} {$n < $nframes} {incr n} {
-	lappend list $n
+        lappend list $n
       }
     } elseif {$def == "cur"} {
       set list [molinfo $mol get frame]
     } elseif {$def == "id"} {
       if {[set indices [lsearch -all $idlist "to"]] > -1} {
-	foreach i $indices {
-	  set a [expr [lindex $idlist [expr $i-1]] + 1]
-	  set b [expr [lindex $idlist [expr $i+1]] - 1]
-	  set idlist [lreplace $idlist $i $i]
-	  for {set r $b} {$r >= $a} {set r [expr {$r-1}]} {
-	    set idlist [linsert $idlist $i $r]
-	  }
-	}
+        foreach i $indices {
+          set a [expr [lindex $idlist [expr $i-1]] + 1]
+          set b [expr [lindex $idlist [expr $i+1]] - 1]
+          set idlist [lreplace $idlist $i $i]
+          for {set r $b} {$r >= $a} {set r [expr {$r-1}]} {
+            set idlist [linsert $idlist $i $r]
+          }
+        }
       }
       set list $idlist
 
       # Check frames are within mol range
       foreach f $list {
-	if {$f >= $nframes} {
-	  tk_messageBox -title "Warning " -message "Frame $f is out of range for mol $mol" -parent .itrajcomp
-	  return -1
-	}
+        if {$f >= $nframes} {
+          tk_messageBox -title "Warning " -message "Frame $f is out of range for mol $mol" -parent .itrajcomp
+          return -1
+        }
       }
     }
 
@@ -135,7 +135,7 @@ proc itrajcomp::ParseFrames {def mols skip idlist} {
       set result {}
       set s [expr {$skip+1}]
       for {set i 0} {$i < [llength $list]} {incr i $s} {
-	lappend result [lindex $list $i]
+        lappend result [lindex $list $i]
       }
       set list $result
     }
@@ -175,9 +175,9 @@ proc itrajcomp::Range {numbers} {
       set end $i
     } else {
       if {$start != $end} {
-	lappend results "[lindex $numbers $start]-$a"
+        lappend results "[lindex $numbers $start]-$a"
       } else {
-	lappend results $a
+        lappend results $a
       }
       set start $i
     }
@@ -231,9 +231,9 @@ proc itrajcomp::GetKeys {rms_values sort mol_ref mol_tar} {
     set skeys {}
     foreach i $mol_ref {
       foreach j $mol_tar {
-	foreach k [lsort -dictionary [array names values "$i:*,$j:*"]] {
-	  lappend skeys $k
-	}
+        foreach k [lsort -dictionary [array names values "$i:*,$j:*"]] {
+          lappend skeys $k
+        }
       }
     }
   }
@@ -292,8 +292,8 @@ proc itrajcomp::CheckNatoms {self} {
     foreach i $sets(mol2) {
       set n [[atomselect $i $sets(sel2) frame 0] num]
       if {[info exists natoms($i)] && $natoms($i) != $n} {
-	tk_messageBox -title "Warning " -message "Difference in atom selection between Set1 ($natoms($i)) and Set2 ($n) for molecule $i" -parent .itrajcomp
-	  return -1
+        tk_messageBox -title "Warning " -message "Difference in atom selection between Set1 ($natoms($i)) and Set2 ($n) for molecule $i" -parent .itrajcomp
+        return -1
       }
     }
   }
@@ -301,10 +301,10 @@ proc itrajcomp::CheckNatoms {self} {
   foreach i $sets(mol_all) {
     foreach j $sets(mol_all) {
       if {$i < $j} {
-	if {$natoms($i) != $natoms($j)} {
-	  tk_messageBox -title "Warning " -message "Selections differ for molecules $i ($natoms($i)) and $j ($natoms($j))" -parent .itrajcomp
-	  return -1
-	}
+        if {$natoms($i) != $natoms($j)} {
+          tk_messageBox -title "Warning " -message "Selections differ for molecules $i ($natoms($i)) and $j ($natoms($j))" -parent .itrajcomp
+          return -1
+        }
       }
     }
   }
@@ -328,18 +328,18 @@ proc itrajcomp::ParseKey {self key} {
     }
     segments {
       switch $opts(segment) {
-	byres {
-	  set m [join [set ${self}::sets(mol_all)] " "]
-	  set f [join [set ${self}::sets(frame1)] " "]
-	  set tab_rep [set ${self}::tab_rep]
-	  set extra [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
-	  set s "residue [lindex $indices 0] and ($extra)"
-	}
-	byatom {
-	  set m [join [set ${self}::sets(mol_all)] " "]
-	  set f [join [set ${self}::sets(frame1)] " "]
-	  set s "index [lindex $indices 0]"
-	}
+        byres {
+          set m [join [set ${self}::sets(mol_all)] " "]
+          set f [join [set ${self}::sets(frame1)] " "]
+          set tab_rep [set ${self}::tab_rep]
+          set extra [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
+          set s "residue [lindex $indices 0] and ($extra)"
+        }
+        byatom {
+          set m [join [set ${self}::sets(mol_all)] " "]
+          set f [join [set ${self}::sets(frame1)] " "]
+          set s "index [lindex $indices 0]"
+        }
       }
     }
   }
@@ -361,42 +361,42 @@ proc itrajcomp::PrepareData {self} {
 
     multiple {
       foreach key $keys {
-	set data1($key) [[namespace current]::stats $data0($key)]
-	for {set i 0} {$i < [llength $data1($key)]} {incr i} {
-	  lappend values($i) [lindex $data1($key) $i]
-	}
+        set data1($key) [[namespace current]::stats $data0($key)]
+        for {set i 0} {$i < [llength $data1($key)]} {incr i} {
+          lappend values($i) [lindex $data1($key) $i]
+        }
       }
       set min1 {}
       set max1 {}
       set ni $i
       for {set i 0} {$i < $ni} {incr i} {
-	lassign [[namespace current]::stats $values($i) 0] mean min max
-	lappend min1 $min
-	lappend max1 $max
+        lassign [[namespace current]::stats $values($i) 0] mean min max
+        lappend min1 $min
+        lappend max1 $max
       }
     }
 
     dual {
       if {[set ${self}::datatype(ascii)]} {
-	foreach key $keys {
-	  set data1($key) [lindex $data0($key) 0]
-	}
-	lassign [[namespace current]::minmax [array get data1]] min1 max1
+        foreach key $keys {
+          set data1($key) [lindex $data0($key) 0]
+        }
+        lassign [[namespace current]::minmax [array get data1]] min1 max1
       } else {
-	foreach key $keys {
-	  set data1($key) [concat [lindex $data0($key) 0] [[namespace current]::stats [lindex $data0($key) 1]]]
-	  for {set i 0} {$i < [llength $data1($key)]} {incr i} {
-	    lappend values($i) [lindex $data1($key) $i]
-	  }
-	}
-	set min1 {}
-	set max1 {}
-	set ni $i
-	for {set i 0} {$i < $ni} {incr i} {
-	  lassign [[namespace current]::stats $values($i) 0] mean min max
-	  lappend min1 $min
-	  lappend max1 $max
-	}
+        foreach key $keys {
+          set data1($key) [concat [lindex $data0($key) 0] [[namespace current]::stats [lindex $data0($key) 1]]]
+          for {set i 0} {$i < [llength $data1($key)]} {incr i} {
+            lappend values($i) [lindex $data1($key) $i]
+          }
+        }
+        set min1 {}
+        set max1 {}
+        set ni $i
+        for {set i 0} {$i < $ni} {incr i} {
+          lassign [[namespace current]::stats $values($i) 0] mean min max
+          lappend min1 $min
+          lappend max1 $max
+        }
       }
     }
 
@@ -430,18 +430,18 @@ proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
   switch $type {
     copy {
       foreach key $keys {
-	set data($key) [lindex $data1($key) $data_index]
+        set data($key) [lindex $data1($key) $data_index]
       }
       lassign [[namespace current]::minmax [array get data]] min max
     }
 
     inverse {
       foreach key $keys {
-	if {[lindex $data1($key) $data_index] != 0} {
-	  set data($key) [expr {1.0 / [lindex $data1($key) $data_index]}]
-	} else {
-	  set data($key) [lindex $data1($key) $data_index]
-	}
+        if {[lindex $data1($key) $data_index] != 0} {
+          set data($key) [expr {1.0 / [lindex $data1($key) $data_index]}]
+        } else {
+          set data($key) [lindex $data1($key) $data_index]
+        }
       }
       lassign [[namespace current]::minmax [array get data]] min max
       set formats "f"
@@ -450,7 +450,7 @@ proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
     norm_minmax {
       set minmax [expr {$max1-$min1}]
       foreach key $keys {
-	set data($key) [expr {([lindex $data1($key) $data_index]-$min1) / $minmax}]
+        set data($key) [expr {([lindex $data1($key) $data_index]-$min1) / $minmax}]
       }
       set min 0
       set max 1
@@ -459,7 +459,7 @@ proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
 
     norm_exp {
       foreach key $keys {
-	set data($key) [expr {1.0 - exp(-[lindex $data1($key) $data_index])}]
+        set data($key) [expr {1.0 - exp(-[lindex $data1($key) $data_index])}]
       }
       lassign [[namespace current]::minmax [array get data]] min max
       set formats "f"
@@ -467,7 +467,7 @@ proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
 
     norm_expmin {
       foreach key $keys {
-	set data($key) [expr {1.0 - exp(-([lindex $data1($key) $data_index]-$min1))}]
+        set data($key) [expr {1.0 - exp(-([lindex $data1($key) $data_index]-$min1))}]
       }
       lassign [[namespace current]::minmax [array get data]] min max
       set formats "f"
@@ -553,11 +553,11 @@ proc itrajcomp::stats {values {calc_std 1}} {
 
 proc itrajcomp::wlist {{w .}} {
   # Return a list of TKwidgets
-   set list [list $w]
-   foreach widget [winfo children $w] {
-     set list [concat $list [wlist $widget]]
-   }
-   return $list
+  set list [list $w]
+  foreach widget [winfo children $w] {
+    set list [concat $list [wlist $widget]]
+  }
+  return $list
 }
 
 
@@ -591,13 +591,13 @@ proc itrajcomp::hls2rgb {h l s} {
   
   set h6 [expr {($h-floor($h))*6}]
   set r [expr {  $h6 <= 3 ? 2-$h6
-		 : $h6-4}]
+                 : $h6-4}]
   set g [expr {  $h6 <= 2 ? $h6
-		 : $h6 <= 5 ? 4-$h6
-		 : $h6-6}]
+                 : $h6 <= 5 ? 4-$h6
+                 : $h6-6}]
   set b [expr {  $h6 <= 1 ? -$h6
-		 : $h6 <= 4 ? $h6-2
-		 : 6-$h6}]
+                 : $h6 <= 4 ? $h6-2
+                 : 6-$h6}]
   set r [expr {$r < 0.0 ? 0.0 : $r > 1.0 ? 1.0 : double($r)}]
   set g [expr {$g < 0.0 ? 0.0 : $g > 1.0 ? 1.0 : double($g)}]
   set b [expr {$b < 0.0 ? 0.0 : $b > 1.0 ? 1.0 : double($b)}]
@@ -666,3 +666,103 @@ proc itrajcomp::_format {formats} {
 #  } $NREPEAT] {%d} result
 #  puts "$NREPEAT : $result"
 ### benchmark
+
+
+proc itrajcomp::concat_opts {self} {
+  # Concatenate opts in one line
+  set options {}
+  
+  array set opts [array get ${self}::opts]
+  if {$opts(diagonal)} {
+    lappend options "diagonal"
+  }
+  
+  foreach v [array names opts] {
+    if { $v == "type" || $v == "diagonal" } {continue}
+    if {$opts($v)} {
+      lappend options "$v"
+    }
+  }
+
+  return [join $options ", "]
+}
+
+
+proc itrajcomp::dataframe_yset args {
+  variable dataframe
+  eval [linsert $args 0 $dataframe.scrbar set]
+  [namespace current]::dataframe_yview moveto [lindex [$dataframe.scrbar get] 0]
+}
+
+
+proc itrajcomp::dataframe_yview args {
+  variable datalist
+  foreach key [array names datalist] {
+    eval [linsert $args 0 $datalist($key) yview]
+  }
+}
+
+
+proc itrajcomp::dataframe_sel {widget} {
+  variable datalist
+
+  set sel [$widget curselection]
+  foreach key [array names datalist] {
+    $datalist($key) selection clear 0 end
+    foreach item $sel {
+      $datalist($key) selection set $item
+    }
+  }
+}
+
+
+proc itrajcomp::dataframe_color { {colorize 0} } {
+  variable datalist
+
+  set color "grey85"
+  for {set i 0} {$i < [$datalist(id) size]} {incr i} {
+    if {$colorize} {
+      set coln [$datalist(id) get $i]
+      while {$coln > 15} {
+        set coln [expr {$coln - 16}]
+      }
+      set color [index2rgb $coln]
+    } else {
+      if {$color == "grey80"} {
+        set color "grey85"
+      } else {
+        set color "grey80"
+      }
+    }
+    foreach key [array names datalist] {
+      $datalist($key) itemconfigure $i -background $color
+    }
+  }
+}
+
+
+proc itrajcomp::dataframe_mapper {widget} {
+  variable datalist
+
+  set sel [$widget curselection]
+  set num [$datalist(id) get $sel]
+  set name "itcObj$num"
+  set window ".${name}_main"
+  
+  case [wm state $window] {
+    iconic {
+      wm deiconify $window
+    }
+    normal {
+      wm withdraw $window
+    }
+    withdrawn {
+      wm deiconify $window
+    }
+    default {
+      return
+    }
+  }
+  
+  [namespace current]::UpdateRes
+}

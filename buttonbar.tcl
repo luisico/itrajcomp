@@ -36,12 +36,7 @@ proc buttonbar::showframe {w name} {
   foreach x [winfo children $buttonbar($w)] {
     if {$x != $w} {pack forget $x}
   }
-  foreach x [winfo children $w.tabs.c] {$x configure -relief groove -foreground black}
+  foreach x [winfo children $w.tabs.c] {$x configure -relief groove -foreground black -bd 0}
   pack $buttonbar($w).$name -fill both -expand 1
-  $w.tabs.c.$name configure -foreground black -activeforeground black -relief raised
+  $w.tabs.c.$name configure -foreground black -activeforeground black -relief raised -bd 1
 }
-
-
-
-
-

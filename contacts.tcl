@@ -45,7 +45,7 @@ proc itrajcomp::calc_contacts_options {} {
   variable calc_contacts_datatype
   set calc_contacts_datatype(mode) "dual"
   set calc_contacts_datatype(ascii) 1
-    
+  
   variable calc_contacts_opts
   set calc_contacts_opts(cutoff) 5.0
 

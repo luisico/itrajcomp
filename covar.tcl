@@ -41,8 +41,8 @@ proc itrajcomp::calc_covar {self} {
     set not1frame 1
     foreach i $sets(mol_all) {
       if {[molinfo $i get numframes] == 1} {
-	set not1frame 0
-	break
+        set not1frame 0
+        break
       }
     }
     
@@ -51,20 +51,20 @@ proc itrajcomp::calc_covar {self} {
       # All molecules have more than 1 frame
       set count 0
       foreach i $sets(mol_all) {
-	set nframes [molinfo $i get numframes]
-	set temp [measure rmsf [atomselect $i $sets(sel1)] first 0 last [expr {$nframes -1}] step 1]
-	for {set n 0} {$n < [llength $temp]} {incr n} {
-	  lset temp $n [expr {[lindex $temp $n] * [lindex $temp $n] * $nframes} ]
-	}
-	if {$count eq 0} {
-	  set rmsf $temp
-	} else {
-	  set rmsf [vecadd $rmsf $temp]
-	}
-	set count [expr {$count + $nframes} ]
+        set nframes [molinfo $i get numframes]
+        set temp [measure rmsf [atomselect $i $sets(sel1)] first 0 last [expr {$nframes -1}] step 1]
+        for {set n 0} {$n < [llength $temp]} {incr n} {
+          lset temp $n [expr {[lindex $temp $n] * [lindex $temp $n] * $nframes} ]
+        }
+        if {$count eq 0} {
+          set rmsf $temp
+        } else {
+          set rmsf [vecadd $rmsf $temp]
+        }
+        set count [expr {$count + $nframes} ]
       }
       for {set n 0} {$n < [llength $rmsf]} {incr n} {
-	lset rmsf $n [expr {sqrt([lindex $rmsf $n] / double($count))} ]
+        lset rmsf $n [expr {sqrt([lindex $rmsf $n] / double($count))} ]
       }
       #puts "DEBUG: rmsf $rmsf"
       
@@ -75,39 +75,39 @@ proc itrajcomp::calc_covar {self} {
       set a {}
       set b {}
       foreach i $sets(mol_all) {
-	set s1 [atomselect $i $sets(sel1)]
-	#puts "DEBUG: mol $i"
-	foreach j [lindex $sets(frame1) [lsearch -exact $sets(mol_all) $i]] {
-	  $s1 frame $j
-	  #puts "DEBUG: frame $j"
-	  set coor [$s1 get {x y z}]
-	  if {$count eq 0} {
-	    set b $coor
-	    set a $coor
-	    for {set n 0} {$n < [llength $a]} {incr n} {
-	      lset a $n [vecdot [lindex $coor $n] [lindex $coor $n]]
-	    }
-	  } else {
-	    for {set n 0} {$n < [llength $a]} {incr n} {
-	      lset b $n [vecadd [lindex $b $n] [lindex $coor $n]]
-	      lset a $n [vecadd [lindex $a $n] [vecdot [lindex $coor $n] [lindex $coor $n]]]
-	    }
-	  }
-	  #puts "DEBUG: count $count"
-	  #puts "DEBUG: c $coor"
-	  #puts "DEBUG: a $a"
-	  #puts "DEBUG: b $b"
-	  incr count
-	}
+        set s1 [atomselect $i $sets(sel1)]
+        #puts "DEBUG: mol $i"
+        foreach j [lindex $sets(frame1) [lsearch -exact $sets(mol_all) $i]] {
+          $s1 frame $j
+          #puts "DEBUG: frame $j"
+          set coor [$s1 get {x y z}]
+          if {$count eq 0} {
+            set b $coor
+            set a $coor
+            for {set n 0} {$n < [llength $a]} {incr n} {
+              lset a $n [vecdot [lindex $coor $n] [lindex $coor $n]]
+            }
+          } else {
+            for {set n 0} {$n < [llength $a]} {incr n} {
+              lset b $n [vecadd [lindex $b $n] [lindex $coor $n]]
+              lset a $n [vecadd [lindex $a $n] [vecdot [lindex $coor $n] [lindex $coor $n]]]
+            }
+          }
+          #puts "DEBUG: count $count"
+          #puts "DEBUG: c $coor"
+          #puts "DEBUG: a $a"
+          #puts "DEBUG: b $b"
+          incr count
+        }
       }
       set factor [expr {1./double($count)} ]
       set rmsf $a
       for {set n 0} {$n < [llength $b]} {incr n} {
-	set temp_a [vecscale [lindex $a $n] $factor]
-	set temp_b [vecscale [lindex $b $n] $factor]
-	lset a $n $temp_a
-	lset b $n $temp_b
-	lset rmsf $n [expr {sqrt($temp_a - [veclength2 $temp_b])} ]
+        set temp_a [vecscale [lindex $a $n] $factor]
+        set temp_b [vecscale [lindex $b $n] $factor]
+        lset a $n $temp_a
+        lset b $n $temp_b
+        lset rmsf $n [expr {sqrt($temp_a - [veclength2 $temp_b])} ]
       }
       #puts "DEBUG:-------"
       #puts "DEBUG: aa $a"
@@ -120,9 +120,9 @@ proc itrajcomp::calc_covar {self} {
       set temp {}
       set start 0
       foreach r $segments(number) {
-	set end [expr {$start + [[atomselect [lindex $sets(mol_all) 0] "residue $r and ($sets(sel1))"] num] -1}]
-	lappend temp [vecmean [lrange $rmsf $start $end]]
-	set start [expr {$end + 1}]
+        set end [expr {$start + [[atomselect [lindex $sets(mol_all) 0] "residue $r and ($sets(sel1))"] num] -1}]
+        lappend temp [vecmean [lrange $rmsf $start $end]]
+        set start [expr {$end + 1}]
       }
       set rmsf $temp
     }

@@ -38,7 +38,7 @@ proc itrajcomp::calc_labels {self} {
     tk_messageBox -title "Warning" -message "No $opts(label_type) have been defined" -type ok
     return 1
   }
-    
+  
   foreach lab $opts(labels_status) {
     if {$lab == 1} {
       set alldata($i) [label graph $opts(label_type) $i]
@@ -134,16 +134,16 @@ proc itrajcomp::calc_labels_options_update {} {
     for {set i 0} {$i < $n} {incr i} {
       set label "$i ("
       for {set j 0} {$j < $nat} {incr j} {
-	set mol   [lindex [lindex [lindex $labels $i] $j] 0]
-	set index [lindex [lindex [lindex $labels $i] $j] 1]
-	set at    [atomselect $mol "index $index"]
-	set resname [$at get resname]
-	set resid   [$at get resid]
-	set name    [$at get name]
-	append label "$mol-$resname$resid-$name"
-	if {$j < [expr {$nat-1}]} {
-	  append label ", "
-	}
+        set mol   [lindex [lindex [lindex $labels $i] $j] 0]
+        set index [lindex [lindex [lindex $labels $i] $j] 1]
+        set at    [atomselect $mol "index $index"]
+        set resname [$at get resname]
+        set resid   [$at get resid]
+        set name    [$at get name]
+        append label "$mol-$resname$resid-$name"
+        if {$j < [expr {$nat-1}]} {
+          append label ", "
+        }
       }
       append label ")"
       $calc_labels_frame.labs.id.m add checkbutton -label $label -variable [namespace current]::labels_status_array($i) -command "[namespace current]::labels_update_status $i"
@@ -167,5 +167,3 @@ proc itrajcomp::labels_update_status {i} {
   
   set calc_labels_opts(labels_status) [lreplace $calc_labels_opts(labels_status) $i $i $labels_status_array($i)]
 }
-
-

@@ -71,7 +71,7 @@ proc itrajcomp::calc_hbonds_options {} {
   entry $calc_hbonds_frame.angle.v -width 5 -textvariable [namespace current]::calc_hbonds_opts(angle)
   pack $calc_hbonds_frame.angle.l $calc_hbonds_frame.angle.v -side left
 
- # Graph options
+  # Graph options
   variable calc_hbonds_graph
   array set calc_hbonds_graph {
     type         "frames"
