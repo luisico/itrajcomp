@@ -478,10 +478,26 @@ proc itrajcomp::itcObjRep {self} {
       pack $style.color.m $style.color.id -side left
     }
 
-    # For segment graphs draw lines
+    # TODO: change connect_sw to graphics_sw (and same with related variables)
+    # TODO: add color schemes for connecting lines in the GUI interface
+    # Connecting lines
+    # segment graphs
     if {$graph_opts(type) == "segments"} {
       variable connect_sw 1
       #      variable connect_all 1
+      labelframe $tab_rep.connect -text "Connecting lines"
+      pack $tab_rep.connect -side top -expand yes -fill x
+
+      checkbutton $tab_rep.connect.sw -text "On/Off" -variable [namespace current]::connect_sw -command "[namespace parent]::UpdateSelection $self"
+      pack $tab_rep.connect.sw -side left
+      #      checkbutton $tab_rep.connect.all -text "All" -variable [namespace current]::connect_all -command "[namespace parent]::UpdateSelection $self"
+      #      pack $tab_rep.connect.all -side left
+    }
+    
+    # frames graphs
+    # TODO: add right type of data (dual?)
+    if {$graph_opts(type) == "frames"} {
+      variable connect_sw 1
       labelframe $tab_rep.connect -text "Connecting lines"
       pack $tab_rep.connect -side top -expand yes -fill x
 
@@ -638,58 +654,105 @@ proc itrajcomp::DelRep {self key} {
 
 
 proc itrajcomp::AddConnect {self key} {
-  # Add a line between two points (atoms or center of residue selection)
-
-  set indices [split $key ,]
-  lassign $indices key1 key2
-  #lassign [[namespace current]::ParseKey $self $key] mols frames sel0
-  set mols [set ${self}::sets(mol1)]
-  set frames [set ${self}::sets(frame1)]
-  set tab_rep [set ${self}::tab_rep]
-  set extra [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
-
+  # Connect two points
+  
+  # TODO: add graphics in a separate molecule?
+  
   set connect_lines {}
 
-  for {set i 0} {$i < [llength $mols]} {incr i} {
-    set m [lindex $mols $i]
-    # TODO: use same color as in the cell
-    graphics $m color 4
+  lassign [split $key ,] key1 key2
+
+  switch [set ${self}::graph_opts(type)] {
+    segments {
+      # Add a line between two points (atoms or center of residue selection)
+
+      #lassign [[namespace current]::ParseKey $self $key] mols frames sel0
+      set mols [set ${self}::sets(mol1)]
+      set frames [set ${self}::sets(frame1)]
+      set tab_rep [set ${self}::tab_rep]
+      set extra [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
+
+      for {set i 0} {$i < [llength $mols]} {incr i} {
+        set m [lindex $mols $i]
+        # TODO: use same color as in the cell
+        graphics $m color 4
+        
+        switch [set ${self}::opts(segment)] {
+          byatom {
+            set sel1 [atomselect $m "index [lindex [split $key1 :] 0]"]
+            set sel2 [atomselect $m "index [lindex [split $key2 :] 0]"]
+          }
+          byres {
+            set sel1 [atomselect $m "residue [lindex [split $key1 :] 0] and ($extra)"]
+            set sel2 [atomselect $m "residue [lindex [split $key2 :] 0] and ($extra)"]
+          }
+        }
+
+        # TODO: connect_all
+        #    if {[set ${self}::connect_all] == 1} {
+        set molframes [lindex $frames $i]
+        #    } else {
+        #      set molframes [molinfo $m get frame]
+        #    }
+        foreach f $molframes {
+          $sel1 frame $f
+          $sel2 frame $f
+          switch [set ${self}::opts(segment)] {
+            byatom {
+              lassign [$sel1 get {x y z}] coor1
+              lassign [$sel2 get {x y z}] coor2
+            }
+            byres {
+              set coor1 [measure center $sel1]
+              set coor2 [measure center $sel2]
+            }
+          }
+          set gid [graphics $m line $coor1 $coor2 width 1 style dashed]
+          lappend connect_lines "$m:$gid"
+          #puts "line $m $f $key $key2"
+        }
+      }
+    }
+
+    frames {
+      switch [set ${self}::datatype(mode)] {
+        single {
+        }
+        multiple {
+        }
+        dual {
+          # TODO: draw different graphics (cone, line,..) based on calctype
+          if {[set ${self}::datatype(ascii)]} {
+            set number_hbonds [lindex [set ${self}::data0($key)] 0]
+            set hbonds [lindex [set ${self}::data0($key)] 1]
+            
+            lassign [split $key1 :] m1 f1
+            lassign [split $key2 :] m2 f2
+            set donors    [lindex $hbonds 0]
+            set acceptors [lindex $hbonds 1]
+            set hydrogens [lindex $hbonds 2]
+            
+            # set a different color for each cell, increasing colorID as they are selected to be drawn
+            set color [array size ${self}::connect_lines]
+            
+            for {set i 0} {$i < $number_hbonds} {incr i} {
+              set donor_sel     [atomselect $m1 "index [lindex $donors $i]" frame $f1]
+              set acceptor_sel  [atomselect $m2 "index [lindex $acceptors $i]" frame $f2]
+              set hydrogen_sel  [atomselect $m1 "index [lindex $hydrogens $i]" frame $f1]
+              set donor    [$donor_sel get {resid resname name}]
+              set acceptor [$acceptor_sel get {resid resname name}]
+              set hydrogen [$hydrogen_sel get {resid resname name}]
+              puts "\thbond $i [lindex [colorinfo colors] $color]: [lindex $donors $i] ($donor) - [lindex $acceptors $i] ($acceptor) - [lindex $hydrogens $i] ($hydrogen)"
+              set gid [[namespace current]::draw_cone $acceptor_sel $donor_sel $color]
+              lappend connect_lines "$m1:$gid"
+            }
+          }
+        }
+      }
+
+    }
     
-    switch [set ${self}::opts(segment)] {
-      byatom {
-        set sel1 [atomselect $m "index [lindex [split $key1 :] 0]"]
-        set sel2 [atomselect $m "index [lindex [split $key2 :] 0]"]
-      }
-      byres {
-        set sel1 [atomselect $m "residue [lindex [split $key1 :] 0] and ($extra)"]
-        set sel2 [atomselect $m "residue [lindex [split $key2 :] 0] and ($extra)"]
-      }
-    }
-
-    # TODO: connect_all
-    #    if {[set ${self}::connect_all] == 1} {
-    set molframes [lindex $frames $i]
-    #    } else {
-    #      set molframes [molinfo $m get frame]
-    #    }
-    foreach f $molframes {
-      $sel1 frame $f
-      $sel2 frame $f
-      switch [set ${self}::opts(segment)] {
-        byatom {
-          lassign [$sel1 get {x y z}] coor1
-          lassign [$sel2 get {x y z}] coor2
-        }
-        byres {
-          set coor1 [measure center $sel1]
-          set coor2 [measure center $sel2]
-        }
-      }
-      lappend connect_lines "$m:[graphics $m line $coor1 $coor2 width 1 style dashed]"
-      #puts "line $m $f $key $key2"
-    }
   }
-
   set ${self}::connect_lines($key) $connect_lines
 }
 
@@ -698,8 +761,8 @@ proc itrajcomp::DelConnect {self key} {
   # Delete a line between two atoms
   if {[info exists ${self}::connect_lines($key)]} {
     foreach line [set ${self}::connect_lines($key)] {
-      lassign [split $line :] m id
-      graphics $m delete $id
+      lassign [split $line :] m gid
+      graphics $m delete $gid
     }
     unset ${self}::connect_lines($key)
   }
@@ -778,10 +841,27 @@ proc itrajcomp::MapAdd {self key {check 0}} {
       [namespace current]::AddConnect $self $key
     }
   }
+  
+  if {[set ${self}::graph_opts(type)] == "frames"} {
+    switch [set ${self}::datatype(mode)] {
+      single {
+      }
+      multiple {
+      }
+      dual {
+        if {[set ${self}::datatype(ascii)]} {
+          [namespace current]::AddConnect $self $key
+        } else {
+        }
+      }
+    }
+  }
 }
+
 
 proc itrajcomp::MapDel {self key {check 0}} {
   # Delete a matrix cell from representation
+  # TODO: move split into the lassign command
   set indices [split $key ,]
   lassign $indices key1 key2
 
@@ -798,16 +878,35 @@ proc itrajcomp::MapDel {self key {check 0}} {
   $plot itemconfigure $key -fill $color
   $plot itemconfigure $key -outline $color
   set ${self}::map_active($key) 0
-  unset ${self}::rep_active($key)
-  [namespace current]::DelRep $self $key1
-  [namespace current]::DelRep $self $key2
-
+  
+  if {[info exists ${self}::rep_active($key)]} {
+    unset ${self}::rep_active($key)
+    [namespace current]::DelRep $self $key1
+    [namespace current]::DelRep $self $key2
+  }
+  
   lassign [[namespace current]::ParseKey $self $key] mols frames sel
   
   if {[set ${self}::graph_opts(type)] == "segments"} {
     [namespace current]::DelConnect $self $key
   }
+  
+  if {[set ${self}::graph_opts(type)] == "frames"} {
+    switch [set ${self}::datatype(mode)] {
+      single {
+      }
+      multiple {
+      }
+      dual {
+        if {[set ${self}::datatype(ascii)]} {
+          [namespace current]::DelConnect $self $key
+        } else {
+        }
+      }
+    }
+  }
 }
+
 
 proc itrajcomp::MapPoint {self key data {mod 0}} {
   # Add/delete matrix cell to/from representation
@@ -1010,6 +1109,24 @@ proc itrajcomp::MapClear {self} {
       [namespace current]::DelConnect $self $k
     }
   }
+  
+  if {[set ${self}::graph_opts(type)] == "frames"} {
+    switch [set ${self}::datatype(mode)] {
+      single {
+      }
+      multiple {
+      }
+      dual {
+        if {[set ${self}::datatype(ascii)]} {
+          foreach k [array names ${self}::connect_lines] {
+            [namespace current]::DelConnect $self $k
+          }
+        } else {
+        }
+      }
+    }
+  }
+
 }
 
 
@@ -1108,6 +1225,27 @@ proc itrajcomp::UpdateSelection {self} {
       }
     }
   }
+
+  # TODO: check for right type of data in frames (dual?)
+  if {[set ${self}::graph_opts(type)] == "frames"} {
+    set connect_sw [set ${self}::connect_sw]
+    array set connect_lines [array get ${self}::connect_lines]
+    foreach id [$plot find all] {
+      set key [$plot gettags $id]
+      if {[$plot itemcget $id -outline] == "black"} {
+        if {[info exists connect_lines($key)]} {
+          if {$connect_sw == 0} {
+            [namespace current]::DelConnect $self $key
+          }
+        } else {
+          if {$connect_sw == 1} {
+            [namespace current]::AddConnect $self $key
+          }
+        }
+      }
+    }
+  }
+  
 }
 
 

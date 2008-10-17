@@ -678,7 +678,9 @@ proc itrajcomp::concat_opts {self} {
   }
   
   foreach v [array names opts] {
-    if { $v == "type" || $v == "diagonal" } {continue}
+    if { $v == "type" || $v == "diagonal" || $v == "segment"} {
+      continue
+    }
     if {$opts($v)} {
       lappend options "$v"
     }
@@ -765,4 +767,12 @@ proc itrajcomp::dataframe_mapper {widget} {
   }
   
   [namespace current]::UpdateRes
+}
+
+# TODO: move graphics to another file
+proc itrajcomp::draw_cone {base tip color {radius .3}} {
+  lassign [$base get {x y z}] base_coord
+  lassign [$tip get {x y z}] tip_coord
+  graphics top color $color
+  return [graphics top cone $base_coord $tip_coord radius $radius]
 }
