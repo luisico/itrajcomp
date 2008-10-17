@@ -805,8 +805,7 @@ proc itrajcomp::ShowPoint {self key val stick} {
   array set graph_opts [array get ${self}::graph_opts]
   if {[set ${self}::info_sticky] && $stick} return
   
-  set indices [split $key ,:]
-  lassign $indices i j k l
+  lassign [split $key ,:] i j k l
   set ${self}::info_key1 [format "$graph_opts(format_key)" $i $j]
   set ${self}::info_key2 [format "$graph_opts(format_key)" $k $l]
   set ${self}::info_value [format "$graph_opts(format_data)" $val]
@@ -815,8 +814,7 @@ proc itrajcomp::ShowPoint {self key val stick} {
 
 proc itrajcomp::MapAdd {self key {check 0}} {
   # Add a matrix cell to representation
-  set indices [split $key ,]
-  lassign $indices key1 key2
+  lassign [split $key ,] key1 key2
   
   set map_active [set ${self}::map_active($key)]
   if {$map_active == 1} {
@@ -861,9 +859,7 @@ proc itrajcomp::MapAdd {self key {check 0}} {
 
 proc itrajcomp::MapDel {self key {check 0}} {
   # Delete a matrix cell from representation
-  # TODO: move split into the lassign command
-  set indices [split $key ,]
-  lassign $indices key1 key2
+  lassign [split $key ,] key1 key2
 
   set map_active [set ${self}::map_active($key)]
   if {$map_active == 0} {
@@ -1053,8 +1049,7 @@ proc itrajcomp::MapCluster2 {self key {mod1 0} {mod2 0} } {
 
   [namespace current]::MapClear $self
   foreach mykey [set ${self}::keys] {
-    set indices [split $mykey ,]
-    lassign $indices key1 key2
+    lassign [split $mykey ,] key1 key2
     if {$key1 eq $key2} {
       continue
     }
@@ -1142,8 +1137,7 @@ proc itrajcomp::UpdateSelection {self} {
   array set rep_active [array get ${self}::rep_active]
   foreach id [$plot find all] {
     set key [$plot gettags $id]
-    set indices [split $key ,]
-    lassign $indices key1 key2
+    lassign [split $key ,] key1 key2
     if {[$plot itemcget $id -outline] == "black"} {
       if {[info exists rep_active($key)]} {
         if {$rep_sw == 0} {

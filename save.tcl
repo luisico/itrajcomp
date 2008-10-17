@@ -180,11 +180,7 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
     append output "\n"
     
     foreach key $keys {
-      set indices [split $key :,]
-      set i [lindex $indices 0]
-      set j [lindex $indices 1]
-      set k [lindex $indices 2]
-      set l [lindex $indices 3]
+      lassign [split $key :,] i j k l
       append output [format "%8s %8s   %8s %8s  " $i $j $k $l]
       switch $datatype(mode) {
         single {
@@ -217,11 +213,7 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
     append output "\n"
 
     foreach key $keys {
-      set indices [split $key :,]
-      set i [lindex $indices 0]
-      set j [lindex $indices 1]
-      set k [lindex $indices 2]
-      set l [lindex $indices 3]
+      lassign [split $key :,] i j k l
       append output [format "%8s %8s   %8s %8s  " $i $j $k $l [lindex $data($key) $data_index]]
       for {set s 0} {$s < [llength $datatype(sets)]} {incr s} {
         append output [format " $graph_opts(format_data)" [lindex $data($key) $s]]
@@ -291,9 +283,7 @@ proc itrajcomp::create_matrix {self} {
 
   # Create a rectangular matrix
   foreach key $keys {
-    set indices [split $key ,]
-    set key1 [lindex $indices 0]
-    set key2 [lindex $indices 1]
+    lassign [split $key ,] key1 key2
     if {![info exists data($key2,$key1)]} {
       set data($key2,$key1) $data($key1,$key2)
     }

@@ -61,9 +61,7 @@ proc itrajcomp::Cluster {self} {
     ### 2.
     set r_max 0
     foreach key $keys {
-      set indices [split $key ,]
-      set key1 [lindex $indices 0]
-      set key2 [lindex $indices 1]
+      lassign [split $key ,] key1 key2
       if {$conf($key1) == 0 || $conf($key2) == 0} continue
       #if {$key1 eq $key2} continue
       if {$data($key) > $r_max} {
@@ -74,9 +72,7 @@ proc itrajcomp::Cluster {self} {
     
     ### 3.
     foreach key $keys {
-      set indices [split $key ,]
-      set key1 [lindex $indices 0]
-      set key2 [lindex $indices 1]
+      lassign [split $key ,] key1 key2
       if {$conf($key1) == 0 || $conf($key2) == 0} continue
       if {$data($key) <= $r_thres} {
         set csize($key1) [expr {$csize($key1) +1}]
