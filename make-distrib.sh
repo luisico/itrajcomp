@@ -27,6 +27,7 @@ rmsd.tcl
 save.tcl
 segments.tcl
 standard.tcl
+graphics.tcl
 user.tcl
 utils.tcl
 )

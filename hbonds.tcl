@@ -16,7 +16,7 @@
 
 # Description
 # -----------
-# 
+#      See maingui.tcl
 
 # Documentation
 # ------------
@@ -77,5 +77,6 @@ proc itrajcomp::calc_hbonds_options {} {
     type         "frames"
     formats      "f"
     rep_style1   "NewRibbons"
+    connect      "cones"
   }
 }

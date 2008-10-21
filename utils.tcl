@@ -572,7 +572,14 @@ proc itrajcomp::ColorScale {val max min {s 1.0} {l 1.0}} {
   #set l 1.0 luminosity
   #set s .5 saturation
 
-  lassign [hls2rgb [expr {($h - $h*($val-$min)/($max-$min))}] $l $s] r g b
+  set r 0.5
+  set g 0.5
+  set b 0.5
+  set diff [expr {$max-$min}]
+  # TODO: better way to check for 0.0?
+  if ([expr {$diff == 0.0 ? 0 : 1}]) {
+      lassign [hls2rgb [expr {($h - $h*($val-$min)/$diff)}] $l $s] r g b
+  }
 
   set r [expr {int($r*255)}]
   set g [expr {int($g*255)}]
@@ -767,12 +774,4 @@ proc itrajcomp::dataframe_mapper {widget} {
   }
   
   [namespace current]::UpdateRes
-}
-
-# TODO: move graphics to another file
-proc itrajcomp::draw_cone {base tip color {radius .3}} {
-  lassign [$base get {x y z}] base_coord
-  lassign [$tip get {x y z}] tip_coord
-  graphics top color $color
-  return [graphics top cone $base_coord $tip_coord radius $radius]
 }

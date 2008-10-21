@@ -579,6 +579,7 @@ proc itrajcomp::NewObject {} {
 
   # Pass graph options
   variable calc_${calctype}_graph
+  # defaults
   array set graph_opts {
     type ""
     formats "f" format_key ""
@@ -586,6 +587,7 @@ proc itrajcomp::NewObject {} {
     rep_style1 NewRibbons
     rep_color1 Molecule
     rep_colorid1 0
+    connect lines
   }
   array set graph_opts [array get calc_${calctype}_graph]
   array set ${obj}::graph_opts [array get graph_opts]
@@ -702,4 +704,5 @@ source [file join $env(ITRAJCOMPDIR) user.tcl]
 source [file join $env(ITRAJCOMPDIR) buttonbar.tcl]
 source [file join $env(ITRAJCOMPDIR) frames.tcl]
 source [file join $env(ITRAJCOMPDIR) segments.tcl]
+source [file join $env(ITRAJCOMPDIR) graphics.tcl]
 #source [file join $env(ITRAJCOMPDIR) clustering.tcl]

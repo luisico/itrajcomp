@@ -16,7 +16,7 @@
 
 # Description
 # -----------
-# 
+#      See maingui.tcl
 
 # Documentation
 # ------------

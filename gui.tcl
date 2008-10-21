@@ -16,7 +16,7 @@
 
 # Description
 # -----------
-# 
+#      See maingui.tcl
 
 # Documentation
 # ------------
@@ -722,31 +722,59 @@ proc itrajcomp::AddConnect {self key} {
         }
         dual {
           # TODO: draw different graphics (cone, line,..) based on calctype
+
+
           if {[set ${self}::datatype(ascii)]} {
-            set number_hbonds [lindex [set ${self}::data0($key)] 0]
-            set hbonds [lindex [set ${self}::data0($key)] 1]
-            
-            lassign [split $key1 :] m1 f1
-            lassign [split $key2 :] m2 f2
-            set donors    [lindex $hbonds 0]
-            set acceptors [lindex $hbonds 1]
-            set hydrogens [lindex $hbonds 2]
-            
-            # set a different color for each cell, increasing colorID as they are selected to be drawn
-            set color [array size ${self}::connect_lines]
-            
-            for {set i 0} {$i < $number_hbonds} {incr i} {
-              set donor_sel     [atomselect $m1 "index [lindex $donors $i]" frame $f1]
-              set acceptor_sel  [atomselect $m2 "index [lindex $acceptors $i]" frame $f2]
-              set hydrogen_sel  [atomselect $m1 "index [lindex $hydrogens $i]" frame $f1]
-              set donor    [$donor_sel get {resid resname name}]
-              set acceptor [$acceptor_sel get {resid resname name}]
-              set hydrogen [$hydrogen_sel get {resid resname name}]
-              puts "\thbond $i [lindex [colorinfo colors] $color]: [lindex $donors $i] ($donor) - [lindex $acceptors $i] ($acceptor) - [lindex $hydrogens $i] ($hydrogen)"
-              set gid [[namespace current]::draw_cone $acceptor_sel $donor_sel $color]
-              lappend connect_lines "$m1:$gid"
-            }
-          }
+	    lassign [split $key1 :] m1 f1
+	    lassign [split $key2 :] m2 f2
+
+	    # TODO: this will only work for hbonds
+	    # try to generalize a bit more, maybe by specifying cones or lines, but
+	    # also how format will be passed in data0 or/and which fields to use to draw the points
+	    set nconnects [lindex [set ${self}::data0($key)] 0]
+	    set connect_data [lindex [set ${self}::data0($key)] 1]
+	    
+	    set n_one_connect [llength $connect_data]
+	    puts "n_one_connect: $n_one_connect"
+	    
+	    # this should be passed with the calctype
+	    set field1 1
+	    set field2 0
+	    # TODO: check field1 and field2 are within boundaries of n_one_connect
+	    
+	    set points1 [lindex $connect_data $field1]
+	    set points2 [lindex $connect_data $field2]
+	    
+	    # TODO: other fields should be printed as well
+	    #set hydrogens [lindex $connect_data 2]
+	    
+	    # set a different color for each cell, increasing colorID as they are selected to be drawn
+	    set color [array size ${self}::connect_lines]
+	    
+	    puts "Connects:"
+	    for {set i 0} {$i < $nconnects} {incr i} {
+	      puts "$i: [lindex $points1 $i] [lindex $points2 $i]"
+	      set point1 [atomselect $m2 "index [lindex $points1 $i]" frame $f2]
+	      set point2 [atomselect $m1 "index [lindex $points2 $i]" frame $f1]
+	      set point1_label [$point1 get {resname resid name}]
+	      set point2_label [$point2 get {resname resid name}]
+	      set label ""
+	      set gid ""
+	      switch [set ${self}::graph_opts(connect)] {
+		cones {
+		  set label "cone"
+		  set gid [[namespace current]::draw_cone $point1 $point2 $color]
+		}
+		lines {
+		  set label "line"
+		  set gid [[namespace current]::draw_line $point1 $point2 $color]
+		}
+		# TODO: Add default as lines (just in case, so gid is not empty
+	      }
+	      puts "\t$label $i ([lindex [colorinfo colors] $color]) between mol frame $m1:$f1 index [lindex $points2 $i] $point2_label and mol frame $m2:$f2 index [lindex $points1 $i] $point1_label"
+	      lappend connect_lines "$m1:$gid"
+	    }
+	  }
         }
       }
 
