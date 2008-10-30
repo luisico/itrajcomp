@@ -39,7 +39,7 @@ proc itrajcomp::Objnew {{self ":auto"} args} {
     if {![info exists itcObjId]} {
       set itcObjId -1
     }
-    set self "itcObj[incr itcObjId]"
+    set self "itc[incr itcObjId]"
   }
   
   array set defaults {

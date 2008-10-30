@@ -33,8 +33,8 @@ proc itrajcomp::calc_hbonds {self} {
   set mol1 [set ${self}::sets(mol1)]
   set mol2 [set ${self}::sets(mol2)]
   if {$mol1 != $mol2} {
-    tk_messageBox -title "Warning " -message "Selections must come from the same molecule." -parent .itrajcomp
-    return -code return
+    tk_messageBox -title "Error " -message "Selections must come from the same molecule." -parent .itrajcomp
+    return -code error
   }
   
   return [[namespace current]::LoopFrames $self]

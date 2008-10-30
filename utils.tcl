@@ -88,7 +88,7 @@ proc itrajcomp::ParseMols {mols idlist {sort 1} } {
   }
 
   if {[llength $invalid_mols]} {
-    tk_messageBox -title "Warning " -message "The following mols are not available: $invalid_mols" -parent .itrajcomp
+    tk_messageBox -title "Error" -message "The following mols are not available: $invalid_mols" -parent .itrajcomp
     return -1
   } else {
     return $valid_mols
@@ -125,7 +125,7 @@ proc itrajcomp::ParseFrames {def mols skip idlist} {
       # Check frames are within mol range
       foreach f $list {
         if {$f >= $nframes} {
-          tk_messageBox -title "Warning " -message "Frame $f is out of range for mol $mol" -parent .itrajcomp
+          tk_messageBox -title "Error" -message "Frame $f is out of range for mol $mol" -parent .itrajcomp
           return -1
         }
       }
@@ -292,7 +292,7 @@ proc itrajcomp::CheckNatoms {self} {
     foreach i $sets(mol2) {
       set n [[atomselect $i $sets(sel2) frame 0] num]
       if {[info exists natoms($i)] && $natoms($i) != $n} {
-        tk_messageBox -title "Warning " -message "Difference in atom selection between Set1 ($natoms($i)) and Set2 ($n) for molecule $i" -parent .itrajcomp
+        tk_messageBox -title "Error" -message "Difference in atom selection between Set1 ($natoms($i)) and Set2 ($n) for molecule $i" -parent .itrajcomp
         return -1
       }
     }
@@ -302,7 +302,7 @@ proc itrajcomp::CheckNatoms {self} {
     foreach j $sets(mol_all) {
       if {$i < $j} {
         if {$natoms($i) != $natoms($j)} {
-          tk_messageBox -title "Warning " -message "Selections differ for molecules $i ($natoms($i)) and $j ($natoms($j))" -parent .itrajcomp
+          tk_messageBox -title "Error" -message "Selections differ for molecules $i ($natoms($i)) and $j ($natoms($j))" -parent .itrajcomp
           return -1
         }
       }
@@ -324,7 +324,7 @@ proc itrajcomp::ParseKey {self key} {
     frames {
       lassign $indices m f
       set tab_rep [set ${self}::tab_rep]
-      set s [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
+      set s [[namespace current]::ParseSel [$tab_rep.frame.disp1.sel.e get 1.0 end] ""]
     }
     segments {
       switch $opts(segment) {
@@ -332,7 +332,7 @@ proc itrajcomp::ParseKey {self key} {
           set m [join [set ${self}::sets(mol_all)] " "]
           set f [join [set ${self}::sets(frame1)] " "]
           set tab_rep [set ${self}::tab_rep]
-          set extra [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
+          set extra [[namespace current]::ParseSel [$tab_rep.frame.disp1.sel.e get 1.0 end] ""]
           set s "residue [lindex $indices 0] and ($extra)"
         }
         byatom {
@@ -755,7 +755,7 @@ proc itrajcomp::dataframe_mapper {widget} {
 
   set sel [$widget curselection]
   set num [$datalist(id) get $sel]
-  set name "itcObj$num"
+  set name "itc$num"
   set window ".${name}_main"
   
   case [wm state $window] {

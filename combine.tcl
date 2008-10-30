@@ -71,7 +71,7 @@ proc itrajcomp::CombineSel {widget} {
 
   set sel [$widget curselection]
   set obj [$widget get $sel]
-  set num [string trim $obj {itcObj}]
+  set num [string trim $obj {itc}]
   puts "$sel - $obj - $num"
   $c.formula.e insert insert "\$$num"
 }
@@ -89,7 +89,7 @@ proc itrajcomp::CombineUpdate {widget} {
   #  set combobj {}
   foreach obj [[namespace current]::Objlist] {
     set name [namespace tail $obj]
-    set num [string trim $name {itcObj}]
+    set num [string trim $name {itc}]
     set objects($num) $name
   }
 
@@ -110,12 +110,12 @@ proc itrajcomp::Objcombine {formula} {
   #puts "OBJECTS: $combobj"
 
   while { [regexp {\$(\d+)(.*)} $line junk obj line] } {
-    set self($obj) "itcObj$obj"
+    set self($obj) "itc$obj"
     lappend selflist $obj
   }
 
   if {[llength [array names self]] == 0} {
-    tk_messageBox -title "Warning" -message "No objects found in formula!"
+    tk_messageBox -title "Error" -message "No objects found in formula!"
     return
   }
 
@@ -141,7 +141,7 @@ proc itrajcomp::Objcombine {formula} {
     set test [set $self($s0)::$check]
     for {set i 1} {$i < [llength $selflist]} {incr i} {
       if {[set $self([lindex $selflist $i])::$check] != $test} {
-        tk_messageBox -title "Warning" -message "$check is not the same among the objects, cannot combine objects" -type ok
+        tk_messageBox -title "Error" -message "$check is not the same among the objects, cannot combine objects" -type ok
         return
       }
     }
@@ -151,7 +151,7 @@ proc itrajcomp::Objcombine {formula} {
   set test [llength [set $self($s0)::keys]]
   for {set i 1} {$i < [llength $selflist]} {incr i} {
     if {[llength [set $self([lindex $selflist $i])::keys]] != $test} {
-      tk_messageBox -title "Warning" -message "length of objects is not the same, cannot combine objects" -type ok
+      tk_messageBox -title "Error" -message "length of objects is not the same, cannot combine objects" -type ok
       return
     }
   }

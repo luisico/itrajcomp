@@ -27,17 +27,23 @@
 #    Graphics functions.
 
 
-proc itrajcomp::draw_line {point1 point2 color} {
+proc itrajcomp::draw_line {{mol top} point1 point2 color} {
   lassign [$point1 get {x y z}] point1_coord
   lassign [$point2 get {x y z}] point2_coord
-  graphics top color $color
-  return [graphics top line $point1_coord $point2_coord]
+  return [graphics $mol line $point1_coord $point2_coord]
 }
 
 
-proc itrajcomp::draw_cone {base tip color {radius .3}} {
+proc itrajcomp::draw_cone {{mol top} base tip color {radius .3}} {
   lassign [$base get {x y z}] point1_coord
   lassign [$tip get {x y z}]  point2_coord
-  graphics top color $color
-  return [graphics top cone $point1_coord $point1_coord radius $radius]
+  return [graphics $mol cone $point2_coord $point1_coord radius $radius]
+}
+
+
+proc itrajcomp::set_color {{mol top} {color ""}} {
+  if {$color == ""} {
+    return
+  }
+  graphics $mol color $color
 }

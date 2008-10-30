@@ -74,7 +74,7 @@ proc ::itrajcomp::saveData {self {fileout ""} {format "tab"} {options ""}} {
         set status [catch {exec plotmtv $fileout &} msg]
         if { $status } {
           tk_messageBox -title "Warning" -message "Could not open plotmtv\n\nError returned:\n $msg" -type ok -parent [set ${self}::win_obj]
-        } 
+        }
       }
     } else {
       return $output

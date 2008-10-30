@@ -16,7 +16,7 @@ proc buttonbar::create {w frame} {
 proc buttonbar::add {w name} {
   variable buttonbar
   eval frame $buttonbar($w).$name
-  button $w.tabs.c.$name -text $name -highlightthickness 0 -padx 3m -relief groove -pady 0 -padx 0
+  button $w.tabs.c.$name -text $name -highlightthickness 0 -relief groove -pady 0 -padx 2
   pack $w.tabs.c.$name -side left -pady 0 -padx 0 -fill y
   bindtags $w.tabs.c.$name tab_$w
   bind tab_$w <Button-1> "[namespace current]::showframe $w %W"

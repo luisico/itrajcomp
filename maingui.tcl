@@ -105,7 +105,7 @@ proc itrajcomp::init {} {
 
   # Update GUI
   #-----------
-  buttonbar::showframe $menubar calc
+  buttonbar::showframe $menubar sel
   [namespace current]::TabCalcUpdate
   update idletasks
 }
@@ -162,12 +162,16 @@ proc itrajcomp::TabSel {w} {
   variable tab_sel [buttonbar::add $w sel]
   buttonbar::name $w sel "Selection"
   
+  # New object button
+  button $tab_sel.new -text "New" -command "[namespace current]::NewObject"
+  pack $tab_sel.new -side top
+
   # Set 1
   [namespace current]::SelWidget $tab_sel 1
 
   # Same selections checkbutton
   checkbutton $tab_sel.same -text "Same selections" -variable [namespace current]::samemols -command [namespace current]::SwitchSamemols
-  pack $tab_sel.same -side top
+  pack $tab_sel.same -side top -pady 1
 
   # Set 2
   [namespace current]::SelWidget $tab_sel 2
@@ -241,7 +245,8 @@ proc itrajcomp::TabCalc {w} {
   variable tab_calc [buttonbar::add $w calc]
   buttonbar::name $w calc "Calculation"
 
-  button $tab_calc.new -text "New object" -command "[namespace current]::NewObject"
+  # New object button
+  button $tab_calc.new -text "New" -command "[namespace current]::NewObject"
   pack $tab_calc.new -side top
 
   # Type frame
@@ -329,11 +334,12 @@ proc itrajcomp::UpdateRes {} {
   # Fill table in order
   foreach obj [[namespace current]::Objlist] {
     set name [namespace tail $obj]
-    set num [string trim $name {itcObj}]
+    set num [string trim $name {itc}]
     set objects($num) $name
   }
 
   foreach num [lsort -integer [array names objects]] {
+    # TODO: check wm exists, maybe in the previous foreach
     set name $objects($num)
     set window ".${name}_main"
     $datalist(id) insert end "$num"
@@ -463,7 +469,7 @@ proc itrajcomp::Samemols {status} {
     if {[set "calc_${calctype}_opts(force_samemols)"]} {
       set samemols 1
       set vn [package present itrajcomp]
-      tk_messageBox -title "iTrajComp v$vn - Warning" -parent .itrajcomp -message "The current calculation type ($calctype) requires same selections"
+      tk_messageBox -title "Error" -parent .itrajcomp -message "The current calculation type ($calctype) requires same selections"
       return
     }
     set state "normal"
@@ -594,12 +600,11 @@ proc itrajcomp::NewObject {} {
 
   # Do the calculation
   [namespace current]::Status "Calculating $calctype ..."
-  set err [[namespace current]::calc_$calctype $obj]
-  if {$err} {
+  if [catch { [namespace current]::calc_$calctype $obj } msg] {
     [namespace current]::Objdelete $obj
     return 1
   }
-  
+
   # Create the new graph
   [namespace current]::Status "Creating graph for $obj ..."
   [namespace current]::itcObjGui $obj

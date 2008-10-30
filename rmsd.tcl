@@ -30,7 +30,7 @@
 proc itrajcomp::calc_rmsd {self} {
   # Check number of atoms in selections, and combined list of molecules
   if {[[namespace current]::CheckNatoms $self] == -1} {
-    return -code return
+    return -code error
   }
   
   return [[namespace current]::LoopFrames $self]

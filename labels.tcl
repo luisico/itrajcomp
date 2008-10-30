@@ -35,8 +35,8 @@ proc itrajcomp::calc_labels {self} {
   # Get values for each mol
   set i 0
   if {! [info exists opts(labels_status)]} {
-    tk_messageBox -title "Warning" -message "No $opts(label_type) have been defined" -type ok
-    return 1
+    tk_messageBox -title "Error" -message "No $opts(label_type) have been defined" -type ok
+    return -code error
   }
   
   foreach lab $opts(labels_status) {
@@ -46,8 +46,8 @@ proc itrajcomp::calc_labels {self} {
     incr i
   }
   if {! [array exists alldata]} {
-    tk_messageBox -title "Warning" -message "No $opts(label_type) have been selected" -type ok
-    return 1
+    tk_messageBox -title "Error" -message "No $opts(label_type) have been selected" -type ok
+    return -code error
   }
   array set ${self}::alldata [array get alldata]
 

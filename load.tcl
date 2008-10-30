@@ -87,12 +87,12 @@ proc itrajcomp::loadData {file format} {
 
   # Type of object
   if {![info exists opts(type)]} {
-    tk_messageBox -title "Warning" -message "Type not specified in input file"
+    tk_messageBox -title "Error" -message "Type not specified in input file"
     return
   }
   
   if {[llength [info procs "calc_$opts(type)_options"]] == 0} {
-    tk_messageBox -title "Warning" -message "Could not find calc_$opts(type)_options"
+    tk_messageBox -title "Error" -message "Could not find calc_$opts(type)_options"
     return
   }
 

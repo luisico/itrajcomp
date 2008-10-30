@@ -54,23 +54,19 @@ proc itrajcomp::itcObjGui {self} {
       append title " $v=$opts($v)"
     }
     wm title $win_obj $title
-    
+    wm iconname $win_obj $self 
+
     # Menu
     #-----
     set menubar [frame $win_obj.menubar -relief raised -bd 2]
-    pack $win_obj.menubar -padx 1 -fill x
+    pack $win_obj.menubar -side top -padx 1 -fill x
     [namespace parent]::itcObjMenubar $self
     
     # Tabs
     #-----
     frame $win_obj.tabc
-    pack $win_obj.tabc -side bottom -padx 1 -expand yes -fill both
+    pack $win_obj.tabc -side top -padx 1 -expand yes -fill both
     pack [buttonbar::create $menubar $win_obj.tabc] -side top -fill x
-
-    # Info
-    variable tab_info [buttonbar::add $menubar info]
-    buttonbar::name $menubar info "Info"
-    [namespace parent]::itcObjInfo $self
 
     # Graph
     variable tab_graph [buttonbar::add $menubar graph]
@@ -82,6 +78,11 @@ proc itrajcomp::itcObjGui {self} {
     buttonbar::name $menubar rep "Representations"
     [namespace parent]::itcObjRep $self
 
+    # Info
+    variable tab_info [buttonbar::add $menubar info]
+    buttonbar::name $menubar info "Info"
+    [namespace parent]::itcObjInfo $self
+
     buttonbar::showframe $menubar graph
     update idletasks
   }
@@ -89,7 +90,7 @@ proc itrajcomp::itcObjGui {self} {
 
 
 proc itrajcomp::itcObjMenubar {self} {
-  # Menu for an itcObj
+  # Menu for an itc object
   
   namespace eval [namespace current]::${self}:: {
     menubutton $menubar.file -text "File" -menu $menubar.file.menu -underline 0
@@ -136,108 +137,111 @@ proc itrajcomp::itcObjInfo {self} {
   # Construct info gui
   namespace eval [namespace current]::${self}:: {
 
-    # Calculation type
-    labelframe $tab_info.calc -text "Calculation Type"
-    pack $tab_info.calc -side top -anchor nw -expand yes -fill x
+    frame $tab_info.frame
+    pack $tab_info.frame -side top -anchor nw -expand yes -fill x
 
-    label $tab_info.calc.type -text $opts(type)
-    pack $tab_info.calc.type -side top -anchor nw
+    # Calculation type
+    labelframe $tab_info.frame.calc -text "Calculation Type"
+    pack $tab_info.frame.calc -side top -anchor nw -expand yes -fill x
+
+    label $tab_info.frame.calc.type -text $opts(type)
+    pack $tab_info.frame.calc.type -side top -anchor nw
     
     # Calculation options
-    labelframe $tab_info.opt -text "Calculation Options"
-    pack $tab_info.opt -side top -anchor nw -expand yes -fill x
+    labelframe $tab_info.frame.opt -text "Calculation Options"
+    pack $tab_info.frame.opt -side top -anchor nw -expand yes -fill x
     
     set row 1
-    grid columnconfigure $tab_info.opt 2 -weight 1
+    grid columnconfigure $tab_info.frame.opt 2 -weight 1
     incr row
-    label $tab_info.opt.diagonal_l -text "diagonal:"
-    label $tab_info.opt.diagonal_v -text "$opts(diagonal)"
-    grid $tab_info.opt.diagonal_l -row $row -column 1 -sticky nw
-    grid $tab_info.opt.diagonal_v -row $row -column 2 -sticky nw
+    label $tab_info.frame.opt.diagonal_l -text "diagonal:"
+    label $tab_info.frame.opt.diagonal_v -text "$opts(diagonal)"
+    grid $tab_info.frame.opt.diagonal_l -row $row -column 1 -sticky nw
+    grid $tab_info.frame.opt.diagonal_v -row $row -column 2 -sticky nw
     foreach v [array names opts] {
       if { $v == "type" || $v == "diagonal" } {continue}
       incr row
-      label $tab_info.opt.${v}_l -text "$v:"
-      label $tab_info.opt.${v}_v -text "$opts($v)"
-      grid $tab_info.opt.${v}_l -row $row -column 1 -sticky nw
-      grid $tab_info.opt.${v}_v -row $row -column 2 -sticky nw
+      label $tab_info.frame.opt.${v}_l -text "$v:"
+      label $tab_info.frame.opt.${v}_v -text "$opts($v)"
+      grid $tab_info.frame.opt.${v}_l -row $row -column 1 -sticky nw
+      grid $tab_info.frame.opt.${v}_v -row $row -column 2 -sticky nw
     }
 
     # Selection set 1
-    labelframe $tab_info.sel1 -text "Selection 1"
-    pack $tab_info.sel1 -side top -anchor nw -expand yes -fill x
+    labelframe $tab_info.frame.sel1 -text "Selection 1"
+    pack $tab_info.frame.sel1 -side top -anchor nw -expand yes -fill x
 
     set row 1
-    grid columnconfigure $tab_info.sel1 2 -weight 1
+    grid columnconfigure $tab_info.frame.sel1 2 -weight 1
     
-    label $tab_info.sel1.mol_l -text "Molecule(s):"
-    label $tab_info.sel1.mol_v -text "$sets(mol1_def) ($sets(mol1))"
-    grid $tab_info.sel1.mol_l -row $row -column 1 -sticky nw
-    grid $tab_info.sel1.mol_v -row $row -column 2 -sticky nw
+    label $tab_info.frame.sel1.mol_l -text "Molecule(s):"
+    label $tab_info.frame.sel1.mol_v -text "$sets(mol1_def) ($sets(mol1))"
+    grid $tab_info.frame.sel1.mol_l -row $row -column 1 -sticky nw
+    grid $tab_info.frame.sel1.mol_v -row $row -column 2 -sticky nw
 
     incr row
-    label $tab_info.sel1.frame_l -text "Frame(s):"
-    label $tab_info.sel1.frame_v -text "$sets(frame1_def) ([[namespace parent]::SplitFrames $sets(frame1)])"
-    grid $tab_info.sel1.frame_l -row $row -column 1 -sticky nw
-    grid $tab_info.sel1.frame_v -row $row -column 2 -sticky nw
+    label $tab_info.frame.sel1.frame_l -text "Frame(s):"
+    label $tab_info.frame.sel1.frame_v -text "$sets(frame1_def) ([[namespace parent]::SplitFrames $sets(frame1)])"
+    grid $tab_info.frame.sel1.frame_l -row $row -column 1 -sticky nw
+    grid $tab_info.frame.sel1.frame_v -row $row -column 2 -sticky nw
 
     incr row
-    label $tab_info.sel1.atom_l -text "Atom Sel:"
-    label $tab_info.sel1.atom_v -text "$sets(sel1)"
-    grid $tab_info.sel1.atom_l -row $row -column 1 -sticky nw
-    grid $tab_info.sel1.atom_v -row $row -column 2 -sticky nw
+    label $tab_info.frame.sel1.atom_l -text "Atom Sel:"
+    label $tab_info.frame.sel1.atom_v -text "$sets(sel1)"
+    grid $tab_info.frame.sel1.atom_l -row $row -column 1 -sticky nw
+    grid $tab_info.frame.sel1.atom_v -row $row -column 2 -sticky nw
 
     # Selection set 2
-    labelframe $tab_info.sel2 -text "Selection 2"
-    pack $tab_info.sel2 -side top -anchor nw -expand yes -fill x
+    labelframe $tab_info.frame.sel2 -text "Selection 2"
+    pack $tab_info.frame.sel2 -side top -anchor nw -expand yes -fill x
 
     if {$sets(samemols)} {
-      label $tab_info.sel2.same -text "Same as selection 1"
-      pack $tab_info.sel2.same -side top -anchor nw
+      label $tab_info.frame.sel2.same -text "Same as selection 1"
+      pack $tab_info.frame.sel2.same -side top -anchor nw
     } else {
       set row 1
-      grid columnconfigure $tab_info.sel2 2 -weight 1
+      grid columnconfigure $tab_info.frame.sel2 2 -weight 1
       
-      label $tab_info.sel2.mol_l -text "Molecule(s):"
-      label $tab_info.sel2.mol_v -text "$sets(mol2_def) ($sets(mol2))"
-      grid $tab_info.sel2.mol_l -row $row -column 1 -sticky nw
-      grid $tab_info.sel2.mol_v -row $row -column 2 -sticky nw
-      
-      incr row
-      label $tab_info.sel2.frame_l -text "Frame(s):"
-      label $tab_info.sel2.frame_v -text "$sets(frame2_def) ([[namespace parent]::SplitFrames $sets(frame2)])"
-      grid $tab_info.sel2.frame_l -row $row -column 1 -sticky nw
-      grid $tab_info.sel2.frame_v -row $row -column 2 -sticky nw
+      label $tab_info.frame.sel2.mol_l -text "Molecule(s):"
+      label $tab_info.frame.sel2.mol_v -text "$sets(mol2_def) ($sets(mol2))"
+      grid $tab_info.frame.sel2.mol_l -row $row -column 1 -sticky nw
+      grid $tab_info.frame.sel2.mol_v -row $row -column 2 -sticky nw
       
       incr row
-      label $tab_info.sel2.atom_l -text "Atom Sel:"
-      label $tab_info.sel2.atom_v -text "$sets(sel2)"
-      grid $tab_info.sel2.atom_l -row $row -column 1 -sticky nw
-      grid $tab_info.sel2.atom_v -row $row -column 2 -sticky nw
+      label $tab_info.frame.sel2.frame_l -text "Frame(s):"
+      label $tab_info.frame.sel2.frame_v -text "$sets(frame2_def) ([[namespace parent]::SplitFrames $sets(frame2)])"
+      grid $tab_info.frame.sel2.frame_l -row $row -column 1 -sticky nw
+      grid $tab_info.frame.sel2.frame_v -row $row -column 2 -sticky nw
+      
+      incr row
+      label $tab_info.frame.sel2.atom_l -text "Atom Sel:"
+      label $tab_info.frame.sel2.atom_v -text "$sets(sel2)"
+      grid $tab_info.frame.sel2.atom_l -row $row -column 1 -sticky nw
+      grid $tab_info.frame.sel2.atom_v -row $row -column 2 -sticky nw
     }
 
     # Molecules list
-    labelframe $tab_info.mols -text "Molecules list"
-    pack $tab_info.mols -side top -anchor nw -expand yes -fill x
+    labelframe $tab_info.frame.mols -text "Molecules list"
+    pack $tab_info.frame.mols -side top -anchor nw -expand yes -fill x
     set row 1
-    grid columnconfigure $tab_info.mols 3 -weight 1
+    grid columnconfigure $tab_info.frame.mols 3 -weight 1
     
-    label $tab_info.mols.header_n -text "Name"
-    grid $tab_info.mols.header_n -row $row -column 2 -sticky nw
-    label $tab_info.mols.header_f -text "Files"
-    grid $tab_info.mols.header_f -row $row -column 3 -sticky nw
+    label $tab_info.frame.mols.header_n -text "Name"
+    grid $tab_info.frame.mols.header_n -row $row -column 2 -sticky nw
+    label $tab_info.frame.mols.header_f -text "Files"
+    grid $tab_info.frame.mols.header_f -row $row -column 3 -sticky nw
 
     foreach m $sets(mol1) {
       incr row
-      label $tab_info.mols.l$m -text "$m:"
-      grid $tab_info.mols.l$m -row $row -column 1 -sticky nw
+      label $tab_info.frame.mols.l$m -text "$m:"
+      grid $tab_info.frame.mols.l$m -row $row -column 1 -sticky nw
 
-      label $tab_info.mols.n$m -text "[molinfo $m get name]"
-      grid $tab_info.mols.n$m -row $row -column 2 -sticky nw
+      label $tab_info.frame.mols.n$m -text "[molinfo $m get name]"
+      grid $tab_info.frame.mols.n$m -row $row -column 2 -sticky nw
 
       foreach file [eval concat [molinfo $m get filename]] {
-        label $tab_info.mols.f$m$row -text "$file"
-        grid $tab_info.mols.f$m$row -row $row -column 3 -sticky nw
+        label $tab_info.frame.mols.f$m$row -text "$file"
+        grid $tab_info.frame.mols.f$m$row -row $row -column 3 -sticky nw
         incr row
       }
     }
@@ -416,26 +420,29 @@ proc itrajcomp::itcObjRep {self} {
   # construct representations gui
   namespace eval [namespace current]::${self}:: {
 
+    frame $tab_rep.frame
+    pack $tab_rep.frame -side top -anchor nw -expand yes -fill x
+
     variable rep_sw 1
     foreach x [list 1] {
-      labelframe $tab_rep.disp$x -text "Representation"
-      pack $tab_rep.disp$x -side top -expand yes -fill x
+      labelframe $tab_rep.frame.disp$x -text "Representation"
+      pack $tab_rep.frame.disp$x -side top -expand yes -fill x
 
-      checkbutton $tab_rep.disp$x.sw -text "On/Off" -variable [namespace current]::rep_sw -command "[namespace parent]::UpdateSelection $self"
-      pack $tab_rep.disp$x.sw -side left
+      checkbutton $tab_rep.frame.disp$x.sw -text "On/Off" -variable [namespace current]::rep_sw -command "[namespace parent]::UpdateSelection $self"
+      pack $tab_rep.frame.disp$x.sw -side left
 
       # Selection
       #----------
-      labelframe $tab_rep.disp$x.sel -text "Selection"
-      pack $tab_rep.disp$x.sel -side left -anchor nw -expand yes -fill both
+      labelframe $tab_rep.frame.disp$x.sel -text "Selection"
+      pack $tab_rep.frame.disp$x.sel -side left -anchor nw -expand yes -fill both
       
-      text $tab_rep.disp$x.sel.e -exportselection yes -height 2 -width 25 -wrap word
-      $tab_rep.disp$x.sel.e insert end $sets(rep_sel$x)
-      pack $tab_rep.disp$x.sel.e -side top -anchor w -expand yes -fill both
+      text $tab_rep.frame.disp$x.sel.e -exportselection yes -height 2 -width 25 -wrap word
+      $tab_rep.frame.disp$x.sel.e insert end $sets(rep_sel$x)
+      pack $tab_rep.frame.disp$x.sel.e -side top -anchor w -expand yes -fill both
       
       # Style
       #------
-      set style [labelframe $tab_rep.disp$x.style -text "Style"]
+      set style [labelframe $tab_rep.frame.disp$x.style -text "Style"]
       pack $style -side left
 
       # Draw
@@ -485,32 +492,32 @@ proc itrajcomp::itcObjRep {self} {
     if {$graph_opts(type) == "segments"} {
       variable connect_sw 1
       #      variable connect_all 1
-      labelframe $tab_rep.connect -text "Connecting lines"
-      pack $tab_rep.connect -side top -expand yes -fill x
+      labelframe $tab_rep.frame.connect -text "Connecting lines"
+      pack $tab_rep.frame.connect -side top -expand yes -fill x
 
-      checkbutton $tab_rep.connect.sw -text "On/Off" -variable [namespace current]::connect_sw -command "[namespace parent]::UpdateSelection $self"
-      pack $tab_rep.connect.sw -side left
-      #      checkbutton $tab_rep.connect.all -text "All" -variable [namespace current]::connect_all -command "[namespace parent]::UpdateSelection $self"
-      #      pack $tab_rep.connect.all -side left
+      checkbutton $tab_rep.frame.connect.sw -text "On/Off" -variable [namespace current]::connect_sw -command "[namespace parent]::UpdateSelection $self"
+      pack $tab_rep.frame.connect.sw -side left
+      #      checkbutton $tab_rep.frame.connect.all -text "All" -variable [namespace current]::connect_all -command "[namespace parent]::UpdateSelection $self"
+      #      pack $tab_rep.frame.connect.all -side left
     }
     
     # frames graphs
     # TODO: add right type of data (dual?)
     if {$graph_opts(type) == "frames"} {
       variable connect_sw 1
-      labelframe $tab_rep.connect -text "Connecting lines"
-      pack $tab_rep.connect -side top -expand yes -fill x
+      labelframe $tab_rep.frame.connect -text "Connecting lines"
+      pack $tab_rep.frame.connect -side top -expand yes -fill x
 
-      checkbutton $tab_rep.connect.sw -text "On/Off" -variable [namespace current]::connect_sw -command "[namespace parent]::UpdateSelection $self"
-      pack $tab_rep.connect.sw -side left
-      #      checkbutton $tab_rep.connect.all -text "All" -variable [namespace current]::connect_all -command "[namespace parent]::UpdateSelection $self"
-      #      pack $tab_rep.connect.all -side left
+      checkbutton $tab_rep.frame.connect.sw -text "On/Off" -variable [namespace current]::connect_sw -command "[namespace parent]::UpdateSelection $self"
+      pack $tab_rep.frame.connect.sw -side left
+      #      checkbutton $tab_rep.frame.connect.all -text "All" -variable [namespace current]::connect_all -command "[namespace parent]::UpdateSelection $self"
+      #      pack $tab_rep.frame.connect.all -side left
     }
 
     # Update button
     #--------------
-    button $tab_rep.but -text "Update" -command "[namespace parent]::UpdateSelection $self"
-    pack $tab_rep.but -side top
+    button $tab_rep.frame.but -text "Update" -command "[namespace parent]::UpdateSelection $self"
+    pack $tab_rep.frame.but -side top
 
   }
 }
@@ -616,7 +623,7 @@ proc itrajcomp::AddRep {self key} {
   set rep_list [set ${self}::rep_list($key)]
   set rep_num [set ${self}::rep_num($key)]
   
-  set rep_sel1 [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
+  set rep_sel1 [[namespace current]::ParseSel [$tab_rep.frame.disp1.sel.e get 1.0 end] ""]
 
   incr rep_num
   
@@ -670,7 +677,7 @@ proc itrajcomp::AddConnect {self key} {
       set mols [set ${self}::sets(mol1)]
       set frames [set ${self}::sets(frame1)]
       set tab_rep [set ${self}::tab_rep]
-      set extra [[namespace current]::ParseSel [$tab_rep.disp1.sel.e get 1.0 end] ""]
+      set extra [[namespace current]::ParseSel [$tab_rep.frame.disp1.sel.e get 1.0 end] ""]
 
       for {set i 0} {$i < [llength $mols]} {incr i} {
         set m [lindex $mols $i]
@@ -735,7 +742,6 @@ proc itrajcomp::AddConnect {self key} {
 	    set connect_data [lindex [set ${self}::data0($key)] 1]
 	    
 	    set n_one_connect [llength $connect_data]
-	    puts "n_one_connect: $n_one_connect"
 	    
 	    # this should be passed with the calctype
 	    set field1 1
@@ -750,10 +756,10 @@ proc itrajcomp::AddConnect {self key} {
 	    
 	    # set a different color for each cell, increasing colorID as they are selected to be drawn
 	    set color [array size ${self}::connect_lines]
+            [namespace current]::set_color top $color
 	    
 	    puts "Connects:"
 	    for {set i 0} {$i < $nconnects} {incr i} {
-	      puts "$i: [lindex $points1 $i] [lindex $points2 $i]"
 	      set point1 [atomselect $m2 "index [lindex $points1 $i]" frame $f2]
 	      set point2 [atomselect $m1 "index [lindex $points2 $i]" frame $f1]
 	      set point1_label [$point1 get {resname resid name}]
@@ -763,15 +769,15 @@ proc itrajcomp::AddConnect {self key} {
 	      switch [set ${self}::graph_opts(connect)] {
 		cones {
 		  set label "cone"
-		  set gid [[namespace current]::draw_cone $point1 $point2 $color]
+		  set gid [[namespace current]::draw_cone top $point1 $point2 $color]
 		}
 		lines {
 		  set label "line"
-		  set gid [[namespace current]::draw_line $point1 $point2 $color]
+		  set gid [[namespace current]::draw_line top $point1 $point2 $color]
 		}
 		# TODO: Add default as lines (just in case, so gid is not empty
 	      }
-	      puts "\t$label $i ([lindex [colorinfo colors] $color]) between mol frame $m1:$f1 index [lindex $points2 $i] $point2_label and mol frame $m2:$f2 index [lindex $points1 $i] $point1_label"
+	      puts "$label $i ([lindex [colorinfo colors] $color]): $m1:$f1 [lindex $points2 $i] $point2_label -- $m2:$f2 [lindex $points1 $i] $point1_label"
 	      lappend connect_lines "$m1:$gid"
 	    }
 	  }

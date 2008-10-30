@@ -30,7 +30,7 @@
 proc itrajcomp::calc_covar {self} {
   # Check number of atoms in selections, and combined list of molecules
   if {[[namespace current]::CheckNatoms $self] == -1} {
-    return -code return
+    return -code error
   }
 
   # Define segments
