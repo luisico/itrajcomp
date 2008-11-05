@@ -256,7 +256,7 @@ proc itrajcomp::itcObjGraph {self} {
     variable info_key1
     variable info_key2
     variable info_value
-    variable info_sticky 0
+    variable info_keep 0
     variable map_add 0
     variable map_del 0
     variable highlight 0.2
@@ -306,8 +306,9 @@ proc itrajcomp::itcObjGraph {self} {
     entry $info_frame.value_entry -width 8 -textvariable [namespace current]::info_value -state readonly
     pack $info_frame.value_label $info_frame.value_entry -side left
 
-    checkbutton $info_frame.sticky -text "Sticky" -variable [namespace current]::info_sticky
-    pack $info_frame.sticky -side left
+    checkbutton $info_frame.keep -text "Keep" -variable [namespace current]::info_keep
+    [namespace parent]::setBalloonHelp $info_frame.keep "Keep Keys and Value of the last cell pointed at with the mouse"
+    pack $info_frame.keep -side left
 
     checkbutton $info_frame.mapadd -text "Add" -variable [namespace current]::map_add -command "set [namespace current]::map_del 0"
     pack $info_frame.mapadd -side left
@@ -834,11 +835,11 @@ proc itrajcomp::ExplorePoint {self key} {
 }
 
 
-proc itrajcomp::ShowPoint {self key val stick} {
+proc itrajcomp::ShowPoint {self key val keep} {
   # Show information about a matrix cell
   array set graph_opts [array get ${self}::graph_opts]
-  if {[set ${self}::info_sticky] && $stick} return
-  
+  if {[set ${self}::info_keep] && $keep} return
+    
   lassign [split $key ,:] i j k l
   set ${self}::info_key1 [format "$graph_opts(format_key)" $i $j]
   set ${self}::info_key2 [format "$graph_opts(format_key)" $k $l]
@@ -1089,22 +1090,12 @@ proc itrajcomp::MapCluster2 {self key {mod1 0} {mod2 0} } {
     }
     if {!$mod1 || $mod1 == 1} {
       if {$data($mykey) >= $val} {
-        set color black
-        $plot itemconfigure $mykey -outline $color
-        [namespace current]::AddRep $self $key1
-        [namespace current]::AddRep $self $key2
-        set ${self}::map_active($mykey) 1
-        set ${self}::rep_active($mykey) 1
+        [namespace current]::MapAdd $self $mykey
       }
     }
     if {!$mod1 || $mod1 == -1} {
       if {$data($mykey) <= $val} {
-        set color black
-        $plot itemconfigure $mykey -outline $color
-        [namespace current]::AddRep $self $key1
-        [namespace current]::AddRep $self $key2
-        set ${self}::map_active($mykey) 1
-        set ${self}::rep_active($mykey) 1
+        [namespace current]::MapAdd $self $mykey
       }
     }
   }

@@ -163,7 +163,7 @@ proc itrajcomp::TabSel {w} {
   buttonbar::name $w sel "Selection"
   
   # New object button
-  button $tab_sel.new -text "New" -command "[namespace current]::NewObject"
+  button $tab_sel.new -text "New Calculation" -command "[namespace current]::NewObject"
   pack $tab_sel.new -side top
 
   # Set 1
@@ -495,6 +495,7 @@ proc itrajcomp::Samemols {status} {
 
 
 proc itrajcomp::ProgressBar {num max} {
+  # TODO: reset bar after sometime when a task has finished
   # Progress bar
   variable statusbar
   variable options
@@ -710,4 +711,5 @@ source [file join $env(ITRAJCOMPDIR) buttonbar.tcl]
 source [file join $env(ITRAJCOMPDIR) frames.tcl]
 source [file join $env(ITRAJCOMPDIR) segments.tcl]
 source [file join $env(ITRAJCOMPDIR) graphics.tcl]
+source [file join $env(ITRAJCOMPDIR) balloons.tcl]
 #source [file join $env(ITRAJCOMPDIR) clustering.tcl]

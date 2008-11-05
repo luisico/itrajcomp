@@ -30,6 +30,7 @@ standard.tcl
 graphics.tcl
 user.tcl
 utils.tcl
+balloon.tcl
 )
 
 for f in ${files[@]}; do
