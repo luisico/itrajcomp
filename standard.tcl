@@ -34,12 +34,12 @@ proc itrajcomp::AddStandardCalc {} {
 
   # Type frames
   foreach type {rmsd rgyr contacts hbonds labels} desc {"Root mean square deviation" "Radius of gyrantion difference" "Number of contacts" "Number of hydrogen bonds" "VMD labels: distance, angles, dihedrals"} {
-    [namespace current]::AddCalc $type $desc [file join $env(ITRAJCOMPDIR) $type.tcl]
+    [namespace current]::AddCalc $type frames $desc [file join $env(ITRAJCOMPDIR) $type.tcl]
   }
 
   # Type segments
   foreach type {dist covar} desc {"Distance" "Covariance"} {
-    [namespace current]::AddCalc $type $desc [file join $env(ITRAJCOMPDIR) $type.tcl]
+    [namespace current]::AddCalc $type segments $desc [file join $env(ITRAJCOMPDIR) $type.tcl]
   }
 }
 #*****

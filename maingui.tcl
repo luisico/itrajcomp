@@ -274,10 +274,15 @@ proc itrajcomp::TabCalc {w} {
   button $tab_calc.new -text "New Calculation" -command "[namespace current]::NewObject"
   pack $tab_calc.new -side top
 
-  # Type frame
-  labelframe $tab_calc.type -relief ridge -bd 2 -text "Type"
-  pack $tab_calc.type -side top -anchor nw -expand yes -fill x
-  grid columnconfigure $tab_calc.type 2 -weight 1
+  # Frames frame
+  labelframe $tab_calc.frames -relief ridge -bd 2 -text "Frames mode"
+  pack $tab_calc.frames -side top -anchor nw -expand yes -fill x
+  grid columnconfigure $tab_calc.frames 2 -weight 1
+
+  # Segments frame
+  labelframe $tab_calc.segments -relief ridge -bd 2 -text "Segments mode"
+  pack $tab_calc.segments -side top -anchor nw -expand yes -fill x
+  grid columnconfigure $tab_calc.segments 3 -weight 1
 
   # Options frame
   labelframe $tab_calc.opt -relief ridge -bd 2 -text "Options"
@@ -414,15 +419,16 @@ proc itrajcomp::UpdateRes {} {
 # NAME
 # AddCalc
 # SYNOPSIS
-# itrajcomp::AddCalc type description script
+# itrajcomp::AddCalc type mode description script
 # FUNCTION
 # Add calculation type to the GUI
 # PARAMETERS
-# * type -- type of calculation
-# * description -- description to show
-# * script -- script to load
+# * type -- calculation type
+# * mode -- calculation mode
+# * description -- description
+# * script -- script
 # SOURCE
-proc itrajcomp::AddCalc {type {description ""} {script ""}} {
+proc itrajcomp::AddCalc {type mode {description ""} {script ""} } {
   variable tab_calc
   variable calc_id
 
@@ -438,10 +444,10 @@ proc itrajcomp::AddCalc {type {description ""} {script ""}} {
   }
 
   # Type
-  radiobutton $tab_calc.type.${type}_n -text $type -variable [namespace current]::calctype -value $type -command [namespace current]::TabCalcUpdate
-  label $tab_calc.type.${type}_d -text $description
-  grid $tab_calc.type.${type}_n -row $calc_id -column 1 -sticky nw
-  grid $tab_calc.type.${type}_d -row $calc_id -column 2 -sticky nw
+  radiobutton $tab_calc.$mode.${type}_n -text $type -variable [namespace current]::calctype -value $type -command [namespace current]::TabCalcUpdate
+  label $tab_calc.$mode.${type}_d -text $description
+  grid $tab_calc.$mode.${type}_n -row $calc_id -column 1 -sticky nw
+  grid $tab_calc.$mode.${type}_d -row $calc_id -column 2 -sticky nw
 
   # Default options
   variable calc_${type}_opts
@@ -463,18 +469,19 @@ proc itrajcomp::AddCalc {type {description ""} {script ""}} {
 # NAME
 # DelCalc
 # SYNOPSIS
-# itrajcomp::DelCalc type
+# itrajcomp::DelCalc type mode
 # FUNCTION
 # Deletes a calculation type from the GUI
 # PARAMETERS
 # * type -- type to delete
+# * mode -- calculation mode (frames or segments)
 # SOURCE
-proc itrajcomp::DelCalc {type} {
+proc itrajcomp::DelCalc {type mode} {
   variable tab_calc
   
-  grid forget $tab_calc.type.${type}_n $tab_calc.type.${type}_d
+  grid forget $tab_calc.$mode.${type}_n $tab_calc.$mode.${type}_d
   pack forget $tab_calc.opt.$type
-  destroy $tab_calc.type.${type}_n $tab_calc.type.${type}_d $tab_calc.opt.$type
+  destroy $tab_calc.$mode.${type}_n $tab_calc.$mode.${type}_d $tab_calc.opt.$type
 }
 #*****
 
