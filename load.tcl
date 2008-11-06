@@ -1,36 +1,40 @@
+#****h* itrajcomp/load
+# NAME
+# load -- Load data
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# Load data.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# TODO
+# * Broken
+# * Convert to a serialize object
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# load.tcl
-#    Load data.
-
-
-# TODO: broken
-# TODO: convert to a serialize object
+#****f* load/loadDataBrowse
+# NAME
+# loadDataBrowse
+# SYNOPSIS
+# itrajcomp::loadDataBrowse format
+# FUNCTION
+# Load GUI
+# PARAMETERS
+# * format -- format
+# SOURCE
 proc itrajcomp::loadDataBrowse {format} {
-  # Load GUI
   set vn [package present itrajcomp]
   if {[llength [info procs "loadData_$format"]] < 1} {
     tk_messageBox -title "iTrajComp v$vn - Error" -parent .itrajcomp -message "loadData_$format not implemented yet"
@@ -51,9 +55,22 @@ proc itrajcomp::loadDataBrowse {format} {
   
   [namespace current]::loadData $file $format
 }
+#*****
 
+#****f* load/loadData
+# NAME
+# loadData
+# SYNOPSIS
+# itrajcomp::loadData file format
+# FUNCTION
+# Creates a new object based on the data in file
+# PARAMETERS
+# * file -- filename
+# * format -- format
+# RETURN VALUE
+# 
+# SOURCE
 proc itrajcomp::loadData {file format} {
-  # Load data interface
   if {$file == ""} {
     return
   }
@@ -128,9 +145,22 @@ proc itrajcomp::loadData {file format} {
   [namespace current]::Status "Creating graph for $obj ..."
   [namespace current]::itcObjGui $obj
 }
+#*****
 
+#****f* load/processData
+# NAME
+# processData
+# SYNOPSIS
+# itrajcomp::processData self alldata
+# FUNCTION
+# Process data loaded
+# PARAMETERS
+# * self -- object
+# * alldata -- data to process
+# RETURN VALUE
+# 
+# SOURCE
 proc itrajcomp::processData {self alldata} {
-  # Process data loaded
   set vals {}
   set keys {}
   for {set i 1} {$i < [llength $alldata]} {incr i} {
@@ -144,9 +174,21 @@ proc itrajcomp::processData {self alldata} {
   set ${self}::keys $keys
   array set ${self}::data [array get data]
 }
+#*****
 
+#****f* load/loadData_tab
+# NAME
+# loadData_tab
+# SYNOPSIS
+# itrajcomp::loadData_tab fid
+# FUNCTION
+# Load data in tabular format
+# PARAMETERS
+# * fid -- file id
+# RETURN VALUE
+# Data loaded in tabular format
+# SOURCE
 proc itrajcomp::loadData_tab {fid} {
-  # Load data in tabular format
   # Names
   set data {}
   gets $fid line
@@ -170,3 +212,4 @@ proc itrajcomp::loadData_tab {fid} {
   }
   return $data
 }
+#*****

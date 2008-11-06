@@ -1,32 +1,35 @@
+#****h* itrajcomp/user
+# NAME
+# user -- User calculation types
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# User calculation types.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# user.tcl
-#    User calculation types.
-
-
-
+#****f* user/AddUserCalc
+# NAME
+# AddUserCalc
+# SYNOPSIS
+# itrajcomp::AddUserCalc
+# FUNCTION
+# Emtpy function to hold user's custom calculation
+# RETURN VALUE
+# Status code
+# SOURCE
 proc itrajcomp::AddUserCalc {} {
 }
+#*****

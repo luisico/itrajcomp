@@ -7,16 +7,19 @@ plugin=itrajcomp
 dir=$plugin
 tar=$plugin-v$version.tgz
 files=(
-README.txt
-buttonbar.tcl
 #clustering.tcl
+README.txt
+balloon.tcl
+buttonbar.tcl
 combine.tcl
 contacts.tcl
 covar.tcl
 dist.tcl
 frames.tcl
+graphics.tcl
 gui.tcl
 hbonds.tcl
+itrajcomp.tcl
 labels.tcl
 load.tcl
 maingui.tcl
@@ -27,10 +30,8 @@ rmsd.tcl
 save.tcl
 segments.tcl
 standard.tcl
-graphics.tcl
 user.tcl
 utils.tcl
-balloon.tcl
 )
 
 for f in ${files[@]}; do
@@ -47,3 +48,7 @@ mv $tar $dir/versions
 chmod 644 $dir/versions/$tar
 cd $dir
 
+
+
+# docs
+#robodoc --src ./ --doc ./docs --multidoc --nodesc --sections --documenttitle iTrajComp --index --html

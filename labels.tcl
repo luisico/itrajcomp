@@ -1,34 +1,38 @@
+#****h* itrajcomp/labels
+# NAME
+# labels -- Functions to calculate distance between labels
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# Functions to calculate distance between labels (Atoms, Bonds, Angles, Dihedrals).
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# labels.tcl
-#    Functions to calculate distance between labels (Atoms, Bonds, Angles, Dihedrals).
-
-
-package provide itrajcomp 1.0
-
+#****f* labels/calc_labels
+# NAME
+# calc_labels
+# SYNOPSIS
+# itrajcomp::calc_labels self
+# FUNCTION
+# This functions gets called when adding a new type of calculation.
+# Labels calculation type
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Status code
+# SOURCE
 proc itrajcomp::calc_labels {self} {
   array set opts [array get ${self}::opts]
   
@@ -39,6 +43,7 @@ proc itrajcomp::calc_labels {self} {
     return -code error
   }
   
+  # Precalculate values
   foreach lab $opts(labels_status) {
     if {$lab == 1} {
       set alldata($i) [label graph $opts(label_type) $i]
@@ -53,8 +58,21 @@ proc itrajcomp::calc_labels {self} {
 
   return [[namespace current]::LoopFrames $self]
 }
+#*****
 
-
+#****f* labels/calc_labels_hook
+# NAME
+# calc_labels_hook
+# SYNOPSIS
+# itrajcomp::calc_labels_hook self
+# FUNCTION
+# This function gets called for each pair.
+# Rmsd for labels
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# List with number of hbonds and hbonds list
+# SOURCE
 proc itrajcomp::calc_labels_hook {self} {
   array set alldata [array get ${self}::alldata]
   set label_type [set ${self}::opts(label_type)]
@@ -76,8 +94,16 @@ proc itrajcomp::calc_labels_hook {self} {
   set rmstot [expr {sqrt($rmstot/([llength $names]+1))} ]
   return [list $rmstot $rms]
 }
+#*****
 
-
+#****f* labels/calc_labels_options
+# NAME
+# calc_labels_options
+# SYNOPSIS
+# itrajcomp::calc_labels_options
+# FUNCTION
+# This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
+# SOURCE
 proc itrajcomp::calc_labels_options {} {
   # Options for labels
   variable calc_labels_frame
@@ -109,8 +135,16 @@ proc itrajcomp::calc_labels_options {} {
     rep_style1   "NewRibbons"
   }
 }
+#*****
 
-
+#****f* labels/calc_labels_options_update
+# NAME
+# calc_labels_options_update
+# SYNOPSIS
+# itrajcomp::calc_labels_options_update
+# FUNCTION
+# This function gets called when an update is issued for the GUI.
+# SOURCE
 proc itrajcomp::calc_labels_options_update {} {
   # Update list of available labels and reset their status
   # Each label has the format: 'num_label (atom_label, atom_label,...)'
@@ -158,12 +192,23 @@ proc itrajcomp::calc_labels_options_update {} {
     lappend calc_labels_opts(labels_status) $labels_status_array($x)
   }
 }
+#*****
 
-
-proc itrajcomp::labels_update_status {i} {
+#****f* rmsd/calc_labels_update_status
+# NAME
+# calc_labels_update_status
+# SYNOPSIS
+# itrajcomp::calc_labels_update_status
+# FUNCTION
+# Update labels
+# PARAMETERS
+# * id -- label id
+# SOURCE
+proc itrajcomp::labels_update_status {id} {
   # Update status of a label
   variable labels_status_array
   variable calc_labels_opts
   
-  set calc_labels_opts(labels_status) [lreplace $calc_labels_opts(labels_status) $i $i $labels_status_array($i)]
+  set calc_labels_opts(labels_status) [lreplace $calc_labels_opts(labels_status) $id $id $labels_status_array($id)]
 }
+#*****

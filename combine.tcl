@@ -1,34 +1,37 @@
+#****h* itrajcomp/combine
+# NAME
+# combine -- Combine objects to create a new one
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
+# Combine objects to create a new one.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# TODO
+# * Broken
+# * Convert to a serialize object
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# combine.tcl
-#    Combine objects to create a new one.
-
-
+#****f* combine/Combine
+# NAME
+# Combine
+# SYNOPSIS
+# itrajcomp::Combine
+# FUNCTION
+# Combine objects GUI
+# SOURCE
 proc itrajcomp::Combine {} {
-  # Combine to objects
   variable c
   set debug 0
 
@@ -63,10 +66,19 @@ proc itrajcomp::Combine {} {
 
   CombineUpdate $c.obj.list.l
 }
+#*****
 
-
+#****f* combine/CombineSel
+# NAME
+# CombineSel
+# SYNOPSIS
+# itrajcomp::CombineSel widget
+# FUNCTION
+# Add selected object to the formula
+# PARAMETERS
+# * widget -- widget to display objects
+# SOURCE
 proc itrajcomp::CombineSel {widget} {
-  # Add selected object to the formula
   variable c
 
   set sel [$widget curselection]
@@ -75,10 +87,19 @@ proc itrajcomp::CombineSel {widget} {
   puts "$sel - $obj - $num"
   $c.formula.e insert insert "\$$num"
 }
+#*****
 
-
+#****f* combine/CombineUpdate
+# NAME
+# CombineUpdate
+# SYNOPSIS
+# itrajcomp::CombineUpdate widget
+# FUNCTION
+# Update the list of object to combine
+# PARAMETERS
+# * widget -- widget to update
+# SOURCE
 proc itrajcomp::CombineUpdate {widget} {
-  # Update the list of object to combine
   #  variable combobj
 
   $widget selection set 0 end
@@ -99,7 +120,18 @@ proc itrajcomp::CombineUpdate {widget} {
     #    lappend combobj $num
   }
 }
+#*****
 
+#****f* combine/Objcombine
+# NAME
+# Objcombine
+# SYNOPSIS
+# itrajcomp::Objcombine formula
+# FUNCTION
+# Creates a new object based on formula
+# PARAMETERS
+# * formula -- formula
+# SOURCE
 proc itrajcomp::Objcombine {formula} {
   #  variable combobj
 
@@ -212,3 +244,4 @@ proc itrajcomp::Objcombine {formula} {
   [namespace current]::itcObjGui $obj
   [namespace current]::UpdateRes
 }
+#*****

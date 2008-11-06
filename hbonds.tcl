@@ -1,33 +1,40 @@
+#****h* itrajcomp/hbonds
+# NAME
+# hbonds -- Functions to calculate hydrogen bonds between selections
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# Functions to calculate hydrogen bonds between selections.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# hbonds.tcl
-#    Functions to calculate hydrogen bonds between selections.
-
-
-# TODO: is this working? seems like only diagonal makes sense here
+#****f* hbonds/calc_hbonds
+# NAME
+# calc_hbonds
+# SYNOPSIS
+# itrajcomp::calc_hbonds self
+# FUNCTION
+# This functions gets called when adding a new type of calculation.
+# Hbonds calculation type
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Status code
+# TODO
+# Is this working? seems like only diagonal makes sense here
+# SOURCE
 proc itrajcomp::calc_hbonds {self} {
 
   set mol1 [set ${self}::sets(mol1)]
@@ -39,15 +46,36 @@ proc itrajcomp::calc_hbonds {self} {
   
   return [[namespace current]::LoopFrames $self]
 }
+#*****
 
-
+#****f* hbonds/calc_hbonds_hook
+# NAME
+# calc_hbonds_hook
+# SYNOPSIS
+# itrajcomp::calc_hbonds_hook self
+# FUNCTION
+# This function gets called for each pair.
+# Hbonds
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# List with number of hbonds and hbonds list
+# SOURCE
 proc itrajcomp::calc_hbonds_hook {self} {
   set hbonds [measure hbonds [set ${self}::opts(cutoff)] [set ${self}::opts(angle)] [set ${self}::s1] [set ${self}::s2]]
   set number_hbonds [llength [lindex $hbonds 0]]
   return [list $number_hbonds $hbonds]
 }
+#*****
 
-
+#****f* hbonds/calc_hbonds_options
+# NAME
+# calc_hbonds_options
+# SYNOPSIS
+# itrajcomp::calc_hbonds_options
+# FUNCTION
+# This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
+# SOURCE
 proc itrajcomp::calc_hbonds_options {} {
   # Options for hbonds
   variable calc_hbonds_frame
@@ -80,3 +108,4 @@ proc itrajcomp::calc_hbonds_options {} {
     connect      "cones"
   }
 }
+#*****

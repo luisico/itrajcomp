@@ -1,35 +1,36 @@
+#****h* itrajcomp/gui
+# NAME
+# gui -- GUI for iTrajComp objects
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# GUI for iTrajComp objects.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# gui.tcl
-#    GUI for iTrajComp objects.
-
-
+#****f* gui/itcObjGui
+# NAME
+# itcObjGui
+# SYNOPSIS
+# itrajcomp::itcObjGui self
+# FUNCTION
+# Initialize window for this object
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::itcObjGui {self} {
-  # Initialize window for this object
-
   namespace eval [namespace current]::${self}:: {
 
     set rep_style_list [list Lines Bonds DynamicBonds HBonds Points VDW CPK Licorice Tube Trace Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Beads Dotted Solvent]
@@ -87,11 +88,19 @@ proc itrajcomp::itcObjGui {self} {
     update idletasks
   }
 }
+#*****
 
-
+#****f* gui/itcObjMenubar
+# NAME
+# itcObjMenubar
+# SYNOPSIS
+# itrajcomp::itcObjMenubar self
+# FUNCTION
+# Menu for an itc object
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::itcObjMenubar {self} {
-  # Menu for an itc object
-  
   namespace eval [namespace current]::${self}:: {
     menubutton $menubar.file -text "File" -menu $menubar.file.menu -underline 0
     menu $menubar.file.menu -tearoff no
@@ -131,10 +140,19 @@ proc itrajcomp::itcObjMenubar {self} {
     pack $menubar.help -side left
   }
 }
+#*****
 
-
+#****f* gui/itcObjInfo
+# NAME
+# itcObjInfo
+# SYNOPSIS
+# itrajcomp::itcObjInfo self
+# FUNCTION
+# Construct info gui
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::itcObjInfo {self} {
-  # Construct info gui
   namespace eval [namespace current]::${self}:: {
 
     frame $tab_info.frame
@@ -247,10 +265,19 @@ proc itrajcomp::itcObjInfo {self} {
     }
   }
 }
+#*****
 
-
+#****f* gui/itcObjGraph
+# NAME
+# itcObjGraph
+# SYNOPSIS
+# itrajcomp::itcObjGraph self
+# FUNCTION
+# Construct graph gui
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::itcObjGraph {self} {
-  # construct graph gui
   namespace eval [namespace current]::${self}:: {
     variable map_active
     variable info_key1
@@ -362,11 +389,19 @@ proc itrajcomp::itcObjGraph {self} {
     [namespace parent]::FitGraph $self
   }
 }
+#*****
 
-
+#****f* gui/UpdateGraph
+# NAME
+# UpdateGraph
+# SYNOPSIS
+# itrajcomp::UpdateGraph self
+# FUNCTION
+# Update the graph
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::UpdateGraph {self} {
-  # Update the graph
-
   switch [set ${self}::graph_opts(type)] {
     frames {
       set ${self}::graph_opts(header1) "mol"
@@ -392,11 +427,19 @@ proc itrajcomp::UpdateGraph {self} {
   }
   [namespace current]::UpdateScale $self
 }
+#*****
 
-
+#****f* gui/FitGraph
+# NAME
+# FitGraph
+# SYNOPSIS
+# itrajcomp::FitGraph self
+# FUNCTION
+# Fit graph by zooming
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::FitGraph {self} {
-  # Fit graph by zooming
-
   set plot [set ${self}::plot]
   lassign [$plot bbox all] x1 y1 widthP heightP
   set widthC [$plot cget -width]
@@ -415,10 +458,19 @@ proc itrajcomp::FitGraph {self} {
     [namespace current]::Zoom $self $factor
   }
 }
+#*****
 
-
+#****f* gui/itcObjRep
+# NAME
+# itcObjRep
+# SYNOPSIS
+# itrajcomp::itcObjRep self
+# FUNCTION
+# construct representations gui
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::itcObjRep {self} {
-  # construct representations gui
   namespace eval [namespace current]::${self}:: {
 
     frame $tab_rep.frame
@@ -519,13 +571,21 @@ proc itrajcomp::itcObjRep {self} {
     #--------------
     button $tab_rep.frame.but -text "Update" -command "[namespace parent]::UpdateSelection $self"
     pack $tab_rep.frame.but -side top
-
   }
 }
+#*****
 
-
+#****f* gui/ViewData
+# NAME
+# ViewData
+# SYNOPSIS
+# itrajcomp::ViewData self
+# FUNCTION
+# Create window to view data in tabular format
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::ViewData {self} {
-  # Create window to view data in tabular format
   set r [toplevel ".${self}_raw"]
   wm title $r "View $self"
   
@@ -539,10 +599,19 @@ proc itrajcomp::ViewData {self} {
   
   $r.data insert end [[namespace current]::saveData $self "" "tab"]
 }
+#*****
 
-
+#****f* gui/StatDescriptive
+# NAME
+# StatDescriptive
+# SYNOPSIS
+# itrajcomp::StatDescriptive self
+# FUNCTION
+# Create window to view statistics
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::StatDescriptive {self} {
-  # Create window to view statistics
   array set data [array get ${self}::data]
 
   set values {}
@@ -568,10 +637,20 @@ Max:\t$max
 "
 
 }
+#*****
 
-
+#****f* gui/Zoom
+# NAME
+# Zoom
+# SYNOPSIS
+# itrajcomp::Zoom self zoom
+# FUNCTION
+# Zoom in and out in the matrix plot
+# PARAMETERS
+# * self -- object
+# * zoom -- zoom level
+# SOURCE
 proc itrajcomp::Zoom {self zoom} {
-  # Zoom in and out in the matrix plot
   set grid [set ${self}::grid]
   set plot [set ${self}::plot]
 
@@ -609,11 +688,20 @@ proc itrajcomp::Zoom {self zoom} {
     $plot configure -scrollregion [list 0 0 [expr {[winfo width $plot]}] [expr {[winfo height $plot]}]]
   }
 }
+#*****
 
-
+#****f* gui/AddRep
+# NAME
+# AddRep
+# SYNOPSIS
+# itrajcomp::AddRep self key
+# FUNCTION
+# Add graphic representation
+# PARAMETERS
+# * self -- object
+# * key -- key
+# SOURCE
 proc itrajcomp::AddRep {self key} {
-  # Add graphic representation
-  
   if {[set ${self}::rep_sw] == 0} {
     return
   }
@@ -645,10 +733,20 @@ proc itrajcomp::AddRep {self key} {
   set ${self}::rep_list($key) $rep_list
   set ${self}::rep_num($key) $rep_num
 }
+#*****
 
-
+#****f* gui/DelRep
+# NAME
+# DelRep
+# SYNOPSIS
+# itrajcomp::DelRep self key
+# FUNCTION
+# Delete graphic representation
+# PARAMETERS
+# * self -- object
+# * key -- key
+# SOURCE
 proc itrajcomp::DelRep {self key} {
-  # Delete graphic representation
   set rep_num [set ${self}::rep_num($key)]
 
   incr rep_num -1
@@ -659,13 +757,22 @@ proc itrajcomp::DelRep {self key} {
   }
   set ${self}::rep_num($key) $rep_num
 }
+#*****
 
-
+#****f* gui/AddConnect
+# NAME
+# AddConnect
+# SYNOPSIS
+# itrajcomp::AddConnect self key
+# FUNCTION
+# Connect two points
+# PARAMETERS
+# * self -- object
+# * key -- key
+# TODO
+# Add graphics in a separate molecule?
+# SOURCE
 proc itrajcomp::AddConnect {self key} {
-  # Connect two points
-  
-  # TODO: add graphics in a separate molecule?
-  
   set connect_lines {}
 
   lassign [split $key ,] key1 key2
@@ -770,11 +877,11 @@ proc itrajcomp::AddConnect {self key} {
 	      switch [set ${self}::graph_opts(connect)] {
 		cones {
 		  set label "cone"
-		  set gid [[namespace current]::draw_cone top $point1 $point2 $color]
+		  set gid [[namespace current]::draw_cone top $point1 $point2]
 		}
 		lines {
 		  set label "line"
-		  set gid [[namespace current]::draw_line top $point1 $point2 $color]
+		  set gid [[namespace current]::draw_line top $point1 $point2]
 		}
 		# TODO: Add default as lines (just in case, so gid is not empty
 	      }
@@ -790,10 +897,20 @@ proc itrajcomp::AddConnect {self key} {
   }
   set ${self}::connect_lines($key) $connect_lines
 }
+#*****
 
-
+#****f* gui/DelConnect
+# NAME
+# DelConnect
+# SYNOPSIS
+# itrajcomp::DelConnect self key
+# FUNCTION
+# Delete a line between two atoms
+# PARAMETERS
+# * self -- object
+# * key -- key
+# SOURCE
 proc itrajcomp::DelConnect {self key} {
-  # Delete a line between two atoms
   if {[info exists ${self}::connect_lines($key)]} {
     foreach line [set ${self}::connect_lines($key)] {
       lassign [split $line :] m gid
@@ -802,10 +919,20 @@ proc itrajcomp::DelConnect {self key} {
     unset ${self}::connect_lines($key)
   }
 }
+#*****
 
-
+#****f* gui/ExplorePoint
+# NAME
+# ExplorePoint
+# SYNOPSIS
+# itrajcomp::ExplorePoint self key
+# FUNCTION
+# Print data for this cell
+# PARAMETERS
+# * self -- object
+# * key -- key
+# SOURCE
 proc itrajcomp::ExplorePoint {self key} {
-  # Print data for this cell
   switch [set ${self}::datatype(mode)] {
     single {
       set cell [set ${self}::data0($key)]
@@ -833,10 +960,22 @@ proc itrajcomp::ExplorePoint {self key} {
     puts "   $stats"
   }
 }
+#*****
 
-
+#****f* gui/ShowPoint
+# NAME
+# ShowPoint
+# SYNOPSIS
+# itrajcomp::ShowPoint self key val keep
+# FUNCTION
+# Show information about a matrix cell
+# PARAMETERS
+# * self -- object
+# * key -- key
+# * val -- value
+# * keep -- keep
+# SOURCE
 proc itrajcomp::ShowPoint {self key val keep} {
-  # Show information about a matrix cell
   array set graph_opts [array get ${self}::graph_opts]
   if {[set ${self}::info_keep] && $keep} return
     
@@ -845,10 +984,21 @@ proc itrajcomp::ShowPoint {self key val keep} {
   set ${self}::info_key2 [format "$graph_opts(format_key)" $k $l]
   set ${self}::info_value [format "$graph_opts(format_data)" $val]
 }
+#*****
 
-
+#****f* gui/MapAdd
+# NAME
+# MapAdd
+# SYNOPSIS
+# itrajcomp::MapAdd self key check
+# FUNCTION
+# Add a matrix cell to representation
+# PARAMETERS
+# * self -- object
+# * key -- key
+# * check -- check
+# SOURCE
 proc itrajcomp::MapAdd {self key {check 0}} {
-  # Add a matrix cell to representation
   lassign [split $key ,] key1 key2
   
   set map_active [set ${self}::map_active($key)]
@@ -890,10 +1040,21 @@ proc itrajcomp::MapAdd {self key {check 0}} {
     }
   }
 }
+#*****
 
-
+#****f* gui/MapDel
+# NAME
+# MapDel
+# SYNOPSIS
+# itrajcomp::MapDel self key check
+# FUNCTION
+# Delete a matrix cell from representation
+# PARAMETERS
+# * self -- object
+# * key -- key
+# * check -- check
+# SOURCE
 proc itrajcomp::MapDel {self key {check 0}} {
-  # Delete a matrix cell from representation
   lassign [split $key ,] key1 key2
 
   set map_active [set ${self}::map_active($key)]
@@ -937,10 +1098,22 @@ proc itrajcomp::MapDel {self key {check 0}} {
     }
   }
 }
+#*****
 
-
+#****f* gui/MapPoint
+# NAME
+# MapPoint
+# SYNOPSIS
+# itrajcomp::MapPoint self key data mod
+# FUNCTION
+# Add/delete matrix cell to/from representation
+# PARAMETERS
+# * self -- object
+# * key -- key
+# * data -- data
+# * mod -- mod
+# SOURCE
 proc itrajcomp::MapPoint {self key data {mod 0}} {
-  # Add/delete matrix cell to/from representation
   set map_active [set ${self}::map_active($key)]
   
   if {$map_active == 0 || $mod} {
@@ -954,19 +1127,30 @@ proc itrajcomp::MapPoint {self key data {mod 0}} {
   [namespace current]::ShowPoint $self $key $data 0
   #[namespace current]::RepList $self
 }
+#*****
 
-
+#****f* gui/MapCluster3
+# NAME
+# MapCluster3
+# SYNOPSIS
+# itrajcomp::MapCluster3 self key mod1 mod2
+# FUNCTION
+# Select matrix cells:
+#  * in column/row:
+#    - mod1 = 0: select both columns and rows
+#    - mod1 = 1: select only columns
+#    - mod1 = 2: select only rows
+#  * with values:
+#    - mod2 = 0: all
+#    - mod2 = 1: less/equal than selected cell
+#    - mod2 =-1: greater/equal than selected cell
+# PARAMETERS
+# * self -- object
+# * key -- key
+# * mod1 -- mod1
+# * mod2 -- mod2
+# SOURCE
 proc itrajcomp::MapCluster3 {self key {mod1 0} {mod2 0}} {
-  # Select matrix cells
-  #  in column/row
-  #    mod1 = 0: select both columns and rows
-  #    mod1 = 1: select only columns
-  #    mod1 = 2: select only rows
-  #  with values
-  #    mod2 = 0: all
-  #    mod2 = 1: less/equal than selected cell
-  #    mod2 =-1: greater/equal than selected cell
-
   variable map_active
 
   set keys [set ${self}::keys]
@@ -1061,18 +1245,29 @@ proc itrajcomp::MapCluster3 {self key {mod1 0} {mod2 0}} {
   [namespace current]::ShowPoint $self $key $data($key) 0
   #[namespace current]::RepList $self
 }
+#*****
 
-
+#****f* gui/MapCluster2
+# NAME
+# MapCluster2
+# SYNOPSIS
+# itrajcomp::MapCluster2 self key mod1 mod2
+# FUNCTION
+# Select matrix cells:
+#  * with values:
+#    - mod1 = 0: all values
+#    - mod1 = 1: >= than reference cell
+#    - mod1 =-1: <= than reference cell
+# * with reference value in:
+#    - mod2 = 0: selected cell
+#    - mod2 = 1: scale
+# PARAMETERS
+# * self -- object
+# * key -- key
+# * mod1 -- mod1
+# * mod2 -- mod2
+# SOURCE
 proc itrajcomp::MapCluster2 {self key {mod1 0} {mod2 0} } {
-  # Select matrix cells
-  #  with values
-  #    mod1 = 0: all values
-  #    mod1 = 1: >= than reference cell
-  #    mod1 =-1: <= than reference cell
-  # with reference value in
-  #    mod2 = 0: selected cell
-  #    mod2 = 1: scale
-
   set plot [set ${self}::plot]
   array set data [array get ${self}::data]
 
@@ -1100,10 +1295,19 @@ proc itrajcomp::MapCluster2 {self key {mod1 0} {mod2 0} } {
     }
   }
 }
+#*****
 
-
+#****f* gui/MapClear
+# NAME
+# MapClear
+# SYNOPSIS
+# itrajcomp::MapClear self
+# FUNCTION
+ # Unselect all matrix cells
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::MapClear {self} {
-  # Unselect all matrix cells
   set plot [set ${self}::plot]
   
   foreach key [set ${self}::keys] {
@@ -1148,10 +1352,19 @@ proc itrajcomp::MapClear {self} {
   }
 
 }
+#*****
 
-
+#****f* gui/UpdateSelection
+# NAME
+# UpdateSelection
+# SYNOPSIS
+# itrajcomp::UpdateSelection self
+# FUNCTION
+ # Update representation in vmd window
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::UpdateSelection {self} {
-  # Update representation in vmd window
   array set opts [array get ${self}::opts]
   array set graph_opts [array get ${self}::graph_opts]
   array set rep_list [array get ${self}::rep_list]
@@ -1266,19 +1479,37 @@ proc itrajcomp::UpdateSelection {self} {
   }
   
 }
+#*****
 
-
+#****f* gui/Destroy
+# NAME
+# Destroy
+# SYNOPSIS
+# itrajcomp::Destroy self
+# FUNCTION
+# Destroy object window and delete object
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::Destroy {self} {
-  # Destroy object window and delete object
   [namespace current]::MapClear $self
   catch {destroy [set ${self}::win_obj]}
   [namespace current]::Objdelete $self
   [namespace current]::UpdateRes
 }
+#*****
 
-
+#****f* gui/help_keys
+# NAME
+# help_keys
+# SYNOPSIS
+# itrajcomp::help_keys self
+# FUNCTION
+# Keybinding help
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::help_keys {self} {
-  # Keybinding help
   set vn [package present itrajcomp]
 
   set r [toplevel ".${self}_keybindings"]
@@ -1306,12 +1537,20 @@ proc itrajcomp::help_keys {self} {
 
   $r.data tag configure title -font [list helvetica 12 bold]
   $r.data tag configure button -font [list helvetica 10 bold]
-
 }
+#*****
 
-
+#****f* gui/RepList
+# NAME
+# RepList
+# SYNOPSIS
+# itrajcomp::RepList self
+# FUNCTION
+# Print list of representations (for debuggin purposes)
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::RepList {self} {
-  # Print list of representations (for debuggin purposes)
   array set map_active [array get ${self}::map_active]
   array set rep_list [array get ${self}::rep_list]
   array set rep_num [array get ${self}::rep_num]
@@ -1327,10 +1566,19 @@ proc itrajcomp::RepList {self} {
   }
   puts "-----"
 }
+#*****
 
-
+#****f* gui/UpdateScale
+# NAME
+# UpdateScale
+# SYNOPSIS
+# itrajcomp::UpdateScale self
+# FUNCTION
+# Redraw scale
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::UpdateScale {self} {
-  # Redraw scale
   array set graph_opts [array get ${self}::graph_opts]
 
   set scale [set ${self}::scale]
@@ -1408,3 +1656,4 @@ proc itrajcomp::UpdateScale {self} {
     set y [expr {$y+$l_h}]
   }
 }
+#*****

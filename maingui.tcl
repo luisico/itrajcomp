@@ -1,61 +1,34 @@
+#****h* itrajcomp/maingui
+# NAME
+# maingui -- Main GUI for the iTrajComp plugin
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
+# Main GUI for the iTrajComp plugin.
 # 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# maingui.tcl
-#    Main GUI for the iTrajComp plugin.
-
-
-package provide itrajcomp 1.0
-
-# Our main namespace
-namespace eval itrajcomp {
-  namespace export init
-  
-  global env
-  variable open_format_list [list tab matrix plotmtv plotmtv_binary]
-  variable save_format_list [list tab tab_raw matrix plotmtv plotmtv_binary postscript]
-
-  # TODO: tmpdir not used
-  variable tmpdir
-  if { [info exists env(TMPDIR)] } {
-    set tmpdir $env(TMPDIR)
-  } else {
-    set tmpdir /tmp
-  }
-}
-
-
-proc itrajcomp_tk_cb {} {
-  # Hook for vmd
-  ::itrajcomp::init
-  return $itrajcomp::win_main
-}
-
-
+#****f* maingui/init
+# NAME
+# init
+# SYNOPSIS
+# itrajcomp::init
+# FUNCTION
+# Initialize main window
+# SOURCE
 proc itrajcomp::init {} {
-  # Initialize main window
   variable win_main
 
   # If already initialized, just turn on
@@ -109,9 +82,20 @@ proc itrajcomp::init {} {
   [namespace current]::TabCalcUpdate
   update idletasks
 }
+#*****
 
+#****f* maingui/Menubar
+# NAME
+# Menubar
+# SYNOPSIS
+# itrajcomp::Menubar w
+# FUNCTION
+# Create menu bar
+#
+# PARAMETERS
+# * w -- container widget
+# SOURCE
 proc itrajcomp::Menubar {w} {
-  # Menu bar
   variable open_format_list
 
   menubutton $w.file -text "File" -underline 0 -menu $w.file.menu
@@ -139,9 +123,19 @@ proc itrajcomp::Menubar {w} {
   $w.help.menu add command -label "Help..." -command "vmd_open_url http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp/index.html"
   pack $w.help -side left
 }
+#*****
 
+#****f* maingui/Statusbar
+# NAME
+# Statusbar
+# SYNOPSIS
+# itrajcomp::Statusbar w
+# FUNCTION
+# Create status bar
+# PARAMETERS
+# * w -- container widget
+# SOURCE
 proc itrajcomp::Statusbar {w} {
-  # Status bar
   label $w.label -text "Status:"
 
   canvas $w.info -relief sunken -height 20 -highlightthickness 0
@@ -153,10 +147,19 @@ proc itrajcomp::Statusbar {w} {
   pack $w.label -side left
   pack $w.info -side left -fill x -expand yes
 }
+#*****
 
-
+#****f* maingui/TabSel
+# NAME
+# TabSel
+# SYNOPSIS
+# itrajcomp::TabSel w
+# FUNCTION
+# Create selection tab
+# PARAMETERS
+# * w -- container widget
+# SOURCE
 proc itrajcomp::TabSel {w} {
-  # Selection tab
   variable samemols 0
 
   variable tab_sel [buttonbar::add $w sel]
@@ -176,7 +179,19 @@ proc itrajcomp::TabSel {w} {
   # Set 2
   [namespace current]::SelWidget $tab_sel 2
 }
+#*****
 
+#****f* maingui/SelWidget
+# NAME
+# SelWidget
+# SYNOPSIS
+# itrajcomp::SelWidget w id
+# FUNCTION
+# Create a selection widget
+# PARAMETERS
+# * w -- container widget
+# * id -- selection widget id
+# SOURCE
 proc itrajcomp::SelWidget {w id} {
   # Selection widget
   # w is the container
@@ -238,15 +253,25 @@ proc itrajcomp::SelWidget {w id} {
   pack $w.mol$id.opt -side right
   pack $w.mol$id.opt.no $w.mol$id.opt.bb $w.mol$id.opt.tr $w.mol$id.opt.sc -side top -anchor w
 }
+#*****
 
-
+#****f* maingui/TabCalc
+# NAME
+# TabCalc
+# SYNOPSIS
+# itrajcomp::TabCalc w
+# FUNCTION
+# Creates the calculation tab
+# PARAMETERS
+# * w -- container widget
+# SOURCE
 proc itrajcomp::TabCalc {w} {
   # Calculation tab
   variable tab_calc [buttonbar::add $w calc]
   buttonbar::name $w calc "Calculation"
 
   # New object button
-  button $tab_calc.new -text "New" -command "[namespace current]::NewObject"
+  button $tab_calc.new -text "New Calculation" -command "[namespace current]::NewObject"
   pack $tab_calc.new -side top
 
   # Type frame
@@ -270,8 +295,18 @@ proc itrajcomp::TabCalc {w} {
   [namespace current]::AddStandardCalc
   [namespace current]::AddUserCalc
 }
+#*****
 
-
+#****f* maingui/TabRes
+# NAME
+# TabRes
+# SYNOPSIS
+# itrajcomp::TabRes w
+# FUNCTION
+# Create results tab
+# PARAMETERS
+# * w -- container widget
+# SOURCE
 proc itrajcomp::TabRes {w} {
   # Results tab
   variable tab_res [buttonbar::add $w res]
@@ -320,8 +355,16 @@ proc itrajcomp::TabRes {w} {
 
   [namespace current]::UpdateRes
 }
+#*****
 
-
+#****f* maingui/UpdateRes
+# NAME
+# UpdateRes
+# SYNOPSIS
+# itrajcomp::UpdateRes
+# FUNCTION
+# Update results tab
+# SOURCE
 proc itrajcomp::UpdateRes {} {
   variable datalist
   variable dataframe
@@ -364,11 +407,22 @@ proc itrajcomp::UpdateRes {} {
   }
 
   [namespace current]::dataframe_color
-
 }
+#*****
 
-
-proc itrajcomp::AddCalc {type {description ""} {script ""} {help ""}} {
+#****f* maingui/AddCalc
+# NAME
+# AddCalc
+# SYNOPSIS
+# itrajcomp::AddCalc type description script
+# FUNCTION
+# Add calculation type to the GUI
+# PARAMETERS
+# * type -- type of calculation
+# * description -- description to show
+# * script -- script to load
+# SOURCE
+proc itrajcomp::AddCalc {type {description ""} {script ""}} {
   variable tab_calc
   variable calc_id
 
@@ -403,18 +457,35 @@ proc itrajcomp::AddCalc {type {description ""} {script ""} {help ""}} {
     [namespace current]::TabCalcUpdate
   }
 }
+#*****
 
-
+#****f* maingui/DelCalc
+# NAME
+# DelCalc
+# SYNOPSIS
+# itrajcomp::DelCalc type
+# FUNCTION
+# Deletes a calculation type from the GUI
+# PARAMETERS
+# * type -- type to delete
+# SOURCE
 proc itrajcomp::DelCalc {type} {
   variable tab_calc
   
   grid forget $tab_calc.type.${type}_n $tab_calc.type.${type}_d
   pack forget $tab_calc.opt.$type
   destroy $tab_calc.type.${type}_n $tab_calc.type.${type}_d $tab_calc.opt.$type
-
 }
+#*****
 
-
+#****f* maingui/TabCalcUpdate
+# NAME
+# TabCalcUpdate
+# SYNOPSIS
+# itrajcomp::TabCalcUpdate
+# FUNCTION
+# Refresh the calculations tab
+# SOURCE
 proc itrajcomp::TabCalcUpdate {} {
   # Refresh the tab for calculations
   variable tab_calc
@@ -442,10 +513,17 @@ proc itrajcomp::TabCalcUpdate {} {
     [namespace current]::calc_${calctype}_options_update
   }
 }
+#*****
 
-
+#****f* maingui/SwitchSamemols
+# NAME
+# SwitchSamemols
+# SYNOPSIS
+# itrajcomp::SwitchSamemols
+# FUNCTION
+# Toogles Selection 2
+# SOURCE
 proc itrajcomp::SwitchSamemols {} {
-  # Switch selection 2
   variable samemols
   
   set status "off"
@@ -454,10 +532,19 @@ proc itrajcomp::SwitchSamemols {} {
   }
   [namespace current]::Samemols $status
 }
+#*****
 
-
+#****f* maingui/Samemols
+# NAME
+# Samemols
+# SYNOPSIS
+# itrajcomp::Samemols
+# FUNCTION
+# Turns Selection 2 on and off
+# PARAMETERS
+# * status -- on or off
+# SOURCE
 proc itrajcomp::Samemols {status} {
-  # Turn Selection 2 on/off
   variable samemols
   variable tab_sel
   variable win_main
@@ -492,11 +579,22 @@ proc itrajcomp::Samemols {status} {
     [namespace current]::highlight_widget $tab_sel.same 5000
   }
 }
+#*****
 
-
+#****f* maingui/ProgressBar
+# NAME
+# ProgressBar
+# SYNOPSIS
+# itrajcomp::ProgressBar num max
+# FUNCTION
+# Progress bar
+# PARAMETERS
+# * num -- current value
+# * max -- maximum value
+# TODO
+# Reset bar after sometime when a task has finished
+# SOURCE
 proc itrajcomp::ProgressBar {num max} {
-  # TODO: reset bar after sometime when a task has finished
-  # Progress bar
   variable statusbar
   variable options
 
@@ -523,22 +621,38 @@ proc itrajcomp::ProgressBar {num max} {
   $wp lower progress
   update idletasks
 }
+#*****
 
-
+#****f* maingui/Status
+# NAME
+# Status
+# SYNOPSIS
+# itrajcomp::Status txt
+# FUNCTION
+# Updates status bar with txt
+# PARAMETERS
+# * txt -- txt to use
+# SOURCE
 proc itrajcomp::Status {txt} {
-  # Status bar
   variable statusbar
   $statusbar.info itemconfigure txt -text $txt
   update idletasks
 }
+#*****
 
-
+#****f* maingui/NewObject
+# NAME
+# NewObject
+# SYNOPSIS
+# itrajcomp::NewObject
+# FUNCTION
+# Initialize a new object
+# TODO
+# move to object?
+# SOURCE
 proc itrajcomp::NewObject {} {
-  # Initialize an object
-  # TODO: move to object?
-
   variable calctype
-  
+
   # update GUI in to check compatibility of options
   [namespace current]::TabCalcUpdate
 
@@ -603,9 +717,9 @@ proc itrajcomp::NewObject {} {
   [namespace current]::Status "Calculating $calctype ..."
   if [catch { [namespace current]::calc_$calctype $obj } msg] {
     [namespace current]::Objdelete $obj
+    tk_messageBox -title "Error" -parent .itrajcomp -message "The calculation could not be completed. Error follows:\n $msg"
     return 1
   }
-
   # Create the new graph
   [namespace current]::Status "Creating graph for $obj ..."
   [namespace current]::itcObjGui $obj
@@ -613,11 +727,19 @@ proc itrajcomp::NewObject {} {
   # Update results table
   [namespace current]::UpdateRes
 }
+#*****
 
-
+#****f* maingui/SelOptions
+# NAME
+# SelOptions
+# SYNOPSIS
+# itrajcomp::SelOptions
+# FUNCTION
+# Parse all options to create a new object
+# RETURN VALUE
+# List of selection options
+# SOURCE
 proc itrajcomp::SelOptions {} {
-  # Parse all options to create a new object
-
   # Selection options
   variable tab_sel
 
@@ -684,32 +806,25 @@ proc itrajcomp::SelOptions {} {
             samemols $samemols
          ]
 }
+#*****
 
-
-proc itrajcomp::help_about {{parent .itrajcomp}} {
+#****f* maingui/help_about
+# NAME
+# help_about
+# SYNOPSIS
+# itrajcomp::help_about parent
+# FUNCTION
   # Help window
+# PARAMETERS
+# * parent -- parent window
+# SOURCE
+proc itrajcomp::help_about {{parent .itrajcomp}} {
   set vn [package present itrajcomp]
   tk_messageBox -title "iTrajComp v$vn - About" -parent $parent -message \
     "iTrajComp v$vn
 
-Copyright (C) Luis Gracia <lug2002@med.cornell.edu> 
+Copyright (C) 2005-2008 Luis Gracia <lug2002@med.cornell.edu> 
 
 "
 }
-
-
-# Source rest of files
-source [file join $env(ITRAJCOMPDIR) utils.tcl]
-source [file join $env(ITRAJCOMPDIR) object.tcl]
-source [file join $env(ITRAJCOMPDIR) gui.tcl]
-source [file join $env(ITRAJCOMPDIR) save.tcl]
-source [file join $env(ITRAJCOMPDIR) load.tcl]
-source [file join $env(ITRAJCOMPDIR) combine.tcl]
-source [file join $env(ITRAJCOMPDIR) standard.tcl]
-source [file join $env(ITRAJCOMPDIR) user.tcl]
-source [file join $env(ITRAJCOMPDIR) buttonbar.tcl]
-source [file join $env(ITRAJCOMPDIR) frames.tcl]
-source [file join $env(ITRAJCOMPDIR) segments.tcl]
-source [file join $env(ITRAJCOMPDIR) graphics.tcl]
-source [file join $env(ITRAJCOMPDIR) balloons.tcl]
-#source [file join $env(ITRAJCOMPDIR) clustering.tcl]
+#*****

@@ -1,34 +1,37 @@
+#****h* itrajcomp/save
+# NAME
+# save -- Functions to save the data to external files
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# Functions to save the data to external files.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# save.tcl
-#    Functions to save the data to external files.
-
-
+#****f* save/SaveDataBrowse
+# NAME
+# SaveDataBrowse
+# SYNOPSIS
+# itrajcomp::SaveDataBrowse self format
+# FUNCTION
+# GUI for saving
+# PARAMETERS
+# * self -- object
+# * format -- format of output
+# SOURCE
 proc itrajcomp::SaveDataBrowse {self {format "tab"}} {
-  # GUI for saving
   set typeList {
     {"Data Files" ".dat .txt .out"}
     {"Postscript Files" ".ps .eps"}
@@ -43,13 +46,23 @@ proc itrajcomp::SaveDataBrowse {self {format "tab"}} {
   
   [namespace current]::saveData $self $file $format
 }
+#*****
 
-
-# Save data procs (general)
-#                  -------
+#****f* save/:saveData
+# NAME
+# :saveData
+# SYNOPSIS
+# itrajcomp:::saveData self format options
+# FUNCTION
+# Save data to file interface
+# PARAMETERS
+# * self -- object
+# * format -- format of output
+# * options -- options passed
+# RETURN VALUE
+# Output if file is not specified
+# SOURCE
 proc ::itrajcomp::saveData {self {fileout ""} {format "tab"} {options ""}} {
-  # Save data to file interface
-
   if {[llength [info procs "SaveData_$format"]]} {
     if {$fileout != ""} {
       #puts "DEBUG: using file \"$fileout\" for output"
@@ -83,26 +96,60 @@ proc ::itrajcomp::saveData {self {fileout ""} {format "tab"} {options ""}} {
     puts "WARNING: SaveData_$format not implemented yet"
   }
 }
+#*****
 
-
-# Save data procs (postscript)
-#                  ----------
+#****f* save/SaveData_postscript
+# NAME
+# SaveData_postscript
+# SYNOPSIS
+# itrajcomp::SaveData_postscript self options
+# FUNCTION
+# Create postcript data
+# PARAMETERS
+# * self -- object
+# * options -- options passed
+# RETURN VALUE
+# Output in postcript format
+# SOURCE
 proc ::itrajcomp::SaveData_postscript {self {options ""}} {
-  # Create postcript data
   # TODO: add scale to ps
   set plot [set ${self}::plot]
   return [$plot postscript]
 }
+#*****
 
-# Save data procs (tabular)
-#                  -------
+#****f* save/SaveData_tab_raw
+# NAME
+# SaveData_tab_raw
+# SYNOPSIS
+# itrajcomp::SaveData_tab_raw self options
+# FUNCTION
+# Tabular format with all the raw data
+# PARAMETERS
+# * self -- object
+# * options -- options passed
+# RETURN VALUE
+# Output in tabular raw format
+# SOURCE
 proc ::itrajcomp::SaveData_tab_raw {self {options ""}} {
-  # Tabular format with all the raw data
   lappend options raw 1
   return [[namespace current]::SaveData_tab $self $options]
 }
+#*****
 
-
+#****f* save/SaveData_tab
+# NAME
+# SaveData_tab
+# SYNOPSIS
+# itrajcomp::SaveData_tab self options
+# FUNCTION
+# Tabular format
+# PARAMETERS
+# * self -- object
+# * options -- options passed
+# RETURN VALUE
+# Output in tabular format
+# SOURCE
 proc ::itrajcomp::SaveData_tab {self {options ""}} {
   # Create tabular data
   array set opt $options
@@ -224,26 +271,61 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
 
   return $output
 }
+#*****
 
-# Save data procs (matrix)
-#                  ------
+#****f* save/SaveData_matrix
+# NAME
+# SaveData_matrix
+# SYNOPSIS
+# itrajcomp::SaveData_matrix
+# FUNCTION
+# Create matrix data
+# PARAMETERS
+# * self -- object
+# * options -- options passed
+# RETURN VALUE
+# Output in matrix format
+# SOURCE
 proc ::itrajcomp::SaveData_matrix {self {options ""}} {
-  # Create matrix data
-
   array set graph_opts [array get ${self}::graph_opts]
 
   lassign [[namespace current]::create_matrix $self] nrow ncol values
   return [[namespace current]::print_matrix $nrow $ncol $values $graph_opts(format_data)]
 }
+#*****
 
-# Save data procs (plotmtv)
-#                  -------
+#****f* save/SaveData_plotmtv_binary
+# NAME
+# SaveData_plotmtv_binary
+# SYNOPSIS
+# itrajcomp::SaveData_plotmtv_binary self options
+# FUNCTION
+# Create plotmtv binary data
+# PARAMETERS
+# * self -- object
+# * options -- options passed
+# RETURN VALUE
+# Output in plotmtv binary format
+# SOURCE
 proc ::itrajcomp::SaveData_plotmtv_binary {self {options ""}} {
-  # Create plotmtv binary data
   lappend options binary 1
   return [[namespace current]::SaveData_plotmtv $self $options]
 }
+#*****
 
+#****f* save/SaveData_plotmtv
+# NAME
+# SaveData_plotmtv
+# SYNOPSIS
+# itrajcomp::SaveData_plotmtv self options
+# FUNCTION
+# Create plotmtv data
+# PARAMETERS
+# * self -- object
+# * options -- options passed
+# RETURN VALUE
+# Output in plotmtv format
+# SOURCE
 proc ::itrajcomp::SaveData_plotmtv {self {options ""}} {
   # Create plotmtv data
   array set opt $options
@@ -270,11 +352,21 @@ proc ::itrajcomp::SaveData_plotmtv {self {options ""}} {
   append output "$ END\n"
   return $output
 }
+#*****
 
-
+#****f* save/create_matrix
+# NAME
+# create_matrix
+# SYNOPSIS
+# itrajcomp::create_matrix self
+# FUNCTION
+# Return an ordered list of values to create a rectangular matrix
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Matrix
+# SOURCE
 proc itrajcomp::create_matrix {self} {
-  # Return an ordered list of values to create a rectangular matrix
-
   set keys [set ${self}::keys]
   array set data [array get ${self}::data1]
   set data_index [set ${self}::data_index]
@@ -335,11 +427,24 @@ proc itrajcomp::create_matrix {self} {
 
   return [list $ny $nx $vals]
 }
+#*****
 
-
-
+#****f* save/print_matrix
+# NAME
+# print_matrix
+# SYNOPSIS
+# itrajcomp::print_matrix nrow ncol values format
+# FUNCTION
+# Return a rectangular matrix with ncol columns to print
+# PARAMETERS
+# * nrow -- number of rows
+# * ncol -- number of columns
+# * values -- matrix values
+# * format -- format
+# RETURN VALUE
+# Matrix
+# SOURCE
 proc itrajcomp::print_matrix {nrow ncol values format} {
-  # Return a rectangular matrix with ncol columns to print
   set output ""
   set columns 0
   for {set z 0} {$z < [llength $values]} {incr z} {
@@ -353,3 +458,4 @@ proc itrajcomp::print_matrix {nrow ncol values format} {
   append output "\n"
   return $output
 }
+#*****

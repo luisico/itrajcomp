@@ -1,32 +1,38 @@
+#****h* itrajcomp/rmsd
+# NAME
+# rmsd -- Functions to calculate rmsd
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# Functions to calculate rmsd.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# rmsd.tcl
-#    Functions to calculate rmsd.
-
-
+#****f* rmsd/calc_rmsd
+# NAME
+# calc_rmsd
+# SYNOPSIS
+# itrajcomp::calc_rmsd self
+# FUNCTION
+# This functions gets called when adding a new type of calculation.
+# Rmsd calculation type
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Status code
+# SOURCE
 proc itrajcomp::calc_rmsd {self} {
   # Check number of atoms in selections, and combined list of molecules
   if {[[namespace current]::CheckNatoms $self] == -1} {
@@ -35,20 +41,57 @@ proc itrajcomp::calc_rmsd {self} {
   
   return [[namespace current]::LoopFrames $self]
 }
+#*****
 
+#****f* rmsd/calc_rmsd_prehook1
+# NAME
+# calc_rmsd_prehook1
+# SYNOPSIS
+# itrajcomp::calc_rmsd_prehook1 self
+# FUNCTION
+# This functions gets called each time the first molecule in the pair changes
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::calc_rmsd_prehook1 {self} {
   if {[set ${self}::opts(align)]} {
     # FIXME: as workaround this code was moved to frames.tcl
     #set ${self}::move_sel [atomselect [set ${self}::i] "all"]
   }
 }
+#*****
 
+#****f* rmsd/calc_rmsd_prehook2
+# NAME
+# calc_rmsd_prehook2
+# SYNOPSIS
+# itrajcomp::calc_rmsd_prehook2 self
+# FUNCTION
+# This functions gets called each time the frame of the first molecule in the pair changes.
+# If the align option is on it updates the selection to the new frame
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::calc_rmsd_prehook2 {self} {
   if {[set ${self}::opts(align)]} {
     [set ${self}::move_sel] frame [set ${self}::j]
   }
 }
+#*****
 
+#****f* rmsd/calc_rmsd_hook
+# NAME
+# calc_rmsd_hook
+# SYNOPSIS
+# itrajcomp::calc_rmsd_hook self
+# FUNCTION
+# This function gets called for each pair.
+# Calculte the rmsd
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Rmsd
+# SOURCE
 proc itrajcomp::calc_rmsd_hook {self} {
   variable fast_rmsd
 
@@ -67,8 +110,16 @@ proc itrajcomp::calc_rmsd_hook {self} {
   }
   return $rmsd
 }
+#*****
 
-
+#****f* rmsd/calc_rmsd_options
+# NAME
+# calc_rmsd_options
+# SYNOPSIS
+# itrajcomp::calc_rmsd_options
+# FUNCTION
+# This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
+# SOURCE
 proc itrajcomp::calc_rmsd_options {} {
   # Test for hacked VMD version with fast_rmsd enabled.
   variable fast_rmsd
@@ -107,6 +158,16 @@ proc itrajcomp::calc_rmsd_options {} {
     rep_style1   "NewRibbons"
   }
 }
+#*****
 
+#****f* rmsd/calc_rmsd_options_update
+# NAME
+# calc_rmsd_options_update
+# SYNOPSIS
+# itrajcomp::calc_rmsd_options_update
+# FUNCTION
+# This function gets called when an update is issued for the GUI.
+# SOURCE
 proc itrajcomp::calc_rmsd_options_update {} {
 }
+#*****

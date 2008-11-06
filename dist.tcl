@@ -1,32 +1,38 @@
+#****h* itrajcomp/dist
+# NAME
+# dist -- Functions to calculate the distance matrix
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# Functions to calculate the distance matrix.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# dist.tcl
-#    Functions to calculate the distance matrix.
-
-
+#****f* dist/calc_dist
+# NAME
+# calc_dist
+# SYNOPSIS
+# itrajcomp::calc_dist self
+# FUNCTION
+# This functions gets called when adding a new type of calculation.
+# Dist calculation type
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Status code
+# SOURCE
 proc itrajcomp::calc_dist {self} {
   # Check number of atoms in selections, and combined list of molecules
   if {[[namespace current]::CheckNatoms $self] == -1} {
@@ -42,14 +48,49 @@ proc itrajcomp::calc_dist {self} {
   # Calculate distance matrix
   return [[namespace current]::LoopSegments $self]
 }
+#*****
 
-
+#****f* dist/calc_dist_prehook1
+# NAME
+# calc_dist_prehook1
+# SYNOPSIS
+# itrajcomp::calc_dist_prehook1 self
+# FUNCTION
+# This functions gets called each time the first segment in the pair changes
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::calc_dist_prehook1 {self} {
 }
+#*****
 
+#****f* dist/calc_dist_prehook2
+# NAME
+# calc_dist_prehook2
+# SYNOPSIS
+# itrajcomp::calc_dist_prehook2 self
+# FUNCTION
+# This functions gets called each time the second segment in the pair changes.
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::calc_dist_prehook2 {self} {
 }
+#*****
 
+#****f* dist/calc_dist_hook
+# NAME
+# calc_dist_hook
+# SYNOPSIS
+# itrajcomp::calc_dist_hook self
+# FUNCTION
+# This function gets called for each pair.
+# Calculte the distance
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Distance
+# SOURCE
 proc itrajcomp::calc_dist_hook {self} {
   set dist {}
   set mol_all [set ${self}::sets(mol_all)]
@@ -64,7 +105,16 @@ proc itrajcomp::calc_dist_hook {self} {
   }
   return $dist
 }
+#*****
 
+#****f* dist/calc_dist_options
+# NAME
+# calc_dist_options
+# SYNOPSIS
+# itrajcomp::calc_dist_options
+# FUNCTION
+# This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
+# SOURCE
 proc itrajcomp::calc_dist_options {} {
   # Options for dist gui
   variable calc_dist_frame
@@ -93,3 +143,4 @@ proc itrajcomp::calc_dist_options {} {
     rep_style1   "CPK"
   }
 }
+#*****

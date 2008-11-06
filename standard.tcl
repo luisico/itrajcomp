@@ -1,34 +1,34 @@
+#****h* itrajcomp/standard
+# NAME
+# standard -- Standard calculation types
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# Standard calculation types.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# standard.tcl
-#    Standard calculation types.
-
-
+#****f* standard/AddStandardCalc
+# NAME
+# AddStandardCalc
+# SYNOPSIS
+# itrajcomp::AddStandardCalc
+# FUNCTION
+# Standard calculation types for the vanilla itrajcomp plugin.
+# SOURCE
 proc itrajcomp::AddStandardCalc {} {
-  # Standard calculation types for the vanilla itrajcomp plugin.
   variable calctype "rmsd"
   global env
 
@@ -42,3 +42,4 @@ proc itrajcomp::AddStandardCalc {} {
     [namespace current]::AddCalc $type $desc [file join $env(ITRAJCOMPDIR) $type.tcl]
   }
 }
+#*****

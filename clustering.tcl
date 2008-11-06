@@ -1,34 +1,40 @@
+#****h* itrajcomp/clustering
+# NAME
+# clustering -- Functions for clustering
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# Functions for clustering.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# SEE ALSO
+# http://wiki.tcl.tk/16317
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# clustering.tcl
-#    Functions for clustering.
-
-
-package provide itrajcomp 1.0
-
+#****f* clustering/Cluster
+# NAME
+# Cluster
+# SYNOPSIS
+# itrajcomp::Cluster self
+# FUNCTION
+# Cluster
+# PARAMETERS
+# * self -- object
+# TODO
+# Update for new code and activate in itrajcomp.tcl
+# SOURCE
 proc itrajcomp::Cluster {self} {
   set keys [set ${self}::keys]
   set plot [set ${self}::plot]
@@ -149,3 +155,4 @@ proc itrajcomp::Cluster {self} {
     incr z
   }
 }
+#*****

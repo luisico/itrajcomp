@@ -8,4 +8,4 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded itrajcomp 1.0 "set env(ITRAJCOMPDIR) [list $dir]; [list source [file join $dir maingui.tcl]]"
+package ifneeded itrajcomp 1.0 "set env(ITRAJCOMPDIR) [list $dir]; [list source [file join $dir itrajcomp.tcl]]"

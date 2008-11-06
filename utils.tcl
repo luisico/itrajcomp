@@ -1,55 +1,84 @@
+#****h* itrajcomp/utils
+# NAME
+# utils -- Utility functions
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
-#
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
+# DESCRIPTION
+# Utility functions.
 # 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# utils.tcl
-#    Utility functions.
-
-
-proc itrajcomp::AddRep1 {i j sel style color} {
-  # Add 1 representation to vmd
+#****f* utils/AddRep1
+# NAME
+# AddRep1
+# SYNOPSIS
+# itrajcomp::AddRep1 i j sel style color
+# FUNCTION
+# Add 1 representation to vmd
+# PARAMETERS
+# * mol -- molecule
+# * frame -- frame
+# * sel -- selection
+# * style -- style
+# * color -- color
+# RETURN VALUE
+# Representation name
+# SOURCE
+proc itrajcomp::AddRep1 {mol frame sel style color} {
   mol rep $style
   mol selection $sel
   mol color $color
-  mol addrep $i
-  set name1 [mol repname $i [expr {[molinfo $i get numreps]-1}]]
-  mol drawframes $i [expr {[molinfo $i get numreps]-1}] $j
+  mol addrep $mol
+  set name1 [mol repname $mol [expr {[molinfo $mol get numreps]-1}]]
+  mol drawframes $mol [expr {[molinfo $mol get numreps]-1}] $frame
   return $name1
 }
+#*****
 
-
+#****f* utils/DelRep1
+# NAME
+# DelRep1
+# SYNOPSIS
+# itrajcomp::DelRep1 reps
+# FUNCTION
+# Delete representations from vmd
+# PARAMETERS
+# * reps -- list of representation names to delete
+# SOURCE
 proc itrajcomp::DelRep1 {reps} {
-  # Delete 1 representation from vmd
   foreach r $reps {
     lassign [split $r :] i name
     mol delrep [mol repindex $i $name] $i
   }
 }
+#*****
 
-
+#****f* utils/ParseMols
+# NAME
+# ParseMols
+# SYNOPSIS
+# itrajcomp::ParseMols
+# FUNCTION
+# Parse molecule selection
+# PARAMETERS
+# * mols -- molecule definition
+# * idlist -- list of molecule ids
+# * sort -- flag to return a sorted list of molecules without repetitions
+# RETURN VALUE
+# List of molecules
+# SOURCE
 proc itrajcomp::ParseMols {mols idlist {sort 1} } {
-  # Parse molecule selection
   if {$mols eq "id"} {
     set mols $idlist
   }
@@ -94,10 +123,24 @@ proc itrajcomp::ParseMols {mols idlist {sort 1} } {
     return $valid_mols
   }
 }  
+#*****
 
-
+#****f* utils/ParseFrames
+# NAME
+# ParseFrames
+# SYNOPSIS
+# itrajcomp::ParseFrames def mols skip idlist
+# FUNCTION
+# Parse frame selection
+# PARAMETERS
+# * def -- frames definition 
+# * mols -- molecules
+# * skip -- skip every this frames
+# * idlist -- list of frames ids
+# RETURN VALUE
+# List containing a list of frames per molecule
+# SOURCE
 proc itrajcomp::ParseFrames {def mols skip idlist} {
-  # Parse frame selection
   # Creates a list of lists (one for each mol)
   set frames {}
   foreach mol $mols {
@@ -145,21 +188,42 @@ proc itrajcomp::ParseFrames {def mols skip idlist} {
 
   return $frames
 }
+#*****
 
-
+#****f* utils/SplitFrames
+# NAME
+# SplitFrames
+# SYNOPSIS
+# itrajcomp::SplitFrames frames
+# FUNCTION
+# Split frames for molecules
+# PARAMETERS
+# * frames -- list of frames
+# RETURN VALUE
+# String with the list of frames ina compact way.
+# SOURCE
 proc itrajcomp::SplitFrames {frames} {
-  # Split frames for molecules
   set text {}
   for {set i 0} {$i < [llength $frames]} {incr i} {
     lappend text "\[[[namespace current]::Range [lindex $frames $i]]\]"
   }
   return [join $text]
 }
+#*****
 
-
+#****f* utils/Range
+# NAME
+# Range
+# SYNOPSIS
+# itrajcomp::Range numbers
+# FUNCTION
+# Convert list of numbers range to a simple string
+# PARAMETERS
+# * numbers -- list of numbers
+# RETURN VALUE
+# String with the range
+# SOURCE
 proc itrajcomp::Range {numbers} {
-  # Convert list of numbers range to a simple string
-
   set numbers [lsort -unique -integer $numbers]
 
   if {[llength $numbers] == 1} {
@@ -189,10 +253,21 @@ proc itrajcomp::Range {numbers} {
   }
   return [join $results]
 }
+#*****
 
-
+#****f* utils/CombineMols
+# NAME
+# CombineMols
+# SYNOPSIS
+# itrajcomp::CombineMols args
+# FUNCTION
+# Return a list of unique molecules
+# PARAMETERS
+# * args -- list of molecules
+# RETURN VALUE
+# List of molecules
+# SOURCE
 proc itrajcomp::CombineMols {args} {
-  # Return a list of unique molecules
   set mols {}
   foreach i $args {
     foreach j $i {
@@ -201,10 +276,21 @@ proc itrajcomp::CombineMols {args} {
   }
   return [lsort -unique $mols]
 }
+#*****
 
-
+#****f* utils/Mean
+# NAME
+# Mean
+# SYNOPSIS
+# itrajcomp::Mean values
+# FUNCTION
+# Calculate the mean of a list of values
+# PARAMETERS
+# * values -- values
+# RETURN VALUE
+# Mean
+# SOURCE
 proc itrajcomp::Mean {values} {
-  # Calculate the mean of a list of values
   set tot 0.0
   foreach n $values {
     set tot [expr {$tot+$n}]
@@ -213,36 +299,19 @@ proc itrajcomp::Mean {values} {
   set mean [expr {$tot/double($num)}]
   return $mean
 }
+#*****
 
-
-proc itrajcomp::GetKeys {rms_values sort mol_ref mol_tar} {
-  # Not used, remove?
-  upvar $rms_values values
-  
-  if {$mol_ref == "all" && $mol_tar == "all"} {
-    set sort 1
-  }
-
-  if {$sort} {
-    set skeys [lsort -dictionary [array names values]]
-  } else {
-    set nref [ParseMols mol_ref 0]
-    set ntar [ParseMols mol_tar 0]
-    set skeys {}
-    foreach i $mol_ref {
-      foreach j $mol_tar {
-        foreach k [lsort -dictionary [array names values "$i:*,$j:*"]] {
-          lappend skeys $k
-        }
-      }
-    }
-  }
-  return $skeys
-}
-
-
+#****f* utils/GetActive
+# NAME
+# GetActive
+# SYNOPSIS
+# itrajcomp::GetActive
+# FUNCTION
+# Identify the active molecule
+# RETURN VALUE
+# ID of active molecule
+# SOURCE
 proc itrajcomp::GetActive {} {
-  # Identify the active molecule
   set active {}
   foreach i [molinfo list] {
     if { [molinfo $i get active] } {
@@ -251,10 +320,22 @@ proc itrajcomp::GetActive {} {
   }
   return $active
 }
+#*****
 
-
+#****f* utils/ParseSel
+# NAME
+# ParseSel
+# SYNOPSIS
+# itrajcomp::ParseSel orig selmod
+# FUNCTION
+# Parse a selection text
+# PARAMETERS
+# * orig --  selection string
+# * selmod -- selection modifier
+# RETURN VALUE
+# Selection string
+# SOURCE
 proc itrajcomp::ParseSel {orig selmod} {
-  # Parse a selection text
   regsub -all "\#.*?\n" $orig  ""  temp1
   regsub -all "\n"      $temp1 " " temp2
   regsub -all " *$"     $temp2 ""  temp3
@@ -278,10 +359,21 @@ proc itrajcomp::ParseSel {orig selmod} {
   }
   return $sel
 }
+#*****
 
-
+#****f* utils/CheckNatoms
+# NAME
+# CheckNatoms
+# SYNOPSIS
+# itrajcomp::CheckNatoms self
+# FUNCTION
+# Checks if the two sets of selections in an object have the same number of atoms.
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Status code
+# SOURCE
 proc itrajcomp::CheckNatoms {self} {
-  # Check same number of atoms in two selections
   array set sets [array get ${self}::sets]
   
   foreach i $sets(mol1) {
@@ -311,10 +403,22 @@ proc itrajcomp::CheckNatoms {self} {
   
   return 1
 }
+#*****
 
-
+#****f* utils/ParseKey
+# NAME
+# ParseKey
+# SYNOPSIS
+# itrajcomp::ParseKey self key
+# FUNCTION
+# Parses a key to get mol, frame and selection back
+# PARAMETERS
+# * self -- object
+# * key -- cell key
+# RETURN VALUE
+# List with mol, frame and selection
+# SOURCE
 proc itrajcomp::ParseKey {self key} {
-  # Parse a key to get mol, frame and selection back
   array set graph_opts [array get ${self}::graph_opts]
   array set opts [array get ${self}::opts]
   array set sets [array get ${self}::sets]
@@ -346,8 +450,18 @@ proc itrajcomp::ParseKey {self key} {
 
   return [list $m $f $s]
 }
+#*****
 
-
+#****f* utils/PrepareData
+# NAME
+# PrepareData
+# SYNOPSIS
+# itrajcomp::PrepareData self
+# FUNCTION
+# Prepares the data for the graph
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::PrepareData {self} {
   set data_index [set ${self}::data_index]
   array set data0 [array get ${self}::data0]
@@ -408,14 +522,26 @@ proc itrajcomp::PrepareData {self} {
 
   [namespace current]::TransformData $self
 }
+#*****
 
-
-proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
+#****f* utils/TransformData
+# NAME
+# TransformData
+# SYNOPSIS
+# itrajcomp::TransformData self transform graph
+# FUNCTION
+# Transforms the data
+# PARAMETERS
+# * self -- object
+# * transform -- type of transformation
+# * graph -- switch to update the graph
+# SOURCE
+proc itrajcomp::TransformData {self {transform "copy"} {graph 0}} {
   set data_index [set ${self}::data_index]
   set formats [set ${self}::graph_opts(formats)]
   
   # Source data
-  if {$type == "copy" || [set ${self}::transform_data1] == 1} {
+  if {$transform == "copy" || [set ${self}::transform_data1] == 1} {
     array set data1 [array get ${self}::data1]
     set min1 [lindex [set ${self}::min1] $data_index]
     set max1 [lindex [set ${self}::max1] $data_index]
@@ -427,7 +553,7 @@ proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
 
   set keys [array names data1]
   
-  switch $type {
+  switch $transform {
     copy {
       foreach key $keys {
         set data($key) [lindex $data1($key) $data_index]
@@ -489,14 +615,23 @@ proc itrajcomp::TransformData {self {type "copy"} {graph 0}} {
   if {$graph == 1} {
     [namespace current]::UpdateGraph $self
   }
-
-  return
 }
+#*****
 
-
-proc itrajcomp::minmax {values_array} {
-  # Calculate max and min
-  array set data $values_array
+#****f* utils/minmax
+# NAME
+# minmax
+# SYNOPSIS
+# itrajcomp::minmax values_array
+# FUNCTION
+# Calculate max and min
+# PARAMETERS
+# * values -- array of values
+# RETURN VALUE
+# List with min and max values
+# SOURCE
+proc itrajcomp::minmax {values} {
+  array set data $values
 
   set z 1
   set min 0
@@ -515,11 +650,22 @@ proc itrajcomp::minmax {values_array} {
   }
   return [list $min $max]
 }
+#*****
 
-
+#****f* utils/stats
+# NAME
+# stats
+# SYNOPSIS
+# itrajcomp::stats values calc_std
+# FUNCTION
+# Calculate mean, std, min, max
+# PARAMETERS
+# * values -- list of values
+# * calc_std -- flag to calculate standard dev
+# RETURN VALUE
+# List with mean, std (if requested), min and max values
+# SOURCE
 proc itrajcomp::stats {values {calc_std 1}} {
-  # Calculate mean, std, min, max
-
   set mean 0.0
   set min [lindex $values 0]
   set max [lindex $values 0]
@@ -549,20 +695,54 @@ proc itrajcomp::stats {values {calc_std 1}} {
     return [list $mean $min $max]
   }
 }
+#*****
+### benchmark
+#  set NREPEAT 10000
+#  scan [time {
+#    [namespace current]::stats $vals
+#  } $NREPEAT] {%d} result
+#  puts "$NREPEAT : $result"
+### benchmark
 
 
-proc itrajcomp::wlist {{w .}} {
-  # Return a list of TKwidgets
-  set list [list $w]
-  foreach widget [winfo children $w] {
-    set list [concat $list [wlist $widget]]
+#****f* utils/wlist
+# NAME
+# wlist
+# SYNOPSIS
+# itrajcomp::wlist widget
+# FUNCTION
+# Return a list of TKwidgets
+# PARAMETERS
+# * widget -- root widget 
+# RETURN VALUE
+# List of widgets 
+# SOURCE
+proc itrajcomp::wlist {{widget .}} {
+  set list [list $widget]
+  foreach w [winfo children $widget] {
+    set list [concat $list [wlist $w]]
   }
   return $list
 }
+#*****
 
-
+#****f* utils/ColorScale
+# NAME
+# ColorScale
+# SYNOPSIS
+# itrajcomp::ColorScale val max min s l
+# FUNCTION
+# Color scale transformation
+# PARAMETERS
+# * val -- value to color
+# * max -- max value in scale
+# * min -- min value in scale
+# * s -- saturation
+# * l -- luminosity
+# RETURN VALUE
+# String with rgb values
+# SOURCE
 proc itrajcomp::ColorScale {val max min {s 1.0} {l 1.0}} {
-  # Color scale transformation
   if {$max == 0} {
     set max 1.0
   }
@@ -586,11 +766,25 @@ proc itrajcomp::ColorScale {val max min {s 1.0} {l 1.0}} {
   set b [expr {int($b*255)}]
   return [format "#%.2X%.2X%.2X" $r $g $b]
 }
+#*****
 
-
+#****f* utils/hls2rgb
+# NAME
+# hls2rgb
+# SYNOPSIS
+# itrajcomp::hls2rgb h l s
+# FUNCTION
+# Transform from hls to rgb colors
+# PARAMETERS
+# * h -- hue
+# * l -- luminosity
+# * s -- saturation
+# RETURN VALUE
+# List of RGB values in 0-1 range
+# SEE ALSO
+# http://wiki.tcl.tk/666
+# SOURCE
 proc itrajcomp::hls2rgb {h l s} {
-  # Transform from hls to rgb colors
-  #http://wiki.tcl.tk/666
   # h, l and s are floats between 0.0 and 1.0, ditto for r, g and b
   # h = 0   => red
   # h = 1/3 => green
@@ -614,45 +808,89 @@ proc itrajcomp::hls2rgb {h l s} {
   set b [expr {(($b-1)*$s+1)*$l}]
   return [list $r $g $b]
 }
+#*****
 
-
-proc itrajcomp::flash_widget {w {color yellow}} {
-  # Flash a widget with yellow
-
-  set oldcolor [$w cget -background]
-  $w configure -background $color
+#****f* utils/flash_widget
+# NAME
+# flash_widget
+# SYNOPSIS
+# itrajcomp::flash_widget widget color
+# FUNCTION
+# Flash a widget with color
+# PARAMETERS
+# * widget -- widget
+# * color -- color
+# SOURCE
+proc itrajcomp::flash_widget {widget {color yellow}} {
+  set oldcolor [$widget cget -background]
+  $widget configure -background $color
   
   if [catch { 
-    $w flash
+    $widget flash
   } msg] {
-    [namespace current]::_flash_widget $w 0 $oldcolor
+    [namespace current]::_flash_widget $widget 0 $oldcolor
   }
 
-  $w configure -background $oldcolor
+  $widget configure -background $oldcolor
 }
+#*****
 
-
-proc itrajcomp::_flash_widget {w i color} {
-  set oldcolor [$w cget -background]
-  $w config -background $color
+#****f* utils/_flash_widget
+# NAME
+# _flash_widget
+# SYNOPSIS
+# itrajcomp::_flash_widget widget i color
+# FUNCTION
+# Flash a widget with a color. Custom implementation if [widget flash] fails
+# PARAMETERS
+# * widget -- widget
+# * i -- repetition
+# * color -- color
+# SOURCE
+proc itrajcomp::_flash_widget {widget i color} {
+  set oldcolor [$widget cget -background]
+  $widget config -background $color
   incr i
   if {$i > 4} {
     return
   }
-  after 60 [list [namespace current]::_flash_widget $w $i $oldcolor]
+  after 60 [list [namespace current]::_flash_widget $widget $i $oldcolor]
 }
+#*****
 
-
-proc itrajcomp::highlight_widget {w {time 1000} {color yellow}} {
-  # Highlight a widget with yellow
-  set oldcolor [$w cget -background]
-  $w config -background $color
-  after $time [list $w config -background $oldcolor]
+#****f* utils/highlight_widget
+# NAME
+# highlight_widget
+# SYNOPSIS
+# itrajcomp::highlight_widget widget time color
+# FUNCTION
+# Highlight a widget with color
+# PARAMETERS
+# * widget -- widget
+# * time -- time in ms
+# * color -- color
+# SOURCE
+proc itrajcomp::highlight_widget {widget {time 1000} {color yellow}} {
+  set oldcolor [$widget cget -background]
+  $widget config -background $color
+  after $time [list $widget config -background $oldcolor]
 }
+#*****
 
-
-proc itrajcomp::_format {formats} {
-  switch $formats {
+#****f* utils/_format
+# NAME
+# _format
+# SYNOPSIS
+# itrajcomp::_format format
+# FUNCTION
+# Set data formats strings for data and scales. Normally used in printf functions.
+# PARAMETERS
+# * format -- format (f for float, i for integer)
+# RETURN VALUE
+# List with format strings
+# SOURCE
+proc itrajcomp::_format {format} {
+  switch $format {
     f {
       set data "%8.4f"
       set scale "%4.2f"
@@ -665,18 +903,21 @@ proc itrajcomp::_format {formats} {
 
   return [list $data $scale]
 }
+#*****
 
-### benchmark
-#  set NREPEAT 10000
-#  scan [time {
-#    [namespace current]::stats $vals
-#  } $NREPEAT] {%d} result
-#  puts "$NREPEAT : $result"
-### benchmark
-
-
+#****f* utils/concat_opts
+# NAME
+# concat_opts
+# SYNOPSIS
+# itrajcomp::concat_opts self
+# FUNCTION
+# Concatenate opts in one line
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# String with options
+# SOURCE
 proc itrajcomp::concat_opts {self} {
-  # Concatenate opts in one line
   set options {}
   
   array set opts [array get ${self}::opts]
@@ -695,23 +936,53 @@ proc itrajcomp::concat_opts {self} {
 
   return [join $options ", "]
 }
+#*****
 
-
-proc itrajcomp::dataframe_yset args {
+#****f* utils/dataframe_yset
+# NAME
+# dataframe_yset
+# SYNOPSIS
+# itrajcomp::dataframe_yset args
+# FUNCTION
+# Call functions to move graph view when scrollbar changes
+# PARAMETERS
+# * args -- args
+# SOURCE
+proc itrajcomp::dataframe_yset {args} {
   variable dataframe
   eval [linsert $args 0 $dataframe.scrbar set]
   [namespace current]::dataframe_yview moveto [lindex [$dataframe.scrbar get] 0]
 }
+#*****
 
-
-proc itrajcomp::dataframe_yview args {
+#****f* utils/dataframe_yview
+# NAME
+# dataframe_yview
+# SYNOPSIS
+# itrajcomp::dataframe_yview args
+# FUNCTION
+# Move graph to follow scrollbar
+# PARAMETERS
+# * args -- args
+# SOURCE
+proc itrajcomp::dataframe_yview {args} {
   variable datalist
   foreach key [array names datalist] {
     eval [linsert $args 0 $datalist($key) yview]
   }
 }
+#*****
 
-
+#****f* utils/dataframe_sel
+# NAME
+# dataframe_sel
+# SYNOPSIS
+# itrajcomp::dataframe_sel widget
+# FUNCTION
+# Sets a row as selected in the results tab
+# PARAMETERS
+# * widget -- listbox widget
+# SOURCE
 proc itrajcomp::dataframe_sel {widget} {
   variable datalist
 
@@ -723,8 +994,18 @@ proc itrajcomp::dataframe_sel {widget} {
     }
   }
 }
+#*****
 
-
+#****f* utils/dataframe_color
+# NAME
+# dataframe_color
+# SYNOPSIS
+# itrajcomp::dataframe_color colorize
+# FUNCTION
+# Colors a row in the results tab
+# PARAMETERS
+# * colorize -- flag to color
+# SOURCE
 proc itrajcomp::dataframe_color { {colorize 0} } {
   variable datalist
 
@@ -748,8 +1029,18 @@ proc itrajcomp::dataframe_color { {colorize 0} } {
     }
   }
 }
+#*****
 
-
+#****f* utils/dataframe_mapper
+# NAME
+# dataframe_mapper
+# SYNOPSIS
+# itrajcomp::dataframe_mapper widget
+# FUNCTION
+# Toogles iconification of an object by clicking its row in the results tab.
+# PARAMETERS
+# * widget -- listbox widget
+# SOURCE
 proc itrajcomp::dataframe_mapper {widget} {
   variable datalist
 
@@ -775,3 +1066,4 @@ proc itrajcomp::dataframe_mapper {widget} {
   
   [namespace current]::UpdateRes
 }
+#*****

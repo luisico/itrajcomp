@@ -1,34 +1,37 @@
+#****h* itrajcomp/frames
+# NAME
+# frames -- Frames objects
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# frames.tcl
-#    Frames objects.
+# Frames objects.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
 
+#****f* frames/GraphFrames
+# NAME
+# GraphFrames
+# SYNOPSIS
+# itrajcomp::GraphFrames self
+# FUNCTION
+# Create matrix graph for objects
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::GraphFrames {self} {
-  # Create matrix graph for objects
   namespace eval [namespace current]::${self}:: {
     variable map_active
     variable rep_active
@@ -86,11 +89,24 @@ proc itrajcomp::GraphFrames {self} {
     }
   }
 }
+#*****
 
-
+#****f* frames/LoopFrames
+# NAME
+# LoopFrames
+# SYNOPSIS
+# itrajcomp::LoopFrames self
+# FUNCTION
+# Loops over molecules and frames and calls the calculation type hooks to do the calculation for each pair.
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Status code
+# SOURCE
 proc itrajcomp::LoopFrames {self} {
-  # Create fake hooks if they are not present
   variable calctype
+
+  # Create fake hooks if they are not present
   foreach hook {prehook1 prehook2 hook} {
     set proc "calc_${calctype}_$hook"
     if {[llength [info procs $proc]] < 1} {
@@ -168,3 +184,4 @@ proc itrajcomp::LoopFrames {self} {
     return 0
   }
 }
+#*****

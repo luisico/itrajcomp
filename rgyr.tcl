@@ -1,38 +1,43 @@
+#****h* itrajcomp/rgyr
+# NAME
+# rgyr -- Functions to calculate diff radius of gyration between structures
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# Functions to calculate diff radius of gyration between structures.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# rgyr.tcl
-#    Functions to calculate diff radius of gyration between structures.
-
-
-package provide itrajcomp 1.0
-
+#****f* rgyr/calc_rgyr
+# NAME
+# calc_rgyr
+# SYNOPSIS
+# itrajcomp::calc_rgyr self
+# FUNCTION
+# This functions gets called when adding a new type of calculation.
+# Radius of gyration rmsd calculation type
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Status code
+# SOURCE
 proc itrajcomp::calc_rgyr {self} {
   array set opts [array get ${self}::opts]
   array set sets [array get ${self}::sets]
   
+  # Precalculate
   # Get values for each mol/frame
   foreach i $sets(mol1) {
     set s1 [atomselect $i $sets(sel1)]
@@ -56,13 +61,34 @@ proc itrajcomp::calc_rgyr {self} {
 
   return [[namespace current]::LoopFrames $self]
 }
+#*****
 
-
+#****f* rgyr/calc_rgyr_hook
+# NAME
+# calc_rgyr_hook
+# SYNOPSIS
+# itrajcomp::calc_rgyr_hook self
+# FUNCTION
+# This function gets called for each pair.
+# Calculte the radius of gyration rmsd
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Rgyr
+# SOURCE
 proc itrajcomp::calc_rgyr_hook {self} {
   return [expr {[set ${self}::rgyr([set ${self}::i]:[set ${self}::j])] - [set ${self}::rgyr([set ${self}::k]:[set ${self}::l])]} ]
 }
+#*****
 
-
+#****f* rgyr/calc_rgyr_options
+# NAME
+# calc_rgyr_options
+# SYNOPSIS
+# itrajcomp::calc_rgyr_options
+# FUNCTION
+# This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
+# SOURCE
 proc itrajcomp::calc_rgyr_options {} {
   # Options for rgyr
   variable calc_rgyr_frame
@@ -79,3 +105,4 @@ proc itrajcomp::calc_rgyr_options {} {
     rep_style1   "NewRibbons"
   }
 }
+#*****

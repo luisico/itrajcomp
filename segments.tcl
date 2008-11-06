@@ -1,34 +1,37 @@
+#****h* itrajcomp/segments
+# NAME
+# segments -- Segments objects
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# frames.tcl
-#    Frames objects.
+# Segments objects.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
 
+#****f* segments/GraphSegments
+# NAME
+# GraphSegments
+# SYNOPSIS
+# itrajcomp::GraphSegments self
+# FUNCTION
+# Create graph for object with segment information (atoms, residue,...)
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::GraphSegments {self} {
-  # Create graph for object with segment information (atoms, residue,...)
   namespace eval [namespace current]::${self}:: {
     variable map_active
     variable rep_active
@@ -95,10 +98,21 @@ proc itrajcomp::GraphSegments {self} {
     set offx [expr {$offx+$i}]
   }
 }
+#*****
 
-
+#****f* segments/LoopSegments
+# NAME
+# LoopSegments
+# SYNOPSIS
+# itrajcomp::LoopSegments self
+# FUNCTION
+# Create fake hooks if they are not present
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Status code
+# SOURCE
 proc itrajcomp::LoopSegments {self} {
-  # Create fake hooks if they are not present
   variable calctype
   foreach hook {prehook1 prehook2 hook} {
     set proc "calc_${calctype}_$hook"
@@ -151,8 +165,16 @@ proc itrajcomp::LoopSegments {self} {
     return 0
   }
 }
+#*****
 
-
+#****f* segments/DefineSegments
+# NAME
+# DefineSegments
+# SYNOPSIS
+# itrajcomp::DefineSegments self
+# FUNCTION
+# Define segments
+# SOURCE
 proc itrajcomp::DefineSegments {self} {
   namespace eval [namespace current]::${self}:: {
     switch $opts(segment) {
@@ -170,8 +192,18 @@ proc itrajcomp::DefineSegments {self} {
     }
   }
 }
+#*****
 
-
+#****f* segments/CoorSegments
+# NAME
+# CoorSegments
+# SYNOPSIS
+# itrajcomp::CoorSegments self
+# FUNCTION
+# Get coordinates for each segment
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::CoorSegments {self} {
   namespace eval [namespace current]::${self}:: {
     switch $opts(segment) {
@@ -205,3 +237,4 @@ proc itrajcomp::CoorSegments {self} {
     #puts [array get coor]
   }
 }
+#*****

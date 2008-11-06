@@ -1,35 +1,41 @@
+#****h* itrajcomp/balloons
+# NAME
+# balloons -- Provides balloon style tooltips
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# balloons.tcl
-#    Provides balloon style tooltips.
-
-
+# Provides balloon style tooltips.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# SEE ALSO
 # http://wiki.tcl.tk/16317
-# modified to wrap msg
-proc itrajcomp::setBalloonHelp {w msg args} {
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
+
+#****f* balloons/setBalloonHelp
+# NAME
+# setBalloonHelp
+# SYNOPSIS
+# itrajcomp::setBalloonHelp widget msg args
+# FUNCTION
+# Create a balloon for a widget
+# PARAMETERS
+# * widget -- widget
+# * msg -- Message
+# * args -- arguments
+# SOURCE
+proc itrajcomp::setBalloonHelp {widget msg args} {
   array set opt [concat { -tag "" } $args]
   if {$msg ne ""} {
     set msg [[namespace current]::wrapmsg $msg]
@@ -42,27 +48,39 @@ proc itrajcomp::setBalloonHelp {w msg args} {
     set leaveScript {}
   }
   if {$opt(-tag) ne ""} {
-    switch -- [winfo class $w] {
+    switch -- [winfo class $widget] {
       Text {
-        $w tag bind $opt(-tag) <Enter> $enterScript
-        $w tag bind $opt(-tag) <Leave> $leaveScript
+        $widget tag bind $opt(-tag) <Enter> $enterScript
+        $widget tag bind $opt(-tag) <Leave> $leaveScript
       }
       Canvas {
-        $w bind $opt(-tag) <Enter> $enterScript
-        $w bind $opt(-tag) <Leave> $leaveScript
+        $widget bind $opt(-tag) <Enter> $enterScript
+        $widget bind $opt(-tag) <Leave> $leaveScript
       }
       default {
-        bind $w <Enter> $enterScript
-        bind $w <Leave> $leaveScript
+        bind $widget <Enter> $enterScript
+        bind $widget <Leave> $leaveScript
       }
     }
   } else {
-    bind $w <Enter> $enterScript
-    bind $w <Leave> $leaveScript
+    bind $widget <Enter> $enterScript
+    bind $widget <Leave> $leaveScript
   }
 }
+#*****
 
-proc itrajcomp::showBalloonHelp {w msg} {
+#****f* balloons/showBalloonHelp
+# NAME
+# showBalloonHelp
+# SYNOPSIS
+# itrajcomp::showBalloonHelp widget msg
+# FUNCTION
+# Show balloon
+# PARAMETERS
+# * widget -- widget
+# * msg -- Message
+# SOURCE
+proc itrajcomp::showBalloonHelp {widget msg} {
   set t .balloonHelp
   catch {destroy $t}
   toplevel $t -bg black
@@ -73,10 +91,10 @@ proc itrajcomp::showBalloonHelp {w msg} {
   pack [label $t.l -text [subst $msg] -bg #ffffcc -font {Helvetica 9}] -padx 1 -pady 1
   set width [expr {[winfo reqwidth $t.l] + 2}]
   set height [expr {[winfo reqheight $t.l] + 2}]
-  set xMax [expr {[winfo screenwidth $w] - $width}]
-  set yMax [expr {[winfo screenheight $w] - $height}]
-  set x [winfo pointerx $w]
-  set y [expr {[winfo pointery $w] + 20}]
+  set xMax [expr {[winfo screenwidth $widget] - $width}]
+  set yMax [expr {[winfo screenheight $widget] - $height}]
+  set x [winfo pointerx $widget]
+  set y [expr {[winfo pointery $widget] + 20}]
   if {$x > $xMax} {
     set x $xMax
   }
@@ -88,10 +106,24 @@ proc itrajcomp::showBalloonHelp {w msg} {
   bind $t <Enter> [list after cancel $destroyScript]
   bind $t <Leave> $destroyScript
 }
+#*****
 
-proc itrajcomp::wrapmsg {msg} {
+#****f* balloons/wrapmsg
+# NAME
+# wrapmsg
+# SYNOPSIS
+# itrajcomp::wrapmsg msg
+# FUNCTION
+# Wraps a text to a character limit width
+# PARAMETERS
+# * msg -- text
+# * width -- width
+# RETURN VALUE
+# String with wrappred text
+# SOURCE
+proc itrajcomp::wrapmsg {msg {width 50}} {
   set length [string length $msg]
-  set end 50
+  set end $width
   if {$length > $end} {
     set end [string last " " $msg $end]
     set msg1 [string range $msg 0 $end]
@@ -104,3 +136,4 @@ proc itrajcomp::wrapmsg {msg} {
   
   return $msg
 }
+#*****

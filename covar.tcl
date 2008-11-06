@@ -1,32 +1,38 @@
+#****h* itrajcomp/covar
+# NAME
+# covar -- Functions to calculate the covariance matrix
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# Functions to calculate the covariance matrix.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# covar.tcl
-#    Functions to calculate the covariance matrix.
-
-
+#****f* covar/calc_covar
+# NAME
+# calc_covar
+# SYNOPSIS
+# itrajcomp::calc_covar self
+# FUNCTION
+# This functions gets called when adding a new type of calculation.
+# Covar calculation type
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Status code
+# SOURCE
 proc itrajcomp::calc_covar {self} {
   # Check number of atoms in selections, and combined list of molecules
   if {[[namespace current]::CheckNatoms $self] == -1} {
@@ -131,23 +137,64 @@ proc itrajcomp::calc_covar {self} {
   # Calculate covariance matrix
   return [[namespace current]::LoopSegments $self]
 }
+#*****
 
-
+#****f* covar/calc_covar_prehook1
+# NAME
+# calc_covar_prehook1
+# SYNOPSIS
+# itrajcomp::calc_covar_prehook1 self
+# FUNCTION
+# This functions gets called each time the first segment in the pair changes
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::calc_covar_prehook1 {self} {
   set ${self}::rmsf1 [lindex [set ${self}::rmsf] [set ${self}::reg1]]
 }
+#*****
 
-
+#****f* covar/calc_covar_prehook2
+# NAME
+# calc_covar_prehook2
+# SYNOPSIS
+# itrajcomp::calc_covar_prehook2 self
+# FUNCTION
+# This functions gets called each time the second segment in the pair changes.
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::calc_covar_prehook2 {self} {
   set ${self}::rmsf2 [lindex [set ${self}::rmsf] [set ${self}::reg2]]
 }
+#*****
 
-
+#****f* covar/calc_covar_hook
+# NAME
+# calc_covar_hook
+# SYNOPSIS
+# itrajcomp::calc_covar_hook self
+# FUNCTION
+# This function gets called for each pair.
+# Calculte the covariance
+# PARAMETERS
+# * self -- object
+# RETURN VALUE
+# Covariance
+# SOURCE
 proc itrajcomp::calc_covar_hook {self} {
   return [expr {[set ${self}::rmsf1] * [set ${self}::rmsf2]} ]
 }
+#*****
 
-
+#****f* covar/calc_covar_options
+# NAME
+# calc_covar_options
+# SYNOPSIS
+# itrajcomp::calc_covar_options
+# FUNCTION
+# This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
+# SOURCE
 proc itrajcomp::calc_covar_options {} {
   # Options for covar
   variable calc_covar_frame
@@ -176,3 +223,4 @@ proc itrajcomp::calc_covar_options {} {
     rep_style1   "CPK"
   }
 }
+#*****

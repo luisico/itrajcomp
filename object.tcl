@@ -1,37 +1,43 @@
+#****h* itrajcomp/object
+# NAME
+# object -- Definition of the itrajcomp object and main methods
 #
-#         iTrajComp v1.0
+# AUTHOR
+# Luis Gracia
 #
-# interactive Trajectory Comparison
+# DESCRIPTION
 #
-# http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# Definition of the itrajcomp object and main methods.
+# 
+# SEE ALSO
+# More documentation can be found in:
+# * README.txt
+# * itrajcomp.tcl
+# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+#
+# COPYRIGHT
+# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+#
+#****
 
-# Author
-# ------
-#      Luis Gracia, PhD
-#      Department of Physiology & Biophysics
-#      Weill Medical College of Cornell University
-#      1300 York Avenue, Box 75
-#      New York, NY 10021
-#      lug2002@med.cornell.edu
-
-# Description
-# -----------
-#      See maingui.tcl
-
-# Documentation
-# ------------
-#      The documentation can be found in the README.txt file and
-#      http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-
-# object.tcl
-#    Definition of the itrajcomp object and main methods.
-
-
+# FIXME: move to itrajcomp.tcl
 namespace eval itrajcomp {
 }
 
+#****f* object/Objnew
+# NAME
+# Objnew
+# SYNOPSIS
+# itrajcomp::Objnew self args
+# FUNCTION
+# Generate namespace for a new object
+# PARAMETERS
+# * self -- object id
+# * args -- arguments to pass to the new object
+# RETURN VALUE
+# New object
+# SOURCE
 proc itrajcomp::Objnew {{self ":auto"} args} {
-  # Generate namespace for a new object
 
   variable itcObjId
   if {[info command $self] != ""} {error "$self exists"}
@@ -55,28 +61,68 @@ proc itrajcomp::Objnew {{self ":auto"} args} {
 
   return $self
 }
+#****
 
+#****f* object/Objdelete
+# NAME
+# Objdelete
+# SYNOPSIS
+# itrajcomp::Objdelete self
+# FUNCTION
+# Dete an object
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::Objdelete {self} {
-  # Dete an object
   if {[info command [namespace current]::del] != ""} {[namespace current]::del $self}
   namespace delete [namespace current]::$self
   uplevel 1 "catch {unset $self}" ;# remove caller's reference
 }
+#****
 
+#****f* object/Objmethods
+# NAME
+# Objmethods
+# SYNOPSIS
+# itrajcomp::Objmethods self
+# FUNCTION
+# Print list of methods
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::Objmethods {self} {
-  # Print list of methods
   set prefix [namespace current]::${self}::
   string map [list $prefix ""] [info commands $prefix*]
 }
+#****
 
+#****f* object/Objvars
+# NAME
+# Objvars
+# SYNOPSIS
+# itrajcomp::Objvars self
+# FUNCTION
+# Print list of variables
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::Objvars {self} {
-  # Print list of variables
   set prefix [namespace current]::${self}::
   string map [list $prefix ""] [info vars $prefix*]
 }
+#****
 
+#****f* object/Objdump
+# NAME
+# Objdump
+# SYNOPSIS
+# itrajcomp::Objdump self
+# FUNCTION
+# Print list of variables and values
+# PARAMETERS
+# * self -- object
+# SOURCE
 proc itrajcomp::Objdump {self} {
-  # Print list of variables and values
   puts "$self:"
   set prefix [namespace current]::${self}::
 
@@ -92,17 +138,35 @@ proc itrajcomp::Objdump {self} {
       puts "  $vartxt: [set $var]"
     }
   }
-
 }
+#****
 
+#****f* object/Objlist
+# NAME
+# Objlist
+# SYNOPSIS
+# itrajcomp::Objlist
+# FUNCTION
+# Print list of objects
+# RETURN VALUE
+# List of objects
+# SOURCE
 proc itrajcomp::Objlist {} {
-  # Print list of objects
   return [namespace children [namespace current]]
 }
+#****
 
+#****f* object/Objclean
+# NAME
+# Objclean
+# SYNOPSIS
+# itrajcomp::Objclean
+# FUNCTION
+# Remove all objects
+# SOURCE
 proc itrajcomp::Objclean {} {
-  # Remove all objects
   foreach self [namespace children [namespace current]] {
     [namespace current]::Objdelete [string trimleft $self [namespace current]]
   }
 }
+#****
