@@ -168,6 +168,7 @@ proc itrajcomp::TabSel {w} {
   # New object button
   button $tab_sel.new -text "New Calculation" -command "[namespace current]::NewObject"
   pack $tab_sel.new -side top
+  [namespace current]::setBalloonHelp $tab_sel.new "Start a new calculation"
 
   # Set 1
   [namespace current]::SelWidget $tab_sel 1
@@ -175,6 +176,7 @@ proc itrajcomp::TabSel {w} {
   # Same selections checkbutton
   checkbutton $tab_sel.same -text "Same selections" -variable [namespace current]::samemols -command [namespace current]::SwitchSamemols
   pack $tab_sel.same -side top -pady 1
+  [namespace current]::setBalloonHelp $tab_sel.same "Toogle Set 2 as Set 1"
 
   # Set 2
   [namespace current]::SelWidget $tab_sel 2
@@ -211,6 +213,7 @@ proc itrajcomp::SelWidget {w id} {
   $w.mol$id.a.sel insert end "all"
   pack $w.mol$id.a -side top -expand yes -fill x
   pack $w.mol$id.a.sel -side left -expand yes -fill x
+  [namespace current]::setBalloonHelp $w.mol$id.a "Enter a VMD selection"
 
   # Molecules
   labelframe $w.mol$id.m -relief ridge -bd 2 -text "Molecules"
@@ -224,6 +227,11 @@ proc itrajcomp::SelWidget {w id} {
   pack $w.mol$id.m -side left
   pack $w.mol$id.m.all $w.mol$id.m.top $w.mol$id.m.act $w.mol$id.m.ids -side top -anchor w 
   pack $w.mol$id.m.ids.r $w.mol$id.m.ids.list -side left
+
+  [namespace current]::setBalloonHelp $w.mol$id.m.all "Select all molecules"
+  [namespace current]::setBalloonHelp $w.mol$id.m.top "Select only the top molecules"
+  [namespace current]::setBalloonHelp $w.mol$id.m.act "Select only the active molecules"
+  [namespace current]::setBalloonHelp $w.mol$id.m.ids "Select molecules by id"
   
   # Frames
   labelframe $w.mol$id.f -relief ridge -bd 2 -text "Frames"
@@ -244,6 +252,11 @@ proc itrajcomp::SelWidget {w id} {
   pack $w.mol$id.f.ids.list -side left -expand yes -fill x
   pack $w.mol$id.f.skip.l $w.mol$id.f.skip.e -side left
 
+  [namespace current]::setBalloonHelp $w.mol$id.f.all "Select all frames"
+  [namespace current]::setBalloonHelp $w.mol$id.f.top "Select only the current frame"
+  [namespace current]::setBalloonHelp $w.mol$id.f.ids "Select frames by id"
+  [namespace current]::setBalloonHelp $w.mol$id.f.skip "Skip every this frames"
+
   # Modifiers
   labelframe $w.mol$id.opt -relief ridge -bd 2 -text "Modifiers"
   radiobutton $w.mol$id.opt.no -text "All atoms" -variable [namespace current]::selmod${id} -value "no"
@@ -252,6 +265,11 @@ proc itrajcomp::SelWidget {w id} {
   radiobutton $w.mol$id.opt.sc -text "Sidechain" -variable [namespace current]::selmod${id} -value "sc"
   pack $w.mol$id.opt -side right
   pack $w.mol$id.opt.no $w.mol$id.opt.bb $w.mol$id.opt.tr $w.mol$id.opt.sc -side top -anchor w
+
+  [namespace current]::setBalloonHelp $w.mol$id.opt.no "Use all atoms in the selection"
+  [namespace current]::setBalloonHelp $w.mol$id.opt.bb "Use only the backbone atoms in the selection (adds \"and name C CA N\")"
+  [namespace current]::setBalloonHelp $w.mol$id.opt.tr "Use only the trace in the selection (adds \"and name CA\")"
+  [namespace current]::setBalloonHelp $w.mol$id.opt.sc "Use only the sidechain atoms in the selection (adds \"and sidechain\")"
 }
 #*****
 
@@ -273,20 +291,24 @@ proc itrajcomp::TabCalc {w} {
   # New object button
   button $tab_calc.new -text "New Calculation" -command "[namespace current]::NewObject"
   pack $tab_calc.new -side top
+  [namespace current]::setBalloonHelp $tab_calc.new "Start a new calculation"
 
   # Frames frame
   labelframe $tab_calc.frames -relief ridge -bd 2 -text "Frames mode"
   pack $tab_calc.frames -side top -anchor nw -expand yes -fill x
   grid columnconfigure $tab_calc.frames 2 -weight 1
+  [namespace current]::setBalloonHelp $tab_calc.frames "Calculations types of mode Frames"
 
   # Segments frame
   labelframe $tab_calc.segments -relief ridge -bd 2 -text "Segments mode"
   pack $tab_calc.segments -side top -anchor nw -expand yes -fill x
   grid columnconfigure $tab_calc.segments 3 -weight 1
+  [namespace current]::setBalloonHelp $tab_calc.segments "Calculations types of mode Segments"
 
   # Options frame
   labelframe $tab_calc.opt -relief ridge -bd 2 -text "Options"
   pack $tab_calc.opt -side top -anchor nw -expand yes -fill x
+  [namespace current]::setBalloonHelp $tab_calc.opt "Options for the selected calculation type"
 
   # General Options
   variable diagonal 0
@@ -295,6 +317,7 @@ proc itrajcomp::TabCalc {w} {
   
   checkbutton $tab_calc.opt.general.diagonal -text "Only diagonal" -variable [namespace current]::diagonal
   pack $tab_calc.opt.general.diagonal -side top -anchor nw
+  [namespace current]::setBalloonHelp $tab_calc.opt.general.diagonal "Calculate only amongs equal pairs, i.e. the diagonal of the graph"
 
   # Add calc types
   [namespace current]::AddStandardCalc
@@ -335,6 +358,12 @@ proc itrajcomp::TabRes {w} {
   grid $dataframe.header_opts  -column 3 -row 0 -sticky we
   grid $dataframe.header_sel   -column 4 -row 0 -sticky we
 
+  [namespace current]::setBalloonHelp $dataframe.header_id "Object id"
+  [namespace current]::setBalloonHelp $dataframe.header_state "State (S shown  . iconic  - withdrawn  ? unknown)"
+  [namespace current]::setBalloonHelp $dataframe.header_type "Calculation type"
+  [namespace current]::setBalloonHelp $dataframe.header_opts "Calculation options"
+  [namespace current]::setBalloonHelp $dataframe.header_sel "Selection summary"
+  
   variable datalist
   set datalist(id)    [listbox $dataframe.body_id    -width 2  -height 10 -relief sunken -exportselection 0 -yscrollcommand [namespace current]::dataframe_yset -selectmode extended]
   set datalist(state) [listbox $dataframe.body_state -width 1  -height 10 -relief sunken -exportselection 0 -yscrollcommand [namespace current]::dataframe_yset -selectmode extended]

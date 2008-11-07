@@ -88,7 +88,7 @@ proc itrajcomp::showBalloonHelp {widget msg} {
   if {$::tcl_platform(platform) == "macintosh"} {
     unsupported1 style $t floating sideTitlebar
   }
-  pack [label $t.l -text [subst $msg] -bg #ffffcc -font {Helvetica 9}] -padx 1 -pady 1
+  pack [label $t.l -text [subst $msg] -bg #ffffcc -font {Helvetica 9} -justify left] -padx 1 -pady 1
   set width [expr {[winfo reqwidth $t.l] + 2}]
   set height [expr {[winfo reqheight $t.l] + 2}]
   set xMax [expr {[winfo screenwidth $widget] - $width}]

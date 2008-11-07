@@ -310,6 +310,7 @@ proc itrajcomp::itcObjGraph {self} {
     if {[llength $datatype(sets)] > 0 } {
       set type_frame [frame $tab_graph.l.type]
       pack $type_frame -side top -anchor nw
+      [namespace parent]::setBalloonHelp $type_frame "Select a set to graph"
       
       label $type_frame.l -text "Set:"
       pack $type_frame.l -side left -anchor nw
@@ -328,21 +329,42 @@ proc itrajcomp::itcObjGraph {self} {
     entry $info_frame.keys_entry1 -width 8 -textvariable [namespace current]::info_key1 -state readonly
     entry $info_frame.keys_entry2 -width 8 -textvariable [namespace current]::info_key2 -state readonly
     pack $info_frame.keys_label $info_frame.keys_entry1 $info_frame.keys_entry2 -side left
-    
+    set key_info ""
+    switch $graph_opts(type) {
+      frames {
+        set key_info "molecule and frame"
+      }
+      segments {
+        switch $opts(segment) {
+          byres {
+            set key_info "residue (residue and resname)"
+          }
+          byatom {
+            set key_info "atom (index and name)"
+          }
+        }
+      }
+    }
+    [namespace parent]::setBalloonHelp $info_frame.keys_entry1 "Row $key_info"
+    [namespace parent]::setBalloonHelp $info_frame.keys_entry2 "Column $key_info"
+
     label $info_frame.value_label -text "Value:"
     entry $info_frame.value_entry -width 8 -textvariable [namespace current]::info_value -state readonly
     pack $info_frame.value_label $info_frame.value_entry -side left
+    [namespace parent]::setBalloonHelp $info_frame.value_entry "Value for the cell"
 
     checkbutton $info_frame.keep -text "Keep" -variable [namespace current]::info_keep
-    [namespace parent]::setBalloonHelp $info_frame.keep "Keep Keys and Value of the last cell pointed at with the mouse"
     pack $info_frame.keep -side left
+    [namespace parent]::setBalloonHelp $info_frame.keep "Keep Keys and Value of the last cell pointed at with the mouse"
 
     checkbutton $info_frame.mapadd -text "Add" -variable [namespace current]::map_add -command "set [namespace current]::map_del 0"
     pack $info_frame.mapadd -side left
+    [namespace parent]::setBalloonHelp $info_frame.mapadd "Add to selected cells"
 
     checkbutton $info_frame.mapdel -text "Del" -variable [namespace current]::map_del -command "set [namespace current]::map_add 0"
     pack $info_frame.mapdel -side left
-    
+    [namespace parent]::setBalloonHelp $info_frame.mapdel "Remove from selected cells"
+     
     #    label $info_frame.high_label -text "Highlight:"
     #    entry $info_frame.high_entry -width 3 -textvariable [namespace current]::highlight
     #    pack $info_frame.high_label $info_frame.high_entry -side left
@@ -350,6 +372,7 @@ proc itrajcomp::itcObjGraph {self} {
     # Scale
     labelframe $tab_graph.r.scale -text "Scale"
     pack $tab_graph.r.scale -side top -expand yes -fill y
+    [namespace parent]::setBalloonHelp $tab_graph.r.scale "Colored scale from mininum to maximum. Click to select cells with values less (mouse center button) or greater (mouse right button) than the click value in the scale)"
 
     set sc_w 40.
     #set scale [canvas $tab_graph.r.scale.c -height $sc_h -width $sc_w]
@@ -360,11 +383,13 @@ proc itrajcomp::itcObjGraph {self} {
     # Clear button
     button $tab_graph.r.clear -text "Clear" -command "[namespace parent]::MapClear $self"
     pack $tab_graph.r.clear -side bottom
+    [namespace parent]::setBalloonHelp $tab_graph.r.clear "Clear all selections"
 
     # Zoom
     labelframe $tab_graph.r.zoom  -relief ridge -bd 2 -text "Zoom"
     pack $tab_graph.r.zoom -side bottom
-
+    [namespace parent]::setBalloonHelp $tab_graph.r.zoom "Use the Zoom button to zoom in and out the graph. You can also enter a value in the text entry"
+ 
     frame $tab_graph.r.zoom.incr
     pack $tab_graph.r.zoom.incr
     button $tab_graph.r.zoom.incr.1 -text "+1" -width 2 -padx 1 -pady 0 -command "[namespace parent]::Zoom $self 1" -font [list helvetica 6]
@@ -483,11 +508,13 @@ proc itrajcomp::itcObjRep {self} {
 
       checkbutton $tab_rep.frame.disp$x.sw -text "On/Off" -variable [namespace current]::rep_sw -command "[namespace parent]::UpdateSelection $self"
       pack $tab_rep.frame.disp$x.sw -side left
+      [namespace parent]::setBalloonHelp $tab_rep.frame.disp$x.sw "Toogle representation on and off"
 
       # Selection
       #----------
       labelframe $tab_rep.frame.disp$x.sel -text "Selection"
       pack $tab_rep.frame.disp$x.sel -side left -anchor nw -expand yes -fill both
+      [namespace parent]::setBalloonHelp $tab_rep.frame.disp$x.sel "Enter a VMD selection"
       
       text $tab_rep.frame.disp$x.sel.e -exportselection yes -height 2 -width 25 -wrap word
       $tab_rep.frame.disp$x.sel.e insert end $sets(rep_sel$x)
@@ -500,7 +527,8 @@ proc itrajcomp::itcObjRep {self} {
 
       # Draw
       frame $style.draw
-      pack $style.draw -side top -anchor nw
+      pack $style.draw -side top -anchor n
+      [namespace parent]::setBalloonHelp $style.draw "Select the drawing style"
 
       label $style.draw.l -text "Drawing:"
       pack $style.draw.l -side left
@@ -515,6 +543,7 @@ proc itrajcomp::itcObjRep {self} {
       # Color
       frame $style.color
       pack $style.color -side top -anchor nw
+      [namespace parent]::setBalloonHelp $style.color "Select the color style"
 
       label $style.color.l -text "Color:"
       pack $style.color.l -side left
@@ -547,6 +576,7 @@ proc itrajcomp::itcObjRep {self} {
       #      variable connect_all 1
       labelframe $tab_rep.frame.connect -text "Connecting lines"
       pack $tab_rep.frame.connect -side top -expand yes -fill x
+      [namespace parent]::setBalloonHelp $tab_rep.frame.connect "Toogle connecting lines on and off"
 
       checkbutton $tab_rep.frame.connect.sw -text "On/Off" -variable [namespace current]::connect_sw -command "[namespace parent]::UpdateSelection $self"
       pack $tab_rep.frame.connect.sw -side left
@@ -560,6 +590,7 @@ proc itrajcomp::itcObjRep {self} {
       variable connect_sw 1
       labelframe $tab_rep.frame.connect -text "Connecting lines"
       pack $tab_rep.frame.connect -side top -expand yes -fill x
+      [namespace parent]::setBalloonHelp $tab_rep.frame.connect "Toogle connecting lines on and off"
 
       checkbutton $tab_rep.frame.connect.sw -text "On/Off" -variable [namespace current]::connect_sw -command "[namespace parent]::UpdateSelection $self"
       pack $tab_rep.frame.connect.sw -side left
@@ -571,6 +602,7 @@ proc itrajcomp::itcObjRep {self} {
     #--------------
     button $tab_rep.frame.but -text "Update" -command "[namespace parent]::UpdateSelection $self"
     pack $tab_rep.frame.but -side top
+    [namespace parent]::setBalloonHelp $tab_rep.frame.but "Update representation and lines."
   }
 }
 #*****
