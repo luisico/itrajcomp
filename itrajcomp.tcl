@@ -14,6 +14,7 @@
 #
 # DESCRIPTION
 # iTrajComp is a VMD plugin for general analysis of trajectories.
+# This file sets up the environment and loads the rest of code.
 # 
 # SEE ALSO
 # More documentation can be found in the README.txt file and
@@ -33,9 +34,12 @@
 package provide itrajcomp 1.0
 
 namespace eval itrajcomp {
+  # TODO: does init conflict with other global functions?
   namespace export init
   
   global env
+
+  # TODO: these lists could go to save/load or maingui.tcl
   variable open_format_list [list tab matrix plotmtv plotmtv_binary]
   variable save_format_list [list tab tab_raw matrix plotmtv plotmtv_binary postscript]
 

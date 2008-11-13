@@ -52,7 +52,7 @@ proc itrajcomp::calc_contacts {self} {
 # List with number of contacts and contacts list
 # SOURCE
 proc itrajcomp::calc_contacts_hook {self} {
-  set contacts [measure contacts [set ${self}::opts(cutoff)] [set ${self}::s1] [set ${self}::s2]]
+  set contacts [measure contacts [set ${self}::guiopts(cutoff)] [set ${self}::s1] [set ${self}::s2]]
   set number_contacts [llength [lindex $contacts 0]]
   return [list $number_contacts $contacts]
 }
@@ -67,27 +67,27 @@ proc itrajcomp::calc_contacts_hook {self} {
 # This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
 # SOURCE
 proc itrajcomp::calc_contacts_options {} {
-  # Options for contacts
-  variable calc_contacts_frame
-  variable calc_contacts_datatype
-  set calc_contacts_datatype(mode) "dual"
-  set calc_contacts_datatype(ascii) 1
-  
+  # Options
   variable calc_contacts_opts
-  set calc_contacts_opts(cutoff) 5.0
-
-  frame $calc_contacts_frame.cutoff
-  pack $calc_contacts_frame.cutoff -side top -anchor nw
-  label $calc_contacts_frame.cutoff.l -text "Cutoff:"
-  entry $calc_contacts_frame.cutoff.v -width 5 -textvariable [namespace current]::calc_contacts_opts(cutoff)
-  pack $calc_contacts_frame.cutoff.l $calc_contacts_frame.cutoff.v -side left
-
-  # Graph options
-  variable calc_contacts_graph
-  array set calc_contacts_graph {
-    type         "frames"
-    formats      "i"
-    rep_style1   "NewRibbons"
+  array set calc_contacts_opts {
+    type         frames
+    mode         dual
+    ascii        1
+    formats      i
+    rep_style1   NewRibbons
   }
+
+  # GUI options
+  variable calc_contacts_gui
+  variable calc_contacts_guiopts
+  array set calc_contacts_guiopts {
+    cutoff    5.0
+  }
+
+  frame $calc_contacts_gui.cutoff
+  pack $calc_contacts_gui.cutoff -side top -anchor nw
+  label $calc_contacts_gui.cutoff.l -text "Cutoff:"
+  entry $calc_contacts_gui.cutoff.v -width 5 -textvariable [namespace current]::calc_contacts_guiopts(cutoff)
+  pack $calc_contacts_gui.cutoff.l $calc_contacts_gui.cutoff.v -side left
 }
 #*****

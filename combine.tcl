@@ -160,16 +160,16 @@ proc itrajcomp::Objcombine {formula} {
     set frame2($s)      [set $self($s)::sets(frame2)]
     set sel1($s)        [set $self($s)::sets(sel1)]
     set sel2($s)        [set $self($s)::sets(sel2)]
-    set type($s)        [set $self($s)::graph_opts(type)]
-    set format_data($s) [set $self($s)::graph_opts(format_data)]
-    set format_key($s)  [set $self($s)::graph_opts(format_key)]
+    set type($s)        [set $self($s)::opts(type)]
+    set format_data($s) [set $self($s)::opts(format_data)]
+    set format_key($s)  [set $self($s)::opts(format_key)]
     set keys($s)        [set $self($s)::keys]
     set data1($s)       [array get $self($s)::data1]
     set data_index($s)  [set $self($s)::data_index]
   }
   
   # ToDo: check more things, like data has same format
-  foreach check [list "opts(type)"] {
+  foreach check [list "opts(calctype)"] {
     set test [set $self($s0)::$check]
     for {set i 1} {$i < [llength $selflist]} {incr i} {
       if {[set $self([lindex $selflist $i])::$check] != $test} {
@@ -194,30 +194,32 @@ proc itrajcomp::Objcombine {formula} {
   # sets (by now parameters for combined object come from object with smaller number)
   array set ${obj}::sets [array get $self($s0)::sets]
 
-  # datatype
-  set ${obj}::datatype(mode) "single"
-  set ${obj}::datatype(sets) "combined"
-  
   # opts
-  set ${obj}::opts(type) "combine"
-  set ${obj}::opts(diagonal) [set $self($s0)::opts(diagonal)]
-  # TODO: is not working with segments
-  if {$type($s0) == "segments"} {
-    set ${obj}::opts(segment) [set $self($s0)::opts(segment)]
-    array set ${obj}::segments [array get $self($s0)::segments]
-  }
-
-  # graph_opts
-  array set graph_opts {
-    formats "f" format_key ""
-    format_data "" format_scale ""
+  array set opts {
+    mode "single"
+    ascii 0
+    formats "f"
+    format_key ""
+    format_data ""
+    format_scale ""
     rep_style1 NewRibbons
     rep_color1 Molecule
     rep_colorid1 0
+    connect lines
   }
-  set graph_opts(type) $type($s0)
-  array set ${obj}::graph_opts [array get graph_opts]
+  array set ${obj}::opts [array get opts]
+  set ${obj}::opts(sets) "combined"
+  set ${obj}::opts(calctype) "combine"
+  set ${obj}::opts(type) $type($s0)
 
+  # Gui opts
+  set ${obj}::guiopts(diagonal) [set $self($s0)::guiopts(diagonal)]
+  # TODO: is not working with segments
+  if {$type($s0) == "segments"} {
+    set ${obj}::guiopts(segment) [set $self($s0)::guiopts(segment)]
+    array set ${obj}::segments [array get $self($s0)::segments]
+  }
+  
   # other options
   set ${obj}::data_index 0
 

@@ -156,23 +156,12 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
 
   set keys [set ${self}::keys]
   set data_index [set ${self}::data_index]
-  array set graph_opts [array get ${self}::graph_opts]
-  array set opts [array get ${self}::opts]
-  array set sets [array get ${self}::sets]
-  array set datatype [array get ${self}::datatype]
 
   set output ""
   # Object info
   
-  # datatype
-  append output "\#* datatype\n"
-  foreach key [array names datatype] {
-    if {$datatype($key) != ""} {
-      append output "\# $key $datatype($key)\n"
-    }
-  }
-
   # opts
+  array set opts [array get ${self}::opts]
   append output "\#* opts\n"
   foreach key [array names opts] {
     if {$opts($key) != ""} {
@@ -180,15 +169,17 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
     }
   }
 
-  # graph_opts
-  append output "\#* graph_opts\n"
-  foreach key [array names graph_opts] {
-    if {$graph_opts($key) != ""} {
-      append output "\# $key $graph_opts($key)\n"
+  # guiopts
+  array set guiopts [array get ${self}::guiopts]
+  append output "\#* guiopts\n"
+  foreach key [array names guiopts] {
+    if {$guiopts($key) != ""} {
+      append output "\# $key $guiopts($key)\n"
     }
   }
 
   # sets
+  array set sets [array get ${self}::sets]
   append output "\#* sets\n"
   foreach key [array names sets] {
     if {$sets($key) != ""} {
@@ -198,17 +189,17 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
 
 
   # Output
-  #set f_k [regsub -all {(%[0-9]+).?[0-9a-z]+} $graph_opts(format_key) {\1s}]
-  regexp {%(\d+)} $graph_opts(format_data) foo fd
+  #set f_k [regsub -all {(%[0-9]+).?[0-9a-z]+} $opts(format_key) {\1s}]
+  regexp {%(\d+)} $opts(format_data) foo fd
   set fd "%${fd}s"
 
   if {[info exists opt(raw)] && $opt(raw) == 1} {
 
     array set data [array get ${self}::data0]
-    append output [format "%8s %8s   %8s %8s" "$graph_opts(header1)1" "$graph_opts(header2)1" "$graph_opts(header1)2" "$graph_opts(header2)2  "]
-    switch $datatype(mode) {
+    append output [format "%8s %8s   %8s %8s" "$opts(header1)1" "$opts(header2)1" "$opts(header1)2" "$opts(header2)2  "]
+    switch $opts(mode) {
       single {
-        append output [format " $fd" [lindex $datatype(sets) 0]]
+        append output [format " $fd" [lindex $opts(sets) 0]]
       }
       multiple {
         set ndata [llength $data([lindex $keys 0])]
@@ -217,7 +208,7 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
         }
       }
       dual {
-        append output [format " $fd" [lindex $datatype(sets) 0]]
+        append output [format " $fd" [lindex $opts(sets) 0]]
         set ndata [llength [lindex $data([lindex $keys 0]) 1]]
         for {set i 0} {$i < $ndata} {incr i} {
           append output [format " $fd" "val$i"]
@@ -229,21 +220,21 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
     foreach key $keys {
       lassign [split $key :,] i j k l
       append output [format "%8s %8s   %8s %8s  " $i $j $k $l]
-      switch $datatype(mode) {
+      switch $opts(mode) {
         single {
-          append output [format " $graph_opts(format_data)" $data($key)]
+          append output [format " $opts(format_data)" $data($key)]
         }
         multiple {
           for {set i 0} {$i < $ndata} {incr i} {
-            append output [format " $graph_opts(format_data)" [lindex $data($key) $i]]
+            append output [format " $opts(format_data)" [lindex $data($key) $i]]
           }
         }
         dual {
-          append output [format " $graph_opts(format_data)" [lindex $data($key) 0]]
+          append output [format " $opts(format_data)" [lindex $data($key) 0]]
           set values [lindex $data($key) 1]
           puts $values
           foreach val $values {
-            append output [format " $graph_opts(format_data)" $val]
+            append output [format " $opts(format_data)" $val]
           }
         }
       }
@@ -253,8 +244,8 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
   } else {
     
     array set data [array get ${self}::data1]
-    append output [format "%8s %8s   %8s %8s  " "$graph_opts(header1)1" "$graph_opts(header2)1" "$graph_opts(header1)2" "$graph_opts(header2)2"]
-    foreach s $datatype(sets) {
+    append output [format "%8s %8s   %8s %8s  " "$opts(header1)1" "$opts(header2)1" "$opts(header1)2" "$opts(header2)2"]
+    foreach s $opts(sets) {
       append output [format " $fd" $s]
     }
     append output "\n"
@@ -262,8 +253,8 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
     foreach key $keys {
       lassign [split $key :,] i j k l
       append output [format "%8s %8s   %8s %8s  " $i $j $k $l [lindex $data($key) $data_index]]
-      for {set s 0} {$s < [llength $datatype(sets)]} {incr s} {
-        append output [format " $graph_opts(format_data)" [lindex $data($key) $s]]
+      for {set s 0} {$s < [llength $opts(sets)]} {incr s} {
+        append output [format " $opts(format_data)" [lindex $data($key) $s]]
       }
       append output "\n"
     }
@@ -287,10 +278,10 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
 # Output in matrix format
 # SOURCE
 proc ::itrajcomp::SaveData_matrix {self {options ""}} {
-  array set graph_opts [array get ${self}::graph_opts]
+  array set opts [array get ${self}::opts]
 
   lassign [[namespace current]::create_matrix $self] nrow ncol values
-  return [[namespace current]::print_matrix $nrow $ncol $values $graph_opts(format_data)]
+  return [[namespace current]::print_matrix $nrow $ncol $values $opts(format_data)]
 }
 #*****
 
@@ -329,14 +320,14 @@ proc ::itrajcomp::SaveData_plotmtv_binary {self {options ""}} {
 proc ::itrajcomp::SaveData_plotmtv {self {options ""}} {
   # Create plotmtv data
   array set opt $options
-  array set graph_opts [array get ${self}::graph_opts]
+  array set opts [array get ${self}::opts]
 
   lassign [[namespace current]::create_matrix $self] nrow ncol values
 
   set output "$ DATA=CONTOUR\n"
   append output "#% contours = ( 10 20 30 40 50 60 70 80 95 100 )\n"
   append output "% contfill\n"
-  append output "% toplabel = \"$graph_opts(type)\"\n"
+  append output "% toplabel = \"$opts(type)\"\n"
   append output "% ymin=0 ymax=$ncol\n"
   append output "% xmin=0 xmax=$nrow\n"
   append output "% nx=$nrow ny=$ncol\n"
@@ -346,7 +337,7 @@ proc ::itrajcomp::SaveData_plotmtv {self {options ""}} {
     append output [binary format "d[llength $vals]" [eval list $vals]]
     append output "\n"
   } else {
-    append output [[namespace current]::print_matrix $nrow 9 $values $graph_opts(format_data)]
+    append output [[namespace current]::print_matrix $nrow 9 $values $opts(format_data)]
   }
 
   append output "$ END\n"
@@ -370,7 +361,7 @@ proc itrajcomp::create_matrix {self} {
   set keys [set ${self}::keys]
   array set data [array get ${self}::data1]
   set data_index [set ${self}::data_index]
-  array set graph_opts [array get ${self}::graph_opts]
+  array set opts [array get ${self}::opts]
   array set sets [array get ${self}::sets]
 
   # Create a rectangular matrix
@@ -385,7 +376,7 @@ proc itrajcomp::create_matrix {self} {
   set nx 0
   set ny 0
   set vals {}
-  switch [set ${self}::graph_opts(type)] {
+  switch [set ${self}::opts(type)] {
     frames {
       for {set i 0} {$i < [llength $sets(mol1)]} {incr i} {
         set f1 [lindex $sets(frame1) $i]

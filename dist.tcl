@@ -116,31 +116,31 @@ proc itrajcomp::calc_dist_hook {self} {
 # This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
 # SOURCE
 proc itrajcomp::calc_dist_options {} {
-  # Options for dist gui
-  variable calc_dist_frame
-  variable calc_dist_datatype
-  set calc_dist_datatype(mode) "multiple"
-
+  # Options
   variable calc_dist_opts
-  set calc_dist_opts(segment) "byatom"
-  set calc_dist_opts(force_samemols) 1
-
-  # by segment
-  frame $calc_dist_frame.segment
-  pack $calc_dist_frame.segment -side top -anchor nw
-  label $calc_dist_frame.segment.l -text "Segments:"
-  pack $calc_dist_frame.segment.l -side left
-  foreach entry [list byatom byres] {
-    radiobutton $calc_dist_frame.segment.$entry -text $entry -variable [namespace current]::calc_dist_opts(segment) -value $entry
-    pack $calc_dist_frame.segment.$entry -side left
+  array set calc_dist_opts {
+    type         segments
+    mode         multiple
+    formats      f
+    rep_style1   CPK
   }
 
-  # Graph options
-  variable calc_dist_graph
-  array set calc_dist_graph {
-    type         "segments"
-    formats      "f"
-    rep_style1   "CPK"
+  # GUI options
+  variable calc_dist_gui
+  variable calc_dist_guiopts
+  array set calc_dist_guiopts {
+    segment           byatom
+    force_samemols    1
+  }
+
+  # by segment
+  frame $calc_dist_gui.segment
+  pack $calc_dist_gui.segment -side top -anchor nw
+  label $calc_dist_gui.segment.l -text "Segments:"
+  pack $calc_dist_gui.segment.l -side left
+  foreach entry [list byatom byres] {
+    radiobutton $calc_dist_gui.segment.$entry -text $entry -variable [namespace current]::calc_dist_guiopts(segment) -value $entry
+    pack $calc_dist_gui.segment.$entry -side left
   }
 }
 #*****

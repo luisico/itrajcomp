@@ -103,38 +103,41 @@ proc itrajcomp::loadData {file format} {
   close $fid
 
   # Type of object
-  if {![info exists opts(type)]} {
+  if {![info exists opts(calctype)]} {
     tk_messageBox -title "Error" -message "Type not specified in input file"
     return
   }
   
-  if {[llength [info procs "calc_$opts(type)_options"]] == 0} {
-    tk_messageBox -title "Error" -message "Could not find calc_$opts(type)_options"
+  if {[llength [info procs "calc_$opts(calctype)_options"]] == 0} {
+    tk_messageBox -title "Error" -message "Could not find calc_$opts(calctype)_options"
     return
   }
 
   # Create new object
   set obj [eval [namespace current]::Objnew ":auto"]
   [namespace current]::processData $obj $data
-  array set ${obj}::opts [array get opts]
   
-  # datatype
-  set ${obj}::datatype(mode) "single"
-  set ${obj}::datatype(sets) "loaded"
-
   # opts
-  set ${obj}::opts(type) "loaded"
-  set ${obj}::opts(diagonal) 0
-
-  # graph_opts
-  array set graph_opts {
-    formats "f" format_key ""
-    format_data "" format_scale ""
+  array set opts {
+    type "frames"
+    mode "single"
+    ascii 0
+    formats "f"
+    format_key ""
+    format_data ""
+    format_scale ""
     rep_style1 NewRibbons
     rep_color1 Molecule
     rep_colorid1 0
+    connect lines
   }
-  array set ${obj}::graph_opts [array get graph_opts]
+  array set ${obj}::opts [array get opts]
+  set ${obj}::opts(sets) "loaded"
+  set ${obj}::opts(calctype) "loaded"
+
+  # guiopts
+  array set ${obj}::guiopts [array get guiopts]
+  set ${obj}::guiopts(diagonal) 0
 
   # other options
   set ${obj}::data_index 0

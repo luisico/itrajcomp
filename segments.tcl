@@ -134,18 +134,18 @@ proc itrajcomp::LoopSegments {self} {
       set j [lindex $segments(name) $reg1]
       set key1 "$i:$j"
       #-> prehook1
-      [namespace parent]::calc_$opts(type)_prehook1 $self
+      [namespace parent]::calc_$opts(calctype)_prehook1 $self
       for {set reg2 0} {$reg2 < $nreg} {incr reg2} {
         set k [lindex $segments(number) $reg2]
         set l [lindex $segments(name) $reg2]
         set key2 "$k:$l"
         #-> prehook2
-        [namespace parent]::calc_$opts(type)_prehook2 $self
+        [namespace parent]::calc_$opts(calctype)_prehook2 $self
         if {[info exists data0($key2,$key1)]} {
           continue
         } else {
           #-> hook
-          set data0($key1,$key2) [[namespace parent]::calc_$opts(type)_hook $self]
+          set data0($key1,$key2) [[namespace parent]::calc_$opts(calctype)_hook $self]
           #puts "$i $k , $key1 $key2 , $data0($key1,$key2)"
           incr count
           [namespace parent]::ProgressBar $count $maxkeys
@@ -177,7 +177,7 @@ proc itrajcomp::LoopSegments {self} {
 # SOURCE
 proc itrajcomp::DefineSegments {self} {
   namespace eval [namespace current]::${self}:: {
-    switch $opts(segment) {
+    switch $guiopts(segment) {
       byres {
         set segments(number) [lsort -unique -integer [[atomselect [lindex $sets(mol_all) 0] $sets(sel1)] get residue]]
         set segments(name) {}
@@ -206,7 +206,7 @@ proc itrajcomp::DefineSegments {self} {
 # SOURCE
 proc itrajcomp::CoorSegments {self} {
   namespace eval [namespace current]::${self}:: {
-    switch $opts(segment) {
+    switch $guiopts(segment) {
       byres {
         foreach r $segments(number) {
           #puts "DEBUG: seg $r"

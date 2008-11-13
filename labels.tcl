@@ -34,24 +34,24 @@
 # Status code
 # SOURCE
 proc itrajcomp::calc_labels {self} {
-  array set opts [array get ${self}::opts]
+  array set guiopts [array get ${self}::guiopts]
   
   # Get values for each mol
   set i 0
-  if {! [info exists opts(labels_status)]} {
-    tk_messageBox -title "Error" -message "No $opts(label_type) have been defined" -type ok
+  if {! [info exists guiopts(labels_status)]} {
+    tk_messageBox -title "Error" -message "No $guiopts(label_type) have been defined" -type ok
     return -code error
   }
   
   # Precalculate values
-  foreach lab $opts(labels_status) {
+  foreach lab $guiopts(labels_status) {
     if {$lab == 1} {
-      set alldata($i) [label graph $opts(label_type) $i]
+      set alldata($i) [label graph $guiopts(label_type) $i]
     }
     incr i
   }
   if {! [array exists alldata]} {
-    tk_messageBox -title "Error" -message "No $opts(label_type) have been selected" -type ok
+    tk_messageBox -title "Error" -message "No $guiopts(label_type) have been selected" -type ok
     return -code error
   }
   array set ${self}::alldata [array get alldata]
@@ -75,7 +75,7 @@ proc itrajcomp::calc_labels {self} {
 # SOURCE
 proc itrajcomp::calc_labels_hook {self} {
   array set alldata [array get ${self}::alldata]
-  set label_type [set ${self}::opts(label_type)]
+  set label_type [set ${self}::guiopts(label_type)]
   set rms {}
   set rmstot 0
   set names [array names alldata]
@@ -105,35 +105,35 @@ proc itrajcomp::calc_labels_hook {self} {
 # This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
 # SOURCE
 proc itrajcomp::calc_labels_options {} {
-  # Options for labels
-  variable calc_labels_frame
-  variable calc_labels_datatype
-  set calc_labels_datatype(mode) "dual"
-  set calc_labels_datatype(ascii) 0
-
+  # Options
   variable calc_labels_opts
-  set calc_labels_opts(label_type)  "Dihedrals"
-  set calc_labels_opts(labels_status) ""
+  array set calc_labels_opts {
+    type         frames
+    mode         dual
+    ascii        0
+    formats      f
+    rep_style1   NewRibbons
+  }
 
-  frame $calc_labels_frame.labs
-  pack $calc_labels_frame.labs -side top -anchor nw
-  label $calc_labels_frame.labs.l -text "Labels:"
-  pack $calc_labels_frame.labs.l -side left
+  # GUI options
+  variable calc_labels_gui
+  variable calc_labels_guiopts
+  array set calc_labels_guiopts {
+    label_type     Dihedrals
+    labels_status  ""
+  }
+
+  frame $calc_labels_gui.labs
+  pack $calc_labels_gui.labs -side top -anchor nw
+  label $calc_labels_gui.labs.l -text "Labels:"
+  pack $calc_labels_gui.labs.l -side left
   foreach entry [list Bonds Angles Dihedrals] {
-    radiobutton $calc_labels_frame.labs.[string tolower $entry] -text $entry -variable [namespace current]::calc_labels_opts(label_type) -value $entry -command "[namespace current]::calc_labels_options_update"
-    pack $calc_labels_frame.labs.[string tolower $entry] -side left
+    radiobutton $calc_labels_gui.labs.[string tolower $entry] -text $entry -variable [namespace current]::calc_labels_guiopts(label_type) -value $entry -command "[namespace current]::calc_labels_options_update"
+    pack $calc_labels_gui.labs.[string tolower $entry] -side left
   }
-  menubutton $calc_labels_frame.labs.id -text "Id" -menu $calc_labels_frame.labs.id.m -relief raised
-  menu $calc_labels_frame.labs.id.m
-  pack $calc_labels_frame.labs.id -side left
-
-  # Graph options
-  variable calc_labels_graph
-  array set calc_labels_graph {
-    type         "frames"
-    formats      "f"
-    rep_style1   "NewRibbons"
-  }
+  menubutton $calc_labels_gui.labs.id -text "Id" -menu $calc_labels_gui.labs.id.m -relief raised
+  menu $calc_labels_gui.labs.id.m
+  pack $calc_labels_gui.labs.id -side left
 }
 #*****
 
@@ -151,19 +151,19 @@ proc itrajcomp::calc_labels_options_update {} {
   #    * num_label is the label number
   #    * atom_label is $mol-$resname$resid-$name
   variable tab_calc
-  variable calc_labels_frame
-  variable calc_labels_opts
+  variable calc_labels_gui
+  variable calc_labels_guiopts
 
   # TODO: why hold two variables with the same info?
   variable labels_status_array
 
-  set labels [label list $calc_labels_opts(label_type)]
+  set labels [label list $calc_labels_guiopts(label_type)]
   set n [llength $labels]
-  $calc_labels_frame.labs.id.m delete 0 end
+  $calc_labels_gui.labs.id.m delete 0 end
   # TODO: don't reset their status (try to keep them when swithing between label types in the gui)
   array unset labels_status_array
   if {$n > 0} {
-    $calc_labels_frame.labs.id config -state normal
+    $calc_labels_gui.labs.id config -state normal
     set nat [expr {[llength [lindex $labels 0]] -2}]
     for {set i 0} {$i < $n} {incr i} {
       set label "$i ("
@@ -180,16 +180,16 @@ proc itrajcomp::calc_labels_options_update {} {
         }
       }
       append label ")"
-      $calc_labels_frame.labs.id.m add checkbutton -label $label -variable [namespace current]::labels_status_array($i) -command "[namespace current]::labels_update_status $i"
+      $calc_labels_gui.labs.id.m add checkbutton -label $label -variable [namespace current]::labels_status_array($i) -command "[namespace current]::labels_update_status $i"
       #puts [array get labels_status_array]
     }
   }
 
-  if {[info exists calc_labels_opts(labels_status)]} {
-    unset calc_labels_opts(labels_status)
+  if {[info exists calc_labels_guiopts(labels_status)]} {
+    unset calc_labels_guiopts(labels_status)
   }
   foreach x [array names labels_status_array ] {
-    lappend calc_labels_opts(labels_status) $labels_status_array($x)
+    lappend calc_labels_guiopts(labels_status) $labels_status_array($x)
   }
 }
 #*****
@@ -207,8 +207,8 @@ proc itrajcomp::calc_labels_options_update {} {
 proc itrajcomp::labels_update_status {id} {
   # Update status of a label
   variable labels_status_array
-  variable calc_labels_opts
+  variable calc_labels_guiopts
   
-  set calc_labels_opts(labels_status) [lreplace $calc_labels_opts(labels_status) $id $id $labels_status_array($id)]
+  set calc_labels_guiopts(labels_status) [lreplace $calc_labels_guiopts(labels_status) $id $id $labels_status_array($id)]
 }
 #*****

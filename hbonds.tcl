@@ -62,7 +62,7 @@ proc itrajcomp::calc_hbonds {self} {
 # List with number of hbonds and hbonds list
 # SOURCE
 proc itrajcomp::calc_hbonds_hook {self} {
-  set hbonds [measure hbonds [set ${self}::opts(cutoff)] [set ${self}::opts(angle)] [set ${self}::s1] [set ${self}::s2]]
+  set hbonds [measure hbonds [set ${self}::guiopts(cutoff)] [set ${self}::guiopts(angle)] [set ${self}::s1] [set ${self}::s2]]
   set number_hbonds [llength [lindex $hbonds 0]]
   return [list $number_hbonds $hbonds]
 }
@@ -77,35 +77,35 @@ proc itrajcomp::calc_hbonds_hook {self} {
 # This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
 # SOURCE
 proc itrajcomp::calc_hbonds_options {} {
-  # Options for hbonds
-  variable calc_hbonds_frame
-  variable calc_hbonds_datatype
-  set calc_hbonds_datatype(mode) "dual"
-  set calc_hbonds_datatype(ascii) 1
-
+  # Options
   variable calc_hbonds_opts
-  set calc_hbonds_opts(cutoff) 5.0
-  set calc_hbonds_opts(angle) 30.0
-
-  frame $calc_hbonds_frame.cutoff
-  pack $calc_hbonds_frame.cutoff -side top -anchor nw
-  label $calc_hbonds_frame.cutoff.l -text "Cutoff:"
-  entry $calc_hbonds_frame.cutoff.v -width 5 -textvariable [namespace current]::calc_hbonds_opts(cutoff)
-  pack $calc_hbonds_frame.cutoff.l $calc_hbonds_frame.cutoff.v -side left
-
-  frame $calc_hbonds_frame.angle
-  pack $calc_hbonds_frame.angle -side top -anchor nw
-  label $calc_hbonds_frame.angle.l -text "Angle:"
-  entry $calc_hbonds_frame.angle.v -width 5 -textvariable [namespace current]::calc_hbonds_opts(angle)
-  pack $calc_hbonds_frame.angle.l $calc_hbonds_frame.angle.v -side left
-
-  # Graph options
-  variable calc_hbonds_graph
-  array set calc_hbonds_graph {
-    type         "frames"
-    formats      "f"
-    rep_style1   "NewRibbons"
-    connect      "cones"
+  array set calc_hbonds_opts {
+    type         frames
+    mode         dual
+    ascii        1
+    formats      f
+    rep_style1   NewRibbons
+    connect      cones
   }
+
+  # GUI options
+  variable calc_hbonds_gui
+  variable calc_hbonds_guiopts
+  array set calc_hbonds_guiopts {
+    cutoff  5.0
+    angle  30.0
+  }
+
+  frame $calc_hbonds_gui.cutoff
+  pack $calc_hbonds_gui.cutoff -side top -anchor nw
+  label $calc_hbonds_gui.cutoff.l -text "Cutoff:"
+  entry $calc_hbonds_gui.cutoff.v -width 5 -textvariable [namespace current]::calc_hbonds_guiopts(cutoff)
+  pack $calc_hbonds_gui.cutoff.l $calc_hbonds_gui.cutoff.v -side left
+
+  frame $calc_hbonds_gui.angle
+  pack $calc_hbonds_gui.angle -side top -anchor nw
+  label $calc_hbonds_gui.angle.l -text "Angle:"
+  entry $calc_hbonds_gui.angle.v -width 5 -textvariable [namespace current]::calc_hbonds_guiopts(angle)
+  pack $calc_hbonds_gui.angle.l $calc_hbonds_gui.angle.v -side left
 }
 #*****

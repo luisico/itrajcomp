@@ -34,7 +34,7 @@
 # Status code
 # SOURCE
 proc itrajcomp::calc_rgyr {self} {
-  array set opts [array get ${self}::opts]
+  #array set guiopts [array get ${self}::guiopts]
   array set sets [array get ${self}::sets]
   
   # Precalculate
@@ -90,19 +90,18 @@ proc itrajcomp::calc_rgyr_hook {self} {
 # This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
 # SOURCE
 proc itrajcomp::calc_rgyr_options {} {
-  # Options for rgyr
-  variable calc_rgyr_frame
+  # Options
   variable calc_rgyr_opts
-
-  variable calc_rgyr_datatype
-  set calc_rgyr_datatype(mode) "single"
-
-  # Graph options
-  variable calc_rgyr_graph
-  array set calc_rgyr_graph {
-    type         "frames"
-    formats      "f"
-    rep_style1   "NewRibbons"
+  array set calc_rgyr_opts {
+    type         frames
+    mode         single
+    formats      f
+    rep_style1   NewRibbons
   }
+
+  # GUI options
+  # TODO: if not declared do it in maingui.tcl
+  variable calc_rgyr_gui
+  variable calc_rgyr_guiopts
 }
 #*****

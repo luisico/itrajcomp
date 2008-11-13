@@ -48,6 +48,7 @@ proc itrajcomp::Objnew {{self ":auto"} args} {
     set self "itc[incr itcObjId]"
   }
   
+  # TODO: this is the only part that is dependent on itc objects. Move out?
   array set defaults {
     keys {} vals {}
     min 0 max 0

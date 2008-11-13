@@ -122,7 +122,7 @@ proc itrajcomp::calc_covar {self} {
       #puts "DEBUG: meas [measure rmsf $s1 first 0 last [expr [molinfo $i get numframes] -1] step 1]"
     }
 
-    if {$opts(segment) == "byres"} {
+    if {$guiopts(segment) == "byres"} {
       set temp {}
       set start 0
       foreach r $segments(number) {
@@ -196,31 +196,31 @@ proc itrajcomp::calc_covar_hook {self} {
 # This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
 # SOURCE
 proc itrajcomp::calc_covar_options {} {
-  # Options for covar
-  variable calc_covar_frame
-  variable calc_covar_datatyper
-  set calc_covar_datatype(mode) "single"
-
+  # Options
   variable calc_covar_opts
-  set calc_covar_opts(segment) "byres"
-  set calc_covar_opts(force_samemols) 1
-
-  # by segment
-  frame $calc_covar_frame.segment
-  pack $calc_covar_frame.segment -side top -anchor nw
-  label $calc_covar_frame.segment.l -text "Segments:"
-  pack $calc_covar_frame.segment.l -side left
-  foreach entry [list byatom byres] {
-    radiobutton $calc_covar_frame.segment.$entry -text $entry -variable [namespace current]::calc_covar_opts(segment) -value $entry
-    pack $calc_covar_frame.segment.$entry -side left
+  array set calc_covar_opts {
+    type         segments
+    mode         single
+    formats      f
+    rep_style1   CPK
   }
 
-  # Graph options
-  variable calc_covar_graph
-  array set calc_covar_graph {
-    type         "segments"
-    formats      "f"
-    rep_style1   "CPK"
+  # GUI options
+  variable calc_covar_gui
+  variable calc_covar_guiopts
+  array set calc_covar_guiopts {
+    segment          byres
+    force_samemols   1
+  }
+
+  # by segment
+  frame $calc_covar_gui.segment
+  pack $calc_covar_gui.segment -side top -anchor nw
+  label $calc_covar_gui.segment.l -text "Segments:"
+  pack $calc_covar_gui.segment.l -side left
+  foreach entry [list byatom byres] {
+    radiobutton $calc_covar_gui.segment.$entry -text $entry -variable [namespace current]::calc_covar_guiopts(segment) -value $entry
+    pack $calc_covar_gui.segment.$entry -side left
   }
 }
 #*****

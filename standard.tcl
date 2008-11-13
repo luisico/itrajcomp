@@ -29,6 +29,7 @@
 # Standard calculation types for the vanilla itrajcomp plugin.
 # SOURCE
 proc itrajcomp::AddStandardCalc {} {
+  # TODO: what is this doing here? setting a default?
   variable calctype "rmsd"
   global env
 

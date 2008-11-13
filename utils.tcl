@@ -419,19 +419,19 @@ proc itrajcomp::CheckNatoms {self} {
 # List with mol, frame and selection
 # SOURCE
 proc itrajcomp::ParseKey {self key} {
-  array set graph_opts [array get ${self}::graph_opts]
   array set opts [array get ${self}::opts]
+  array set guiopts [array get ${self}::guiopts]
   array set sets [array get ${self}::sets]
   set indices [split $key :]
 
-  switch $graph_opts(type) {
+  switch $opts(type) {
     frames {
       lassign $indices m f
       set tab_rep [set ${self}::tab_rep]
       set s [[namespace current]::ParseSel [$tab_rep.frame.disp1.sel.e get 1.0 end] ""]
     }
     segments {
-      switch $opts(segment) {
+      switch $guiopts(segment) {
         byres {
           set m [join [set ${self}::sets(mol_all)] " "]
           set f [join [set ${self}::sets(frame1)] " "]
@@ -467,7 +467,7 @@ proc itrajcomp::PrepareData {self} {
   array set data0 [array get ${self}::data0]
   set keys [array names data0]
 
-  switch [set ${self}::datatype(mode)] {
+  switch [set ${self}::opts(mode)] {
     single {
       array set data1 [array get data0]
       lassign [[namespace current]::minmax [array get data1]] min1 max1
@@ -491,7 +491,7 @@ proc itrajcomp::PrepareData {self} {
     }
 
     dual {
-      if {[set ${self}::datatype(ascii)]} {
+      if {[set ${self}::opts(ascii)]} {
         foreach key $keys {
           set data1($key) [lindex $data0($key) 0]
         }
@@ -538,7 +538,7 @@ proc itrajcomp::PrepareData {self} {
 # SOURCE
 proc itrajcomp::TransformData {self {transform "copy"} {graph 0}} {
   set data_index [set ${self}::data_index]
-  set formats [set ${self}::graph_opts(formats)]
+  set formats [set ${self}::opts(formats)]
   
   # Source data
   if {$transform == "copy" || [set ${self}::transform_data1] == 1} {
@@ -608,8 +608,8 @@ proc itrajcomp::TransformData {self {transform "copy"} {graph 0}} {
 
   # Update output format of values
   lassign [[namespace current]::_format $formats] format_data format_scale
-  set ${self}::graph_opts(format_data) $format_data
-  set ${self}::graph_opts(format_scale) $format_scale
+  set ${self}::opts(format_data) $format_data
+  set ${self}::opts(format_scale) $format_scale
 
   # Update plot
   if {$graph == 1} {
@@ -905,31 +905,31 @@ proc itrajcomp::_format {format} {
 }
 #*****
 
-#****f* utils/concat_opts
+#****f* utils/concat_guiopts
 # NAME
-# concat_opts
+# concat_guiopts
 # SYNOPSIS
-# itrajcomp::concat_opts self
+# itrajcomp::concat_guiopts self
 # FUNCTION
-# Concatenate opts in one line
+# Concatenate object guiopts in one line
 # PARAMETERS
 # * self -- object
 # RETURN VALUE
 # String with options
 # SOURCE
-proc itrajcomp::concat_opts {self} {
+proc itrajcomp::concat_guiopts {self} {
   set options {}
   
-  array set opts [array get ${self}::opts]
-  if {$opts(diagonal)} {
+  array set guiopts [array get ${self}::guiopts]
+  if {$guiopts(diagonal)} {
     lappend options "diagonal"
   }
   
-  foreach v [array names opts] {
-    if { $v == "type" || $v == "diagonal" || $v == "segment"} {
+  foreach v [array names guiopts] {
+    if { $v == "diagonal" || $v == "segment"} {
       continue
     }
-    if {$opts($v)} {
+    if {$guiopts($v)} {
       lappend options "$v"
     }
   }

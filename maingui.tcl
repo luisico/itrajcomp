@@ -435,8 +435,8 @@ proc itrajcomp::UpdateRes {} {
       }
     }
     $datalist(state) insert end $state
-    $datalist(type) insert end [set ${name}::opts(type)]
-    $datalist(opts) insert end [[namespace current]::concat_opts $name]
+    $datalist(type) insert end [set ${name}::opts(calctype)]
+    $datalist(opts) insert end [[namespace current]::concat_guiopts $name]
     $datalist(sel) insert end "([set ${name}::sets(mol1_def)], [set ${name}::sets(frame1_def)]), ([set ${name}::sets(mol2_def)], [set ${name}::sets(frame2_def)])"
   }
 
@@ -479,14 +479,14 @@ proc itrajcomp::AddCalc {type mode {description ""} {script ""} } {
   grid $tab_calc.$mode.${type}_d -row $calc_id -column 2 -sticky nw
 
   # Default options
-  variable calc_${type}_opts
-  array set calc_${type}_opts {
+  variable calc_${type}_guiopts
+  array set calc_${type}_guiopts {
     force_samemols 0
   }
   
   # Options
   if {[llength [info procs "calc_${type}_options"]]} {
-    variable calc_${type}_frame [frame $tab_calc.opt.$type]
+    variable calc_${type}_gui [frame $tab_calc.opt.$type]
     pack $tab_calc.opt.$type -side top -anchor nw
     [namespace current]::calc_${type}_options
     [namespace current]::TabCalcUpdate
@@ -523,6 +523,8 @@ proc itrajcomp::DelCalc {type mode} {
 # Refresh the calculations tab
 # SOURCE
 proc itrajcomp::TabCalcUpdate {} {
+  # TODO: this triggers the update of the Selection tab as well
+
   # Refresh the tab for calculations
   variable tab_calc
   variable calctype
@@ -539,8 +541,8 @@ proc itrajcomp::TabCalcUpdate {} {
   }
 
   # Turn on samemols if requested
-  variable calc_${calctype}_opts
-  if {[set "calc_${calctype}_opts(force_samemols)"]} {
+  variable calc_${calctype}_guiopts
+  if {[set "calc_${calctype}_guiopts(force_samemols)"]} {
     [namespace current]::Samemols on
   }
 
@@ -585,11 +587,11 @@ proc itrajcomp::Samemols {status} {
   variable tab_sel
   variable win_main
   variable calctype
-  variable calc_${calctype}_opts
+  variable calc_${calctype}_guiopts
 
   set old_status $samemols
   if {$status == off} {
-    if {[set "calc_${calctype}_opts(force_samemols)"]} {
+    if {[set "calc_${calctype}_guiopts(force_samemols)"]} {
       set samemols 1
       set vn [package present itrajcomp]
       tk_messageBox -title "Error" -parent .itrajcomp -message "The current calculation type ($calctype) requires same selections"
@@ -689,66 +691,62 @@ proc itrajcomp::Status {txt} {
 proc itrajcomp::NewObject {} {
   variable calctype
 
-  # update GUI in to check compatibility of options
+  # update GUI to check compatibility of options
   [namespace current]::TabCalcUpdate
 
   # Create new object
   set obj [eval [namespace current]::Objnew ":auto"]
 
   # Pass sel options
-  set temp [[namespace current]::SelOptions]
-  if {$temp == -1} {
+  set sel_options [[namespace current]::SelOptions]
+  if {$sel_options == -1} {
     return -code return
   } else {
-    array set ${obj}::sets $temp
+    array set ${obj}::sets $sel_options
   }
 
-  # Pass calc options
+  # Pass calctype GUI options
+  variable calc_${calctype}_guiopts
+  array set ${obj}::guiopts [array get calc_${calctype}_guiopts]
+  variable diagonal
+  set ${obj}::guiopts(diagonal) $diagonal
+
+  # Pass calctype options
   variable calc_${calctype}_opts
-  array set ${obj}::opts [array get calc_${calctype}_opts]
-
-  # Pass datatypes
-  variable calc_${calctype}_datatype
-  array set datatype [array get calc_${calctype}_datatype]
-  if {![info exists datatype(mode)]} {
-    set datatype(mode) "single"
+  # defaults
+  array set opts {
+    type          frames
+    mode          single
+    ascii 0
+    formats       f
+    format_key    ""
+    format_data   ""
+    format_scale  ""
+    rep_style1    NewRibbons
+    rep_color1    Molecule
+    rep_colorid1  0
+    connect       lines
   }
-  switch $datatype(mode) {
+  array set opts [array get calc_${calctype}_opts]
+  set opts(calctype) $calctype
+
+  switch $opts(mode) {
     single {
-      set datatype(sets) [list $calctype]
+      set opts(sets) [list $calctype]
     }
     multiple {
-      set datatype(sets) [list avg std min max]
+      set opts(sets) [list avg std min max]
     }
     dual {
-      if {[info exists datatype(ascii)] && $datatype(ascii) == 1} {
-        set datatype(sets) [list $calctype]
+      if {[info exists opts(ascii)] && $opts(ascii) == 1} {
+        set opts(sets) [list $calctype]
       } else {
-        set datatype(sets) [list $calctype avg std min max]
+        set opts(sets) [list $calctype avg std min max]
       }
     }
   }
-  array set ${obj}::datatype [array get datatype]
+  array set ${obj}::opts [array get opts]
   
-  variable diagonal
-  set ${obj}::opts(type) $calctype
-  set ${obj}::opts(diagonal) $diagonal
-
-  # Pass graph options
-  variable calc_${calctype}_graph
-  # defaults
-  array set graph_opts {
-    type ""
-    formats "f" format_key ""
-    format_data "" format_scale ""
-    rep_style1 NewRibbons
-    rep_color1 Molecule
-    rep_colorid1 0
-    connect lines
-  }
-  array set graph_opts [array get calc_${calctype}_graph]
-  array set ${obj}::graph_opts [array get graph_opts]
-
   # Do the calculation
   [namespace current]::Status "Calculating $calctype ..."
   if [catch { [namespace current]::calc_$calctype $obj } msg] {

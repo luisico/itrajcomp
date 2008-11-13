@@ -54,7 +54,7 @@ proc itrajcomp::calc_rmsd {self} {
 # * self -- object
 # SOURCE
 proc itrajcomp::calc_rmsd_prehook1 {self} {
-  if {[set ${self}::opts(align)]} {
+  if {[set ${self}::guiopts(align)]} {
     # FIXME: as workaround this code was moved to frames.tcl
     #set ${self}::move_sel [atomselect [set ${self}::i] "all"]
   }
@@ -73,7 +73,7 @@ proc itrajcomp::calc_rmsd_prehook1 {self} {
 # * self -- object
 # SOURCE
 proc itrajcomp::calc_rmsd_prehook2 {self} {
-  if {[set ${self}::opts(align)]} {
+  if {[set ${self}::guiopts(align)]} {
     [set ${self}::move_sel] frame [set ${self}::j]
   }
 }
@@ -95,12 +95,12 @@ proc itrajcomp::calc_rmsd_prehook2 {self} {
 proc itrajcomp::calc_rmsd_hook {self} {
   variable fast_rmsd
 
-  if {[set ${self}::opts(align)]} {
+  if {[set ${self}::guiopts(align)]} {
     set tmatrix [measure fit [set ${self}::s1] [set ${self}::s2]]
     [set ${self}::move_sel] move $tmatrix
   }
   if {$fast_rmsd} {
-    if {[set ${self}::opts(byres)]} {
+    if {[set ${self}::guiopts(byres)]} {
       set rmsd [measure rmsd [set ${self}::s1] [set ${self}::s2] byres]
     } else {
       set rmsd [measure rmsd [set ${self}::s1] [set ${self}::s2] byatom]
@@ -130,32 +130,34 @@ proc itrajcomp::calc_rmsd_options {} {
     }
   }
 
-  # Options for rmsd gui
-  variable calc_rmsd_frame
-  variable calc_rmsd_datatype
-
+  # Options
   variable calc_rmsd_opts
-  set calc_rmsd_opts(align) 0
-
-  checkbutton $calc_rmsd_frame.align -text "align" -variable [namespace current]::calc_rmsd_opts(align)
-  pack $calc_rmsd_frame.align -side top -anchor nw
-
-  if {$fast_rmsd} {
-    set calc_rmsd_datatype(mode) "dual"
-    set calc_rmsd_datatype(ascii) 0
-    set calc_rmsd_opts(byres) 0
-    checkbutton $calc_rmsd_frame.byres -text "byres" -variable [namespace current]::calc_rmsd_opts(byres)
-    pack $calc_rmsd_frame.byres -side top -anchor nw
-  } else {
-    set calc_rmsd_datatype(mode) "single"
+  array set calc_rmsd_opts {
+    type         frames
+    mode         single
+    ascii        0
+    formats      f
+    rep_style1   NewRibbons
   }
-  
-  # Graph options
-  variable calc_rmsd_graph
-  array set calc_rmsd_graph {
-    type         "frames"
-    formats      "f"
-    rep_style1   "NewRibbons"
+
+  # GUI options
+  variable calc_rmsd_gui
+  variable calc_rmsd_guiopts
+  array set calc_rmsd_guiopts {
+    align     0
+    byres     1
+  }
+
+  checkbutton $calc_rmsd_gui.align -text "align" -variable [namespace current]::calc_rmsd_guiopts(align)
+  pack $calc_rmsd_gui.align -side top -anchor nw
+
+  # Options for hacked VMD
+  if {$fast_rmsd} {
+    set calc_rmsd_opts(mode) "dual"
+    set calc_rmsd_opts(ascii) 0
+    set calc_rmsd_guiopts(byres) 0
+    checkbutton $calc_rmsd_gui.byres -text "byres" -variable [namespace current]::calc_rmsd_guiopts(byres)
+    pack $calc_rmsd_gui.byres -side top -anchor nw
   }
 }
 #*****

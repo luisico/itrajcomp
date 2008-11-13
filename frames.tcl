@@ -122,7 +122,7 @@ proc itrajcomp::LoopFrames {self} {
       foreach j [lindex $sets(frame1) [lsearch -exact $sets(mol1) $i]] {
         foreach k $sets(mol2) {
           foreach l [lindex $sets(frame2) [lsearch -exact $sets(mol2) $k]] {
-            if {$opts(diagonal)} {
+            if {$guiopts(diagonal)} {
               if {$i != $k || $j != $l} {
                 continue
               }
@@ -146,15 +146,15 @@ proc itrajcomp::LoopFrames {self} {
       # FIXME: the next line should be in rmsd.tcl
       set move_sel [atomselect $i "all"]
 
-      [namespace parent]::calc_$opts(type)_prehook1 $self
+      [namespace parent]::calc_$opts(calctype)_prehook1 $self
       foreach j [lindex $sets(frame1) [lsearch -exact $sets(mol1) $i]] {
         $s1 frame $j
         #-> prehook2
-        [namespace parent]::calc_$opts(type)_prehook2 $self
+        [namespace parent]::calc_$opts(calctype)_prehook2 $self
         foreach k $sets(mol2) {
           set s2 [atomselect $k $sets(sel2)]
           foreach l [lindex $sets(frame2) [lsearch -exact $sets(mol2) $k]] {
-            if {$opts(diagonal) && $j != $l} {
+            if {$guiopts(diagonal) && $j != $l} {
               continue
             }
             if {[info exists data0($k:$l,$i:$j)]} {
@@ -163,7 +163,7 @@ proc itrajcomp::LoopFrames {self} {
             } else {
               $s2 frame $l
               #-> hook
-              set data0($i:$j,$k:$l) [[namespace parent]::calc_$opts(type)_hook $self]
+              set data0($i:$j,$k:$l) [[namespace parent]::calc_$opts(calctype)_hook $self]
               #puts "$i $j $k $l $data0($i:$j,$k:$l)"
               incr count
               [namespace parent]::ProgressBar $count $maxkeys
