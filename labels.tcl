@@ -108,11 +108,11 @@ proc itrajcomp::calc_labels_options {} {
   # Options
   variable calc_labels_opts
   array set calc_labels_opts {
-    type         frames
-    mode         dual
+    mode         frames
+    sets         dual
     ascii        0
     formats      f
-    rep_style1   NewRibbons
+    style        NewRibbons
   }
 
   # GUI options

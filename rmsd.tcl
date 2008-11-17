@@ -133,11 +133,11 @@ proc itrajcomp::calc_rmsd_options {} {
   # Options
   variable calc_rmsd_opts
   array set calc_rmsd_opts {
-    type         frames
-    mode         single
+    mode         frames
+    sets         single
     ascii        0
     formats      f
-    rep_style1   NewRibbons
+    style        NewRibbons
   }
 
   # GUI options
@@ -153,7 +153,7 @@ proc itrajcomp::calc_rmsd_options {} {
 
   # Options for hacked VMD
   if {$fast_rmsd} {
-    set calc_rmsd_opts(mode) "dual"
+    set calc_rmsd_opts(sets) "dual"
     set calc_rmsd_opts(ascii) 0
     set calc_rmsd_guiopts(byres) 0
     checkbutton $calc_rmsd_gui.byres -text "byres" -variable [namespace current]::calc_rmsd_guiopts(byres)

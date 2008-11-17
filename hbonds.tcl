@@ -80,11 +80,11 @@ proc itrajcomp::calc_hbonds_options {} {
   # Options
   variable calc_hbonds_opts
   array set calc_hbonds_opts {
-    type         frames
-    mode         dual
+    mode         frames
+    sets         dual
     ascii        1
     formats      f
-    rep_style1   NewRibbons
+    style        NewRibbons
     connect      cones
   }
 

@@ -26,7 +26,7 @@
 # SYNOPSIS
 # itrajcomp::calc_contacts self
 # FUNCTION
-# This functions gets called when adding a new type of calculation.
+# This functions gets called when adding a new calctype.
 # Contacts calculation type
 # PARAMETERS
 # * self -- object
@@ -70,11 +70,11 @@ proc itrajcomp::calc_contacts_options {} {
   # Options
   variable calc_contacts_opts
   array set calc_contacts_opts {
-    type         frames
-    mode         dual
+    mode         frames
+    sets         dual
     ascii        1
     formats      i
-    rep_style1   NewRibbons
+    style        NewRibbons
   }
 
   # GUI options

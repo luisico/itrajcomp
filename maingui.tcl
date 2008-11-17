@@ -715,33 +715,33 @@ proc itrajcomp::NewObject {} {
   variable calc_${calctype}_opts
   # defaults
   array set opts {
-    type          frames
-    mode          single
+    mode          frames
+    sets          single
     ascii 0
     formats       f
     format_key    ""
     format_data   ""
     format_scale  ""
-    rep_style1    NewRibbons
-    rep_color1    Molecule
-    rep_colorid1  0
+    style         NewRibbons
+    color         Molecule
+    colorID       0
     connect       lines
   }
   array set opts [array get calc_${calctype}_opts]
   set opts(calctype) $calctype
 
-  switch $opts(mode) {
+  switch $opts(sets) {
     single {
-      set opts(sets) [list $calctype]
+      set opts(collections) [list $calctype]
     }
     multiple {
-      set opts(sets) [list avg std min max]
+      set opts(collections) [list avg std min max]
     }
     dual {
       if {[info exists opts(ascii)] && $opts(ascii) == 1} {
-        set opts(sets) [list $calctype]
+        set opts(collections) [list $calctype]
       } else {
-        set opts(sets) [list $calctype avg std min max]
+        set opts(collections) [list $calctype avg std min max]
       }
     }
   }
@@ -835,7 +835,7 @@ proc itrajcomp::SelOptions {} {
             frame2 $frame2   frame2_def $frame2_def\
             sel1 $sel1\
             sel2 $sel2\
-            rep_sel1 $sel1\
+            rep_sel $sel1\
             mol_all $mol_all\
             samemols $samemols
          ]

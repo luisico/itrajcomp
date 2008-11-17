@@ -160,7 +160,7 @@ proc itrajcomp::Objcombine {formula} {
     set frame2($s)      [set $self($s)::sets(frame2)]
     set sel1($s)        [set $self($s)::sets(sel1)]
     set sel2($s)        [set $self($s)::sets(sel2)]
-    set type($s)        [set $self($s)::opts(type)]
+    set mode($s)        [set $self($s)::opts(mode)]
     set format_data($s) [set $self($s)::opts(format_data)]
     set format_key($s)  [set $self($s)::opts(format_key)]
     set keys($s)        [set $self($s)::keys]
@@ -196,26 +196,26 @@ proc itrajcomp::Objcombine {formula} {
 
   # opts
   array set opts {
-    mode "single"
+    sets "single"
     ascii 0
     formats "f"
     format_key ""
     format_data ""
     format_scale ""
-    rep_style1 NewRibbons
-    rep_color1 Molecule
-    rep_colorid1 0
+    style NewRibbons
+    color Molecule
+    colorID 0
     connect lines
   }
   array set ${obj}::opts [array get opts]
-  set ${obj}::opts(sets) "combined"
+  set ${obj}::opts(collections) "combined"
   set ${obj}::opts(calctype) "combine"
-  set ${obj}::opts(type) $type($s0)
+  set ${obj}::opts(mode) $mode($s0)
 
   # Gui opts
   set ${obj}::guiopts(diagonal) [set $self($s0)::guiopts(diagonal)]
   # TODO: is not working with segments
-  if {$type($s0) == "segments"} {
+  if {$mode($s0) == "segments"} {
     set ${obj}::guiopts(segment) [set $self($s0)::guiopts(segment)]
     array set ${obj}::segments [array get $self($s0)::segments]
   }

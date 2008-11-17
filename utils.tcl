@@ -424,11 +424,11 @@ proc itrajcomp::ParseKey {self key} {
   array set sets [array get ${self}::sets]
   set indices [split $key :]
 
-  switch $opts(type) {
+  switch $opts(mode) {
     frames {
       lassign $indices m f
       set tab_rep [set ${self}::tab_rep]
-      set s [[namespace current]::ParseSel [$tab_rep.frame.disp1.sel.e get 1.0 end] ""]
+      set s [[namespace current]::ParseSel [$tab_rep.frame.disp.sel.e get 1.0 end] ""]
     }
     segments {
       switch $guiopts(segment) {
@@ -436,7 +436,7 @@ proc itrajcomp::ParseKey {self key} {
           set m [join [set ${self}::sets(mol_all)] " "]
           set f [join [set ${self}::sets(frame1)] " "]
           set tab_rep [set ${self}::tab_rep]
-          set extra [[namespace current]::ParseSel [$tab_rep.frame.disp1.sel.e get 1.0 end] ""]
+          set extra [[namespace current]::ParseSel [$tab_rep.frame.disp.sel.e get 1.0 end] ""]
           set s "residue [lindex $indices 0] and ($extra)"
         }
         byatom {
@@ -467,7 +467,7 @@ proc itrajcomp::PrepareData {self} {
   array set data0 [array get ${self}::data0]
   set keys [array names data0]
 
-  switch [set ${self}::opts(mode)] {
+  switch [set ${self}::opts(sets)] {
     single {
       array set data1 [array get data0]
       lassign [[namespace current]::minmax [array get data1]] min1 max1

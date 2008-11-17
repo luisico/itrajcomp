@@ -119,10 +119,10 @@ proc itrajcomp::calc_dist_options {} {
   # Options
   variable calc_dist_opts
   array set calc_dist_opts {
-    type         segments
-    mode         multiple
+    mode         segments
+    sets         multiple
     formats      f
-    rep_style1   CPK
+    style        CPK
   }
 
   # GUI options

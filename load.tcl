@@ -119,20 +119,20 @@ proc itrajcomp::loadData {file format} {
   
   # opts
   array set opts {
-    type "frames"
-    mode "single"
+    mode "frames"
+    sets "single"
     ascii 0
     formats "f"
     format_key ""
     format_data ""
     format_scale ""
-    rep_style1 NewRibbons
-    rep_color1 Molecule
-    rep_colorid1 0
+    style NewRibbons
+    color Molecule
+    colorID 0
     connect lines
   }
   array set ${obj}::opts [array get opts]
-  set ${obj}::opts(sets) "loaded"
+  set ${obj}::opts(collections) "loaded"
   set ${obj}::opts(calctype) "loaded"
 
   # guiopts

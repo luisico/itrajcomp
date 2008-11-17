@@ -33,8 +33,8 @@
 proc itrajcomp::itcObjGui {self} {
   namespace eval [namespace current]::${self}:: {
 
-    set rep_style_list [list Lines Bonds DynamicBonds HBonds Points VDW CPK Licorice Tube Trace Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Beads Dotted Solvent]
-    set rep_color_list [list Name Type Element ResName ResType ResID Chain SegName Conformation Molecule Structure ColorID Beta Occupancy Mass Charge Pos User Index Backbone Throb Timestep Volume]
+    set style_list [list Lines Bonds DynamicBonds HBonds Points VDW CPK Licorice Tube Trace Ribbons NewRibbons Cartoon NewCartoon MSMS Surf VolumeSlice Isosurface Beads Dotted Solvent]
+    set color_list [list Name Type Element ResName ResType ResID Chain SegName Conformation Molecule Structure ColorID Beta Occupancy Mass Charge Pos User Index Backbone Throb Timestep Volume]
 
     variable title
     variable r_thres_rel  0.5
@@ -307,15 +307,15 @@ proc itrajcomp::itcObjGraph {self} {
     pack $plot -side right -expand yes -fill both
 
     # Data to display (index)
-    if {[llength $opts(sets)] > 0 } {
+    if {[llength $opts(collections)] > 0 } {
       set type_frame [frame $tab_graph.l.type]
       pack $type_frame -side top -anchor nw
       [namespace parent]::setBalloonHelp $type_frame "Select a set to graph"
       
       label $type_frame.l -text "Set:"
       pack $type_frame.l -side left -anchor nw
-      for {set i 0} {$i < [llength $opts(sets)]} {incr i} {
-        set t [lindex $opts(sets) $i]
+      for {set i 0} {$i < [llength $opts(collections)]} {incr i} {
+        set t [lindex $opts(collections) $i]
         radiobutton $type_frame.$t -text $t -variable [namespace current]::data_index -value $i -command "[namespace parent]::TransformData $self copy 1"
         pack $type_frame.$t -side left -anchor nw
       }
@@ -330,7 +330,7 @@ proc itrajcomp::itcObjGraph {self} {
     entry $info_frame.keys_entry2 -width 8 -textvariable [namespace current]::info_key2 -state readonly
     pack $info_frame.keys_label $info_frame.keys_entry1 $info_frame.keys_entry2 -side left
     set key_info ""
-    switch $opts(type) {
+    switch $opts(mode) {
       frames {
         set key_info "molecule and frame"
       }
@@ -427,7 +427,7 @@ proc itrajcomp::itcObjGraph {self} {
 # * self -- object
 # SOURCE
 proc itrajcomp::UpdateGraph {self} {
-  switch [set ${self}::opts(type)] {
+  switch [set ${self}::opts(mode)] {
     frames {
       set ${self}::opts(header1) "mol"
       set ${self}::opts(header2) "frame"
@@ -503,26 +503,26 @@ proc itrajcomp::itcObjRep {self} {
 
     variable rep_sw 1
     foreach x [list 1] {
-      labelframe $tab_rep.frame.disp$x -text "Representation"
-      pack $tab_rep.frame.disp$x -side top -expand yes -fill x
+      labelframe $tab_rep.frame.disp -text "Representation"
+      pack $tab_rep.frame.disp -side top -expand yes -fill x
 
-      checkbutton $tab_rep.frame.disp$x.sw -text "On/Off" -variable [namespace current]::rep_sw -command "[namespace parent]::UpdateSelection $self"
-      pack $tab_rep.frame.disp$x.sw -side left
-      [namespace parent]::setBalloonHelp $tab_rep.frame.disp$x.sw "Toogle representation on and off"
+      checkbutton $tab_rep.frame.disp.sw -text "On/Off" -variable [namespace current]::rep_sw -command "[namespace parent]::UpdateSelection $self"
+      pack $tab_rep.frame.disp.sw -side left
+      [namespace parent]::setBalloonHelp $tab_rep.frame.disp.sw "Toogle representation on and off"
 
       # Selection
       #----------
-      labelframe $tab_rep.frame.disp$x.sel -text "Selection"
-      pack $tab_rep.frame.disp$x.sel -side left -anchor nw -expand yes -fill both
-      [namespace parent]::setBalloonHelp $tab_rep.frame.disp$x.sel "Enter a VMD selection"
+      labelframe $tab_rep.frame.disp.sel -text "Selection"
+      pack $tab_rep.frame.disp.sel -side left -anchor nw -expand yes -fill both
+      [namespace parent]::setBalloonHelp $tab_rep.frame.disp.sel "Enter a VMD selection"
       
-      text $tab_rep.frame.disp$x.sel.e -exportselection yes -height 2 -width 25 -wrap word
-      $tab_rep.frame.disp$x.sel.e insert end $sets(rep_sel$x)
-      pack $tab_rep.frame.disp$x.sel.e -side top -anchor w -expand yes -fill both
+      text $tab_rep.frame.disp.sel.e -exportselection yes -height 2 -width 25 -wrap word
+      $tab_rep.frame.disp.sel.e insert end $sets(rep_sel)
+      pack $tab_rep.frame.disp.sel.e -side top -anchor w -expand yes -fill both
       
       # Style
       #------
-      set style [labelframe $tab_rep.frame.disp$x.style -text "Style"]
+      set style [labelframe $tab_rep.frame.disp.style -text "Style"]
       pack $style -side left
 
       # Draw
@@ -533,10 +533,10 @@ proc itrajcomp::itcObjRep {self} {
       label $style.draw.l -text "Drawing:"
       pack $style.draw.l -side left
 
-      menubutton $style.draw.m -text "Drawing" -menu $style.draw.m.list -textvariable [namespace current]::opts(rep_style$x) -relief raised
+      menubutton $style.draw.m -text "Drawing" -menu $style.draw.m.list -textvariable [namespace current]::opts(style) -relief raised
       menu $style.draw.m.list
-      foreach entry $rep_style_list {
-        $style.draw.m.list add radiobutton -label $entry -variable [namespace current]::opts(rep_style$x) -value $entry -command "[namespace parent]::UpdateSelection $self"
+      foreach entry $style_list {
+        $style.draw.m.list add radiobutton -label $entry -variable [namespace current]::opts(style) -value $entry -command "[namespace parent]::UpdateSelection $self"
       }
       pack $style.draw.m
 
@@ -548,21 +548,21 @@ proc itrajcomp::itcObjRep {self} {
       label $style.color.l -text "Color:"
       pack $style.color.l -side left
 
-      menubutton $style.color.m -text "Color" -menu $style.color.m.list -textvariable [namespace current]::opts(rep_color$x) -relief raised
+      menubutton $style.color.m -text "Color" -menu $style.color.m.list -textvariable [namespace current]::opts(color) -relief raised
       menu $style.color.m.list
-      foreach entry $rep_color_list {
+      foreach entry $color_list {
         if {$entry eq "ColorID"} {
-          $style.color.m.list add radiobutton -label $entry -variable [namespace current]::opts(rep_color$x) -value $entry -command "$style.color.id config -state normal; [namespace parent]::UpdateSelection $self"
+          $style.color.m.list add radiobutton -label $entry -variable [namespace current]::opts(color) -value $entry -command "$style.color.id config -state normal; [namespace parent]::UpdateSelection $self"
         } else {
-          $style.color.m.list add radiobutton -label $entry -variable [namespace current]::opts(rep_color$x) -value $entry -command "$style.color.id config -state disable; [namespace parent]::UpdateSelection $self"
+          $style.color.m.list add radiobutton -label $entry -variable [namespace current]::opts(color) -value $entry -command "$style.color.id config -state disable; [namespace parent]::UpdateSelection $self"
         }
       }
 
-      menubutton $style.color.id -text "ColorID" -menu $style.color.id.list -textvariable [namespace current]::opts(rep_colorid$x) -relief raised -state disable
+      menubutton $style.color.id -text "ColorID" -menu $style.color.id.list -textvariable [namespace current]::opts(colorID) -relief raised -state disable
       menu $style.color.id.list
       set a [colorinfo colors]
       for {set i 0} {$i < [llength $a]} {incr i} {
-        $style.color.id.list add radiobutton -label "$i [lindex $a $i]" -variable [namespace current]::opts(rep_colorid$x) -value $i -command "[namespace parent]::UpdateSelection $self"
+        $style.color.id.list add radiobutton -label "$i [lindex $a $i]" -variable [namespace current]::opts(colorID) -value $i -command "[namespace parent]::UpdateSelection $self"
       }
       pack $style.color.m $style.color.id -side left
     }
@@ -571,7 +571,7 @@ proc itrajcomp::itcObjRep {self} {
     # TODO: add color schemes for connecting lines in the GUI interface
     # Connecting lines
     # segment graphs
-    if {$opts(type) == "segments"} {
+    if {$opts(mode) == "segments"} {
       variable connect_sw 1
       #      variable connect_all 1
       labelframe $tab_rep.frame.connect -text "Connecting lines"
@@ -586,7 +586,7 @@ proc itrajcomp::itcObjRep {self} {
     
     # frames graphs
     # TODO: add right type of data (dual?)
-    if {$opts(type) == "frames"} {
+    if {$opts(mode) == "frames"} {
       variable connect_sw 1
       labelframe $tab_rep.frame.connect -text "Connecting lines"
       pack $tab_rep.frame.connect -side top -expand yes -fill x
@@ -744,21 +744,21 @@ proc itrajcomp::AddRep {self key} {
   set rep_list [set ${self}::rep_list($key)]
   set rep_num [set ${self}::rep_num($key)]
   
-  set rep_sel1 [[namespace current]::ParseSel [$tab_rep.frame.disp1.sel.e get 1.0 end] ""]
+  set rep_sel [[namespace current]::ParseSel [$tab_rep.frame.disp.sel.e get 1.0 end] ""]
 
   incr rep_num
   
   #puts "add $key = $rep_num"
   if {$rep_num <= 1} {
-    if {$opts(rep_color1) eq "ColorID"} {
-      set color [list $opts(rep_color1) $opts(rep_colorid1)]
+    if {$opts(color) eq "ColorID"} {
+      set color [list $opts(color) $opts(colorID)]
     } else {
-      set color $opts(rep_color1)
+      set color $opts(color)
     }
     lassign [[namespace current]::ParseKey $self $key] mols f s
     set rep_list {}
     foreach m $mols {
-      lappend rep_list "$m:[[namespace current]::AddRep1 $m $f $s $opts(rep_style1) $color]"
+      lappend rep_list "$m:[[namespace current]::AddRep1 $m $f $s $opts(style) $color]"
     }
     
   }
@@ -809,7 +809,7 @@ proc itrajcomp::AddConnect {self key} {
 
   lassign [split $key ,] key1 key2
 
-  switch [set ${self}::opts(type)] {
+  switch [set ${self}::opts(mode)] {
     segments {
       # Add a line between two points (atoms or center of residue selection)
 
@@ -817,7 +817,7 @@ proc itrajcomp::AddConnect {self key} {
       set mols [set ${self}::sets(mol1)]
       set frames [set ${self}::sets(frame1)]
       set tab_rep [set ${self}::tab_rep]
-      set extra [[namespace current]::ParseSel [$tab_rep.frame.disp1.sel.e get 1.0 end] ""]
+      set extra [[namespace current]::ParseSel [$tab_rep.frame.disp.sel.e get 1.0 end] ""]
 
       for {set i 0} {$i < [llength $mols]} {incr i} {
         set m [lindex $mols $i]
@@ -862,7 +862,7 @@ proc itrajcomp::AddConnect {self key} {
     }
 
     frames {
-      switch [set ${self}::opts(mode)] {
+      switch [set ${self}::opts(sets)] {
         single {
         }
         multiple {
@@ -965,7 +965,7 @@ proc itrajcomp::DelConnect {self key} {
 # * key -- key
 # SOURCE
 proc itrajcomp::ExplorePoint {self key} {
-  switch [set ${self}::opts(mode)] {
+  switch [set ${self}::opts(sets)] {
     single {
       set cell [set ${self}::data0($key)]
       set stats ""
@@ -1051,14 +1051,14 @@ proc itrajcomp::MapAdd {self key {check 0}} {
   [namespace current]::AddRep $self $key1
   [namespace current]::AddRep $self $key2
   
-  if {[set ${self}::opts(type)] == "segments"} {
+  if {[set ${self}::opts(mode)] == "segments"} {
     if {[set ${self}::connect_sw] == 1} {
       [namespace current]::AddConnect $self $key
     }
   }
   
-  if {[set ${self}::opts(type)] == "frames"} {
-    switch [set ${self}::opts(mode)] {
+  if {[set ${self}::opts(mode)] == "frames"} {
+    switch [set ${self}::opts(sets)] {
       single {
       }
       multiple {
@@ -1111,12 +1111,12 @@ proc itrajcomp::MapDel {self key {check 0}} {
   
   lassign [[namespace current]::ParseKey $self $key] mols frames sel
   
-  if {[set ${self}::opts(type)] == "segments"} {
+  if {[set ${self}::opts(mode)] == "segments"} {
     [namespace current]::DelConnect $self $key
   }
   
-  if {[set ${self}::opts(type)] == "frames"} {
-    switch [set ${self}::opts(mode)] {
+  if {[set ${self}::opts(mode)] == "frames"} {
+    switch [set ${self}::opts(sets)] {
       single {
       }
       multiple {
@@ -1360,14 +1360,14 @@ proc itrajcomp::MapClear {self} {
   }
   #[namespace current]::RepList $self
   
-  if {[set ${self}::opts(type)] == "segments"} {
+  if {[set ${self}::opts(mode)] == "segments"} {
     foreach k [array names ${self}::connect_lines] {
       [namespace current]::DelConnect $self $k
     }
   }
   
-  if {[set ${self}::opts(type)] == "frames"} {
-    switch [set ${self}::opts(mode)] {
+  if {[set ${self}::opts(mode)] == "frames"} {
+    switch [set ${self}::opts(sets)] {
       single {
       }
       multiple {
@@ -1439,30 +1439,30 @@ proc itrajcomp::UpdateSelection {self} {
         mol modselect $repname $m $s
         
         # Style
-        switch $opts(rep_style1) {
+        switch $opts(style) {
           HBonds {
             if {[info exists guiopts(cutoff)]} {
               if {[info exists guiopts(angle)]} {
-                mol modstyle $repname $m $opts(rep_style1) $guiopts(cutoff) $guiopts(angle)
+                mol modstyle $repname $m $opts(style) $guiopts(cutoff) $guiopts(angle)
               } else {
-                mol modstyle $repname $m $opts(rep_style1) $guiopts(cutoff)
+                mol modstyle $repname $m $opts(style) $guiopts(cutoff)
               }
             } else {
-              mol modstyle $repname $m $opts(rep_style1)
+              mol modstyle $repname $m $opts(style)
             }
           }
           default {
-            mol modstyle $repname $m $opts(rep_style1)
+            mol modstyle $repname $m $opts(style)
           }
         }
         
         # Color
-        switch $opts(rep_color1) {
+        switch $opts(color) {
           ColorID {
-            mol modcolor $repname $m $opts(rep_color1) $opts(rep_colorid1)
+            mol modcolor $repname $m $opts(color) $opts(colorID)
           }
           default {
-            mol modcolor $repname $m $opts(rep_color1)
+            mol modcolor $repname $m $opts(color)
           }
         }
         
@@ -1471,7 +1471,7 @@ proc itrajcomp::UpdateSelection {self} {
   }
 
   # On/Off connecting lines
-  if {[set ${self}::opts(type)] == "segments"} {
+  if {[set ${self}::opts(mode)] == "segments"} {
     set connect_sw [set ${self}::connect_sw]
     array set connect_lines [array get ${self}::connect_lines]
     foreach id [$plot find all] {
@@ -1491,7 +1491,7 @@ proc itrajcomp::UpdateSelection {self} {
   }
 
   # TODO: check for right type of data in frames (dual?)
-  if {[set ${self}::opts(type)] == "frames"} {
+  if {[set ${self}::opts(mode)] == "frames"} {
     set connect_sw [set ${self}::connect_sw]
     array set connect_lines [array get ${self}::connect_lines]
     foreach id [$plot find all] {

@@ -199,10 +199,10 @@ proc itrajcomp::calc_covar_options {} {
   # Options
   variable calc_covar_opts
   array set calc_covar_opts {
-    type         segments
-    mode         single
+    mode         segments
+    sets         single
     formats      f
-    rep_style1   CPK
+    style        CPK
   }
 
   # GUI options

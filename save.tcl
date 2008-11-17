@@ -197,9 +197,9 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
 
     array set data [array get ${self}::data0]
     append output [format "%8s %8s   %8s %8s" "$opts(header1)1" "$opts(header2)1" "$opts(header1)2" "$opts(header2)2  "]
-    switch $opts(mode) {
+    switch $opts(sets) {
       single {
-        append output [format " $fd" [lindex $opts(sets) 0]]
+        append output [format " $fd" [lindex $opts(collections) 0]]
       }
       multiple {
         set ndata [llength $data([lindex $keys 0])]
@@ -208,7 +208,7 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
         }
       }
       dual {
-        append output [format " $fd" [lindex $opts(sets) 0]]
+        append output [format " $fd" [lindex $opts(collections) 0]]
         set ndata [llength [lindex $data([lindex $keys 0]) 1]]
         for {set i 0} {$i < $ndata} {incr i} {
           append output [format " $fd" "val$i"]
@@ -220,7 +220,7 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
     foreach key $keys {
       lassign [split $key :,] i j k l
       append output [format "%8s %8s   %8s %8s  " $i $j $k $l]
-      switch $opts(mode) {
+      switch $opts(sets) {
         single {
           append output [format " $opts(format_data)" $data($key)]
         }
@@ -245,7 +245,7 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
     
     array set data [array get ${self}::data1]
     append output [format "%8s %8s   %8s %8s  " "$opts(header1)1" "$opts(header2)1" "$opts(header1)2" "$opts(header2)2"]
-    foreach s $opts(sets) {
+    foreach s $opts(collections) {
       append output [format " $fd" $s]
     }
     append output "\n"
@@ -253,7 +253,7 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
     foreach key $keys {
       lassign [split $key :,] i j k l
       append output [format "%8s %8s   %8s %8s  " $i $j $k $l [lindex $data($key) $data_index]]
-      for {set s 0} {$s < [llength $opts(sets)]} {incr s} {
+      for {set s 0} {$s < [llength $opts(collections)]} {incr s} {
         append output [format " $opts(format_data)" [lindex $data($key) $s]]
       }
       append output "\n"
@@ -327,7 +327,7 @@ proc ::itrajcomp::SaveData_plotmtv {self {options ""}} {
   set output "$ DATA=CONTOUR\n"
   append output "#% contours = ( 10 20 30 40 50 60 70 80 95 100 )\n"
   append output "% contfill\n"
-  append output "% toplabel = \"$opts(type)\"\n"
+  append output "% toplabel = \"$opts(mode)\"\n"
   append output "% ymin=0 ymax=$ncol\n"
   append output "% xmin=0 xmax=$nrow\n"
   append output "% nx=$nrow ny=$ncol\n"
@@ -376,7 +376,7 @@ proc itrajcomp::create_matrix {self} {
   set nx 0
   set ny 0
   set vals {}
-  switch [set ${self}::opts(type)] {
+  switch [set ${self}::opts(mode)] {
     frames {
       for {set i 0} {$i < [llength $sets(mol1)]} {incr i} {
         set f1 [lindex $sets(frame1) $i]

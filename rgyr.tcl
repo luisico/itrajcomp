@@ -93,10 +93,10 @@ proc itrajcomp::calc_rgyr_options {} {
   # Options
   variable calc_rgyr_opts
   array set calc_rgyr_opts {
-    type         frames
-    mode         single
+    mode         frames
+    sets         single
     formats      f
-    rep_style1   NewRibbons
+    style        NewRibbons
   }
 
   # GUI options
