@@ -689,8 +689,10 @@ proc itrajcomp::stats {values {calc_std 1}} {
       #set sumc [expr {$sumc + $tmp}]
     }  
     #set std2 [expr {sqrt( ($std - ($sumc*$sumc)/$n) / ($n-1) )}]
-    set std [expr {sqrt($std / ($n-1))}]
-    return [list $mean $std $min $max]
+		if {$n > 1} {
+			set std [expr {sqrt($std / ($n-1))}]
+		}
+			return [list $mean $std $min $max]
   } else {
     return [list $mean $min $max]
   }

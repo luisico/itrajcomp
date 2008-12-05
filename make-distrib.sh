@@ -9,7 +9,7 @@ tar=$plugin-v$version.tgz
 files=(
 #clustering.tcl
 README.txt
-balloon.tcl
+balloons.tcl
 buttonbar.tcl
 combine.tcl
 contacts.tcl
