@@ -222,5 +222,6 @@ proc itrajcomp::calc_covar_options {} {
     radiobutton $calc_covar_gui.segment.$entry -text $entry -variable [namespace current]::calc_covar_guiopts(segment) -value $entry
     pack $calc_covar_gui.segment.$entry -side left
   }
+  [namespace current]::setBalloonHelp $calc_covar_gui.segment "Select type of segment grouping to use: by atom or by residue"
 }
 #*****

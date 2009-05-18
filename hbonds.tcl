@@ -101,11 +101,13 @@ proc itrajcomp::calc_hbonds_options {} {
   label $calc_hbonds_gui.cutoff.l -text "Cutoff:"
   entry $calc_hbonds_gui.cutoff.v -width 5 -textvariable [namespace current]::calc_hbonds_guiopts(cutoff)
   pack $calc_hbonds_gui.cutoff.l $calc_hbonds_gui.cutoff.v -side left
+  [namespace current]::setBalloonHelp $calc_hbonds_gui.cutoff "Maximum distance between donor and acceptor"
 
   frame $calc_hbonds_gui.angle
   pack $calc_hbonds_gui.angle -side top -anchor nw
   label $calc_hbonds_gui.angle.l -text "Angle:"
   entry $calc_hbonds_gui.angle.v -width 5 -textvariable [namespace current]::calc_hbonds_guiopts(angle)
   pack $calc_hbonds_gui.angle.l $calc_hbonds_gui.angle.v -side left
+  [namespace current]::setBalloonHelp $calc_hbonds_gui.angle "Maximum angle between donor and acceptor"
 }
 #*****

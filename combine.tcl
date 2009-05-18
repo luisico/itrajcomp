@@ -36,33 +36,43 @@ proc itrajcomp::Combine {} {
   set debug 0
 
   set c [toplevel .itrajcompcomb]
-  wm title $c "iTrajComp - Combine"
+  wm title $c "iTrajComp - Combine Calculations"
   wm iconname $c "iTrajComp" 
-  wm resizable $c 1 0
+  wm resizable $c 1 1
 
   frame $c.obj
-  pack $c.obj -side top -anchor w
-  label $c.obj.title -text "Objects:"
-  pack $c.obj.title -side top -anchor w
+  pack $c.obj -side top -anchor nw -fill both -expand yes
+
+  frame $c.obj.top
+  pack $c.obj.top -side top -anchor nw -fill x -expand yes
+
+  button $c.obj.top.update -text "Update list" -command "[namespace current]::CombineUpdate $c.obj.list.l" -pady 0 -padx 2
+  pack $c.obj.top.update -side right -anchor ne
+  [namespace current]::setBalloonHelp $c.obj.top.update "Update list of calculations"
+
+  label $c.obj.top.title -text "Calculations:"
+  pack $c.obj.top.title -side left -anchor sw
 
   frame $c.obj.list
-  pack $c.obj.list -side top -anchor w
+  pack $c.obj.list -side top -anchor nw -fill both -expand yes
   listbox $c.obj.list.l -selectmode single -exportselection no -height 5 -width 20 -yscrollcommand "$c.obj.list.scy set"
+  pack $c.obj.list.l -side left -anchor w -fill both -expand yes
   scrollbar $c.obj.list.scy -orient vertical -command "$c.obj.list.l yview"
-  pack $c.obj.list.l -side left -anchor w 
   pack $c.obj.list.scy -side left -anchor w -fill y
-  
   bind $c.obj.list.l <Double-Button-1> "[namespace current]::CombineSel %W"
+  [namespace current]::setBalloonHelp $c.obj.list "List of available calculations"
 
   frame $c.formula
-  pack $c.formula -side top -anchor w
+  pack $c.formula -side top -anchor nw -fill x -expand yes
   label $c.formula.l -text "Formula:"
+  pack $c.formula.l -side left
   entry $c.formula.e -textvariable [namespace current]::formula
-  pack $c.formula.l $c.formula.e -side left -expand yes -fill x
+  pack $c.formula.e -side left -fill x -expand yes
+  [namespace current]::setBalloonHelp $c.formula "Formula used to combine calculations (see manual)"
 
-  button $c.combine -text "Combine" -command [namespace code {Objcombine $formula}]
-  button $c.update -text "Update" -command "[namespace current]::CombineUpdate $c.obj.list.l"
-  pack $c.combine $c.update -side top
+  button $c.formula.combine -text "Combine" -command [namespace code {Objcombine $formula}]
+  [namespace current]::setBalloonHelp $c.formula.combine "Combine the calculations"
+  pack $c.formula.combine -side left
 
   CombineUpdate $c.obj.list.l
 }
@@ -100,8 +110,9 @@ proc itrajcomp::CombineSel {widget} {
 # * widget -- widget to update
 # SOURCE
 proc itrajcomp::CombineUpdate {widget} {
-  #  variable combobj
+  # variable combobj
 
+  # Empty list
   $widget selection set 0 end
   foreach i [lsort -integer -decreasing [$widget curselection]] {
     $widget delete 0 $i
@@ -116,7 +127,8 @@ proc itrajcomp::CombineUpdate {widget} {
 
   foreach num [lsort -integer [array names objects]] {
     set name $objects($num)
-    $widget insert end "$name"
+    set title [set [namespace current]::${name}::title]
+    $widget insert end "$title"
     #    lappend combobj $num
   }
 }

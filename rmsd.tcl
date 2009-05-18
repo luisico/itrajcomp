@@ -148,8 +148,9 @@ proc itrajcomp::calc_rmsd_options {} {
     byres     1
   }
 
-  checkbutton $calc_rmsd_gui.align -text "align" -variable [namespace current]::calc_rmsd_guiopts(align)
+  checkbutton $calc_rmsd_gui.align -text "Align" -variable [namespace current]::calc_rmsd_guiopts(align)
   pack $calc_rmsd_gui.align -side top -anchor nw
+  [namespace current]::setBalloonHelp $calc_rmsd_gui.align "Align structures before the rmsd calculation"
 
   # Options for hacked VMD
   if {$fast_rmsd} {

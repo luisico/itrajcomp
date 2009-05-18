@@ -166,7 +166,7 @@ proc itrajcomp::TabSel {w} {
   buttonbar::name $w sel "Selection"
   
   # New object button
-  button $tab_sel.new -text "New Calculation" -command "[namespace current]::NewObject"
+  button $tab_sel.new -text "Do it" -command "[namespace current]::NewObject" -padx 10 -pady 7
   pack $tab_sel.new -side top
   [namespace current]::setBalloonHelp $tab_sel.new "Start a new calculation"
 
@@ -229,7 +229,7 @@ proc itrajcomp::SelWidget {w id} {
   pack $w.mol$id.m.ids.r $w.mol$id.m.ids.list -side left
 
   [namespace current]::setBalloonHelp $w.mol$id.m.all "Select all molecules"
-  [namespace current]::setBalloonHelp $w.mol$id.m.top "Select only the top molecules"
+  [namespace current]::setBalloonHelp $w.mol$id.m.top "Select only the top molecule"
   [namespace current]::setBalloonHelp $w.mol$id.m.act "Select only the active molecules"
   [namespace current]::setBalloonHelp $w.mol$id.m.ids "Select molecules by id"
   
@@ -289,7 +289,7 @@ proc itrajcomp::TabCalc {w} {
   buttonbar::name $w calc "Calculation"
 
   # New object button
-  button $tab_calc.new -text "New Calculation" -command "[namespace current]::NewObject"
+  button $tab_calc.new -text "Do it" -command "[namespace current]::NewObject" -padx 10 -pady 7
   pack $tab_calc.new -side top
   [namespace current]::setBalloonHelp $tab_calc.new "Start a new calculation"
 
@@ -315,7 +315,7 @@ proc itrajcomp::TabCalc {w} {
   frame $tab_calc.opt.general
   pack $tab_calc.opt.general -side top -anchor nw
   
-  checkbutton $tab_calc.opt.general.diagonal -text "Only diagonal" -variable [namespace current]::diagonal
+  checkbutton $tab_calc.opt.general.diagonal -text "Self only" -variable [namespace current]::diagonal
   pack $tab_calc.opt.general.diagonal -side top -anchor nw
   [namespace current]::setBalloonHelp $tab_calc.opt.general.diagonal "Calculate only amongs equal pairs, i.e. the diagonal of the graph"
 
@@ -358,7 +358,7 @@ proc itrajcomp::TabRes {w} {
   grid $dataframe.header_opts  -column 3 -row 0 -sticky we
   grid $dataframe.header_sel   -column 4 -row 0 -sticky we
 
-  [namespace current]::setBalloonHelp $dataframe.header_id "Object id"
+  [namespace current]::setBalloonHelp $dataframe.header_id "Calculation id"
   [namespace current]::setBalloonHelp $dataframe.header_state "State (S shown  . iconic  - withdrawn  ? unknown)"
   [namespace current]::setBalloonHelp $dataframe.header_type "Calculation type"
   [namespace current]::setBalloonHelp $dataframe.header_opts "Calculation options"

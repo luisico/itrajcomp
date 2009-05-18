@@ -89,5 +89,6 @@ proc itrajcomp::calc_contacts_options {} {
   label $calc_contacts_gui.cutoff.l -text "Cutoff:"
   entry $calc_contacts_gui.cutoff.v -width 5 -textvariable [namespace current]::calc_contacts_guiopts(cutoff)
   pack $calc_contacts_gui.cutoff.l $calc_contacts_gui.cutoff.v -side left
+  [namespace current]::setBalloonHelp $calc_contacts_gui.cutoff "Maximum distance of successful contacts"
 }
 #*****

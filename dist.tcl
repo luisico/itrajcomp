@@ -142,5 +142,6 @@ proc itrajcomp::calc_dist_options {} {
     radiobutton $calc_dist_gui.segment.$entry -text $entry -variable [namespace current]::calc_dist_guiopts(segment) -value $entry
     pack $calc_dist_gui.segment.$entry -side left
   }
+  [namespace current]::setBalloonHelp $calc_dist_gui.segment "Select type of segment grouping to use: by atom or by residue"
 }
 #*****

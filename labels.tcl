@@ -134,6 +134,7 @@ proc itrajcomp::calc_labels_options {} {
   menubutton $calc_labels_gui.labs.id -text "Id" -menu $calc_labels_gui.labs.id.m -relief raised
   menu $calc_labels_gui.labs.id.m
   pack $calc_labels_gui.labs.id -side left
+  [namespace current]::setBalloonHelp $calc_labels_gui.labs "Select the labels type and id"
 }
 #*****
 
