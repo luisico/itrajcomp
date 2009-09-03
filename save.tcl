@@ -381,10 +381,14 @@ proc itrajcomp::create_matrix {self} {
       for {set i 0} {$i < [llength $sets(mol1)]} {incr i} {
         set f1 [lindex $sets(frame1) $i]
         for {set j 0} { $j < [llength $f1]} {incr j} {
+          set key1 "[lindex $sets(mol1) $i]:[lindex $f1 $j]"
           incr nx
           for {set k 0} {$k < [llength $sets(mol2)]} {incr k} {
             set f2 [lindex $sets(frame2) $k]
             for {set l 0} { $l < [llength $f2]} {incr l} {
+              set key2 "[lindex $sets(mol2) $k]:[lindex $f2 $l]"
+              set key "$key1,$key2"
+              if {![info exists data($key)]} continue
               lappend vals [lindex $data($i:$j,$k:$l) $data_index]
               if {$nx == 1} {
                 incr ny

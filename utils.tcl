@@ -375,7 +375,7 @@ proc itrajcomp::ParseSel {orig selmod} {
 # SOURCE
 proc itrajcomp::CheckNatoms {self} {
   array set sets [array get ${self}::sets]
-  
+
   foreach i $sets(mol1) {
     set natoms($i) [[atomselect $i $sets(sel1) frame 0] num]
   }
@@ -386,6 +386,8 @@ proc itrajcomp::CheckNatoms {self} {
       if {[info exists natoms($i)] && $natoms($i) != $n} {
         tk_messageBox -title "Error" -message "Difference in atom selection between Set1 ($natoms($i)) and Set2 ($n) for molecule $i" -parent .itrajcomp
         return -1
+      } else {
+        set natoms($i) $n
       }
     }
   }
