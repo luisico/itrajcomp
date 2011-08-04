@@ -1,75 +1,89 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-  <LINK REL="stylesheet" HREF="http://physiology.med.cornell.edu/resources/physbio.css" TYPE="text/css">
-  <LINK REL="stylesheet" HREF="../vmd.css" TYPE="text/css">
-  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-1">
-  <TITLE>VMD plugin iTrajComp</TITLE>
-  <META NAME="AUTHOR" CONTENT="Luis Gracia">
-</HEAD>
-<BODY LANG="en-US">
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="iso-8859-1">
 
-<TABLE WIDTH=750 ALIGN=center>
-<TR><TD><A HREF="http://physiology.med.cornell.edu/"><IMG SRC="http://physiology.med.cornell.edu/images/header.jpg" BORDER=0 ALT="physiology"></A></TD></TR>
-<TR><TD>
+    <title>iTrajComp plugin for VMD</title>
 
-<H4><A HREF="../index.html">VMD plugins at WMC Physiology & Biophysics</A></H4>
-<H1><B>iTrajComp</B>: interactive Trajectory Comparison</H1>
-<H4>(former RMSDTT2)</H4>
+    <meta name="author" content="Luis Gracia">
 
-<H2><A NAME="iTrajComp_description">Preview</A></H2>
+    <link rel="stylesheet" href="../html5-reset.css">
+    <link rel="stylesheet" href="../vmd.css">
+    <link rel="stylesheet" href="itrajcomp.css">
+  </head>
 
-<P>The <B>iTrajComp</B> plugin is a general analysis tool for trajectories. It is under heavy development, but it can already do a few interesting things (no guarantees, though!). In hopes of helping our fellow VMD users, this webpage will host the preview releases of the tool. If you are interested in trying this tool, please contact <A HREF="mailto:lug2002@med.cornell.edu">Luis</A>. Once we are confident that the plugin is doing what it should and we get some time to write a little manual, it will be freely available from this webpage.</P>
+  <body>
+    <div id="container">
+      <header>
+        <a href="http://physiology.med.cornell.edu/"><img src="http://physiology.med.cornell.edu/images/header.jpg" alt="physiology"/></a>
+        <div id="back-main"><a href="http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins">VMD plugins at WMC Physiology &amp; Biophysics</a></div>
+        <h1>iTrajComp: interactive Trajectory Comparison</h1>
+      </header>
 
-<P><B>Note</B>: This plugin is the former RMSDTT2 plugin. We decided to change the name a) to avoid confusion with the <A HREF="http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/rmsdtt">RMSDTT plugin</A>, and b) because it is designed to do much more than simple calcuating the rmsd.
+      <nav>
+        <ul>
+          <li><a href="#preview">Preview</a></li>
+        </ul>
+      </nav>
+      
+      <div id="main">
+        <section id="preview">
+          <header>
+            <h1>Preview</h1>
+          </header>
 
-<P>Now, briefly, the features of the plugin:
-<UL>
-  <LI>Data calculations:
-  <UL>
-    <LI>RMSD:
-    <UL>
-      <LI>coordinates (traj(1) vs [traj(1) or traj(2)])
-      <LI>labels (distance, angles, dihedrals)
-    </UL>
-    <LI>Number of:
-    <UL>
-      <LI>contacts within a cutoff
-      <LI>hydrogen bonds within a cutoff, angle (as defined in VMD)
-    </UL>
-  </UL>
-  <LI>Objects:
-  <UL>
-    <LI>matrix representation
-    <LI>interaction with VMD main window (structures involved in the data clicked will be represented in VMD)
-    <LI>multiple simultaneous objects
-    <LI>combination of objects in a new object
-    <LI>save the data in 4 file formats
-  </UL>
-</UL>
-</P>
+          <p>The <b>iTrajComp</b> plugin is a general analysis tool for trajectories. It is under heavy development, but it can already do a few interesting things (no guarantees, though!). In hopes of helping our fellow VMD users, this webpage will host the preview releases of the tool. If you are interested in trying this tool, please contact <a href="mailto:lug2002@med.cornell.edu">the author</a>. Once we are confident that the plugin is doing what it should and we get some time to write a little manual, it will be freely available from this webpage.</p>
 
-<P>A few preview images:</P>
+          <p><b>Note</b>: This plugin is the former RMSDTT2 plugin. We decided to change the name a) to avoid confusion with the <a href="http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/rmsdtt">RMSDTT plugin</a>, and b) because it is designed to do much more than simple calcuating the rmsd.
 
-<P>
-  <CENTER>
-    <IMG SRC="images/rmsdtt2-a.png" NAME="rmsdtt" BORDER=1>
-    <BR><BR>
-    <IMG SRC="images/rmsdtt2-b.png" NAME="rmsdtt" BORDER=1>
-  </CENTER>
-</P>
+          <p>Now, briefly, the features of the plugin:</p>
+          <ul>
+            <li>Data calculations:
+              <ul>
+                <li>RMSD:
+                  <ul>
+                    <li>coordinates (traj(1) vs [traj(1) or traj(2)])</li>
+                    <li>labels (distance, angles, dihedrals)</li>
+                  </ul>
+                </li>
+                <li>Number of:
+                  <ul>
+                    <li>contacts within a cutoff</li>
+                    <li>hydrogen bonds within a cutoff, angle (as defined in VMD)</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+            <li>Objects:
+              <ul>
+                <li>matrix representation</li>
+                <li>interaction with VMD main window (structures involved in the data clicked will be represented in VMD)</li>
+                <li>multiple simultaneous objects</li>
+                <li>combination of objects in a new object</li>
+                <li>save the data in 4 file formats</li>
+              </ul>
+            </li>
+          </ul>
 
-<BR><BR><BR>
-<TR><TD CLASS="footer">Copyright &copy; 2005-2008, Weill Cornell Medical College. All Rights Reserved</TD></TR>
+          <p>A few preview images:</P>
 
-<TR><TD CLASS="address">
-<ADDRESS>
-<A HREF="mailto:lug2002@med.cornell.edu">Luis Gracia</A>
-| last updated: Tuesday, February 5 2008
-<!--#config  timefmt="%A %e/%m/%y"--><!--#echo var="LAST_MODIFIED"-->
-</ADDRESS>
-</TD></TR>
+          <div>
+              <img src="images/rmsdtt2-a.png" name="rmsdtt">
+              <br><br>
+              <img src="images/rmsdtt2-b.png" name="rmsdtt">
+          </div>
+        </section>
+      </div>
 
-</BODY>
-</HTML>
+      <footer>
+        <span id="copyright">Copyright &copy; 2004-2011, Weill Cornell Medical College. All Rights Reserved</span>
+        <address>
+          <a href="mailto:lug2002@med.cornell.edu">Luis Gracia</a>
+          | last updated: Thursday, August 4 2011
+          <!--#config  timefmt="%A %e/%m/%y"--><!--#echo var="LAST_MODIFIED"-->
+        </address>
+      </footer>
+    </div> 
+</body>
+</html>
 
