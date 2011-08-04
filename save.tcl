@@ -389,7 +389,7 @@ proc itrajcomp::create_matrix {self} {
               set key2 "[lindex $sets(mol2) $k]:[lindex $f2 $l]"
               set key "$key1,$key2"
               if {![info exists data($key)]} continue
-              lappend vals [lindex $data($i:$j,$k:$l) $data_index]
+              lappend vals [lindex $data($key) $data_index]
               if {$nx == 1} {
                 incr ny
               }

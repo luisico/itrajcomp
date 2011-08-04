@@ -760,6 +760,8 @@ proc itrajcomp::NewObject {} {
   
   # Update results table
   [namespace current]::UpdateRes
+
+  return [namespace current]::$obj
 }
 #*****
 
@@ -857,7 +859,7 @@ proc itrajcomp::help_about {{parent .itrajcomp}} {
   tk_messageBox -title "iTrajComp v$vn - About" -parent $parent -message \
     "iTrajComp v$vn
 
-Copyright (C) 2005-2008 Luis Gracia <lug2002@med.cornell.edu> 
+Copyright (C) 2005-2011 Luis Gracia <lug2002@med.cornell.edu> 
 
 "
 }
