@@ -62,6 +62,9 @@ namespace eval itrajcomp {
 # Main plugin window
 # SOURCE
 proc itrajcomp_tk_cb {} {
+  # Test hacks
+  ::itrajcomp::test_hacks
+
   # Hook for vmd
   ::itrajcomp::init
   return $itrajcomp::win_main
@@ -80,7 +83,8 @@ source [file join $env(ITRAJCOMPDIR) maingui.tcl]
 source [file join $env(ITRAJCOMPDIR) object.tcl]
 source [file join $env(ITRAJCOMPDIR) save.tcl]
 source [file join $env(ITRAJCOMPDIR) segments.tcl]
+source [file join $env(ITRAJCOMPDIR) utils.tcl]
+source [file join $env(ITRAJCOMPDIR) hacks.tcl]
 source [file join $env(ITRAJCOMPDIR) standard.tcl]
 source [file join $env(ITRAJCOMPDIR) user.tcl]
-source [file join $env(ITRAJCOMPDIR) utils.tcl]
 #source [file join $env(ITRAJCOMPDIR) clustering.tcl]

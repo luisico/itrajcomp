@@ -856,11 +856,21 @@ proc itrajcomp::SelOptions {} {
 # SOURCE
 proc itrajcomp::help_about {{parent .itrajcomp}} {
   set vn [package present itrajcomp]
-  tk_messageBox -title "iTrajComp v$vn - About" -parent $parent -message \
-    "iTrajComp v$vn
 
-Copyright (C) 2005-2011 Luis Gracia <lug2002@med.cornell.edu> 
+  set message "iTrajComp v$vn\n"
 
-"
+  variable hacks
+  set message_hacks ""
+  foreach key [array names hacks] {
+    append message_hacks "$key"
+  }
+  if {$message_hacks != ""} {
+    append message "\nHacks found:\n"
+    append message "   - $message_hacks\n"
+  }
+
+  append message "\nCopyright (C) 2005-2012 Luis Gracia <lug2002@med.cornell.edu>\n\n"
+
+  tk_messageBox -title "iTrajComp v$vn - About" -parent $parent -message $message
 }
 #*****

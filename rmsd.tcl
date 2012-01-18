@@ -93,13 +93,13 @@ proc itrajcomp::calc_rmsd_prehook2 {self} {
 # Rmsd
 # SOURCE
 proc itrajcomp::calc_rmsd_hook {self} {
-  variable fast_rmsd
+  variable hacks
 
   if {[set ${self}::guiopts(align)]} {
     set tmatrix [measure fit [set ${self}::s1] [set ${self}::s2]]
     [set ${self}::move_sel] move $tmatrix
   }
-  if {$fast_rmsd} {
+  if {$hacks(fast_rmsd)} {
     if {[set ${self}::guiopts(byres)]} {
       set rmsd [measure rmsd [set ${self}::s1] [set ${self}::s2] byres]
     } else {
@@ -121,14 +121,7 @@ proc itrajcomp::calc_rmsd_hook {self} {
 # This functions gets called when adding a new type of calculation. It sets up the GUI and other options.
 # SOURCE
 proc itrajcomp::calc_rmsd_options {} {
-  # Test for hacked VMD version with fast_rmsd enabled.
-  variable fast_rmsd
-  if {![info exists fast_rmsd]} {
-    set fast_rmsd 1
-    if [catch { set test [measure rmsd [atomselect top "index 1"] [atomselect top "index 1"] byatom] } msg] {
-      set fast_rmsd 0
-    }
-  }
+  variable hacks
 
   # Options
   variable calc_rmsd_opts
@@ -153,7 +146,7 @@ proc itrajcomp::calc_rmsd_options {} {
   [namespace current]::setBalloonHelp $calc_rmsd_gui.align "Align structures before the rmsd calculation"
 
   # Options for hacked VMD
-  if {$fast_rmsd} {
+  if {$hacks(fast_rmsd)} {
     set calc_rmsd_opts(sets) "dual"
     set calc_rmsd_opts(ascii) 0
     set calc_rmsd_guiopts(byres) 0
