@@ -32,6 +32,7 @@ segments.tcl
 standard.tcl
 user.tcl
 utils.tcl
+hacks.tcl
 )
 
 for f in ${files[@]}; do
