@@ -814,6 +814,32 @@ proc itrajcomp::hls2rgb {h l s} {
 }
 #*****
 
+#****f* utils/blackwhite
+# NAME
+# blackwhite
+# SYNOPSIS
+# itrajcomp::blackwhite rgb
+# FUNCTION
+# Selects black or white depending on brightness of rgb
+# PARAMETERS
+# * rgb -- rgb value
+# RETURN VALUE
+# String
+# SOURCE
+proc itrajcomp::blackwhite {rgb} {
+  set r [scan [string range $rgb 1 2] "%2x"]
+  set g [scan [string range $rgb 3 4] "%2x"]
+  set b [scan [string range $rgb 5 6] "%2x"]
+
+  set brightness [expr {$r * 0.299 + $g * 0.587 + $b * 0.114}]
+  if {$brightness < 100} {
+    return "#FFFFFF"
+  } else {
+    return "#000000"
+  }
+}
+#*****
+
 #****f* utils/flash_widget
 # NAME
 # flash_widget

@@ -1680,8 +1680,9 @@ proc itrajcomp::UpdateScale {self} {
     } else {
       set newval $val
     }
+    set color [[namespace current]::blackwhite [[namespace current]::ColorScale $val $max $min]]
     $scale create line [expr {$sc_w-5}] $y $c_w $y
-    $scale create text [expr {$sc_w-10}] $y -text [format $format_scale $newval] -anchor e -font [list helvetica 7 normal] -tag "line$val"
+    $scale create text [expr {$sc_w-10}] $y -text [format $format_scale $newval] -anchor e -font [list helvetica 7 normal] -tag "line$val" -fill $color
     $scale bind "line$val" <B2-ButtonRelease> "[namespace current]::MapCluster2 $self $val -1 1"
     $scale bind "line$val" <B3-ButtonRelease> "[namespace current]::MapCluster2 $self $val 1 1"
     set val [expr {$val+ $l_inc}]
