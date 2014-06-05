@@ -1,23 +1,9 @@
 #****h* itrajcomp/segments
 # NAME
-# segments -- Segments objects
-#
-# AUTHOR
-# Luis Gracia
+# segments
 #
 # DESCRIPTION
-#
 # Segments objects.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 
@@ -52,7 +38,7 @@ proc itrajcomp::GraphSegments {self} {
 
     set maxkeys [llength $keys]
     set count 0
-    
+
     set offx 0
     set offy 0
     set width 0
@@ -78,10 +64,10 @@ proc itrajcomp::GraphSegments {self} {
         set colors_act($key) [[namespace parent]::ColorScale $data($key) $max $min 0.40 1.0]
         #puts "-> $x $offx           $k $l - > $y $offy     = $data($key)    $color"
         $plot create rectangle $x $y [expr {$x+$grid}] [expr {$y+$grid}] -fill $colors($key) -outline $colors($key) -tag $key -width $width
-        
+
         $plot bind $key <Enter>                    "[namespace parent]::ShowPoint $self $key $data($key) 1"
-        $plot bind $key <B1-ButtonRelease>      	 "[namespace parent]::MapPoint $self $key $data($key)" 
-        $plot bind $key <B2-ButtonRelease>         "[namespace parent]::ExplorePoint $self $key" 
+        $plot bind $key <B1-ButtonRelease>               "[namespace parent]::MapPoint $self $key $data($key)"
+        $plot bind $key <B2-ButtonRelease>         "[namespace parent]::ExplorePoint $self $key"
         $plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  0"
         $plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0 -1"
         $plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  1"
@@ -93,7 +79,7 @@ proc itrajcomp::GraphSegments {self} {
         [namespace parent]::ProgressBar $count $maxkeys
       }
       set offy [expr {$offy+$k}]
-      
+
     }
     set offx [expr {$offx+$i}]
   }
@@ -122,11 +108,11 @@ proc itrajcomp::LoopSegments {self} {
   }
 
   namespace eval [namespace current]::${self}:: {
-    
+
     set nreg [llength $segments(number)]
     # Calculate max numbers of iterations
     set maxkeys [expr {($nreg*$nreg+$nreg)/2}]
-    
+
     # Calculate min max later, when tranforming data0 -> data
     set count 0
     for {set reg1 0} {$reg1 < $nreg} {incr reg1} {

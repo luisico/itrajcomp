@@ -1,23 +1,9 @@
 #****h* /buttonbar
 # NAME
-# buttonbar -- Buttonbar widget
-#
-# AUTHOR
-# Luis Gracia
+# buttonbar
 #
 # DESCRIPTION
-#
 # Buttonbar widget.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #
 # SOURCE
 namespace eval buttonbar {}

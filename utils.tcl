@@ -1,22 +1,9 @@
 #****h* itrajcomp/utils
 # NAME
-# utils -- Utility functions
-#
-# AUTHOR
-# Luis Gracia
+# utils
 #
 # DESCRIPTION
 # Utility functions.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* utils/AddRep1
@@ -106,7 +93,7 @@ proc itrajcomp::ParseMols {mols idlist {sort 1} } {
   if {$sort} {
     set mols [lsort -unique -integer $mols]
   }
-  
+
   set invalid_mols {}
   for {set i 0} {$i < [llength $mols]} {incr i} {
     if {[lsearch [molinfo list] [lindex $mols $i]] > -1} {
@@ -122,7 +109,7 @@ proc itrajcomp::ParseMols {mols idlist {sort 1} } {
   } else {
     return $valid_mols
   }
-}  
+}
 #*****
 
 #****f* utils/ParseFrames
@@ -133,7 +120,7 @@ proc itrajcomp::ParseMols {mols idlist {sort 1} } {
 # FUNCTION
 # Parse frame selection
 # PARAMETERS
-# * def -- frames definition 
+# * def -- frames definition
 # * mols -- molecules
 # * skip -- skip every this frames
 # * idlist -- list of frames ids
@@ -379,7 +366,7 @@ proc itrajcomp::CheckNatoms {self} {
   foreach i $sets(mol1) {
     set natoms($i) [[atomselect $i $sets(sel1) frame 0] num]
   }
-  
+
   if {$sets(mol2) != ""} {
     foreach i $sets(mol2) {
       set n [[atomselect $i $sets(sel2) frame 0] num]
@@ -402,7 +389,7 @@ proc itrajcomp::CheckNatoms {self} {
       }
     }
   }
-  
+
   return 1
 }
 #*****
@@ -541,7 +528,7 @@ proc itrajcomp::PrepareData {self} {
 proc itrajcomp::TransformData {self {transform "copy"} {graph 0}} {
   set data_index [set ${self}::data_index]
   set formats [set ${self}::opts(formats)]
-  
+
   # Source data
   if {$transform == "copy" || [set ${self}::transform_data1] == 1} {
     array set data1 [array get ${self}::data1]
@@ -554,7 +541,7 @@ proc itrajcomp::TransformData {self {transform "copy"} {graph 0}} {
   }
 
   set keys [array names data1]
-  
+
   switch $transform {
     copy {
       foreach key $keys {
@@ -689,12 +676,12 @@ proc itrajcomp::stats {values {calc_std 1}} {
       set tmp [expr {$val - $mean}]
       set std [expr {$std + $tmp*$tmp}]
       #set sumc [expr {$sumc + $tmp}]
-    }  
+    }
     #set std2 [expr {sqrt( ($std - ($sumc*$sumc)/$n) / ($n-1) )}]
-		if {$n > 1} {
-			set std [expr {sqrt($std / ($n-1))}]
-		}
-			return [list $mean $std $min $max]
+    if {$n > 1} {
+      set std [expr {sqrt($std / ($n-1))}]
+    }
+    return [list $mean $std $min $max]
   } else {
     return [list $mean $min $max]
   }
@@ -717,9 +704,9 @@ proc itrajcomp::stats {values {calc_std 1}} {
 # FUNCTION
 # Return a list of TKwidgets
 # PARAMETERS
-# * widget -- root widget 
+# * widget -- root widget
 # RETURN VALUE
-# List of widgets 
+# List of widgets
 # SOURCE
 proc itrajcomp::wlist {{widget .}} {
   set list [list $widget]
@@ -762,7 +749,7 @@ proc itrajcomp::ColorScale {val max min {s 1.0} {l 1.0}} {
   set diff [expr {$max-$min}]
   # TODO: better way to check for 0.0?
   if ([expr {$diff == 0.0 ? 0 : 1}]) {
-      lassign [hls2rgb [expr {($h - $h*($val-$min)/$diff)}] $l $s] r g b
+    lassign [hls2rgb [expr {($h - $h*($val-$min)/$diff)}] $l $s] r g b
   }
 
   set r [expr {int($r*255)}]
@@ -793,7 +780,7 @@ proc itrajcomp::hls2rgb {h l s} {
   # h = 0   => red
   # h = 1/3 => green
   # h = 2/3 => blue
-  
+
   set h6 [expr {($h-floor($h))*6}]
   set r [expr {  $h6 <= 3 ? 2-$h6
                  : $h6-4}]
@@ -806,7 +793,7 @@ proc itrajcomp::hls2rgb {h l s} {
   set r [expr {$r < 0.0 ? 0.0 : $r > 1.0 ? 1.0 : double($r)}]
   set g [expr {$g < 0.0 ? 0.0 : $g > 1.0 ? 1.0 : double($g)}]
   set b [expr {$b < 0.0 ? 0.0 : $b > 1.0 ? 1.0 : double($b)}]
-  
+
   set r [expr {(($r-1)*$s+1)*$l}]
   set g [expr {(($g-1)*$s+1)*$l}]
   set b [expr {(($b-1)*$s+1)*$l}]
@@ -854,8 +841,8 @@ proc itrajcomp::blackwhite {rgb} {
 proc itrajcomp::flash_widget {widget {color yellow}} {
   set oldcolor [$widget cget -background]
   $widget configure -background $color
-  
-  if [catch { 
+
+  if [catch {
     $widget flash
   } msg] {
     [namespace current]::_flash_widget $widget 0 $oldcolor
@@ -949,12 +936,12 @@ proc itrajcomp::_format {format} {
 # SOURCE
 proc itrajcomp::concat_guiopts {self} {
   set options {}
-  
+
   array set guiopts [array get ${self}::guiopts]
   if {$guiopts(diagonal)} {
     lappend options "diagonal"
   }
-  
+
   foreach v [array names guiopts] {
     if { $v == "diagonal" || $v == "segment"} {
       continue
@@ -1078,7 +1065,7 @@ proc itrajcomp::dataframe_mapper {widget} {
   set num [$datalist(id) get $sel]
   set name "itc$num"
   set window ".${name}_main"
-  
+
   case [wm state $window] {
     iconic {
       wm deiconify $window
@@ -1093,7 +1080,7 @@ proc itrajcomp::dataframe_mapper {widget} {
       return
     }
   }
-  
+
   [namespace current]::UpdateRes
 }
 #*****

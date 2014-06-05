@@ -1,27 +1,13 @@
 #****h* itrajcomp/load
 # NAME
-# load -- Load data
-#
-# AUTHOR
-# Luis Gracia
+# load
 #
 # DESCRIPTION
-#
 # Load data.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 #
 # TODO
 # * Broken
 # * Convert to a serialize object
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* load/loadDataBrowse
@@ -46,13 +32,13 @@ proc itrajcomp::loadDataBrowse {format} {
     {"Postscript Files" ".ps"}
     {"All files" ".*"}
   }
-  
+
   set file [tk_getOpenFile -filetypes $typeList -defaultextension ".dat" -title "Select file to open" -parent .itrajcomp]
-  
+
   if { $file == "" } {
     return;
   }
-  
+
   [namespace current]::loadData $file $format
 }
 #*****
@@ -68,7 +54,7 @@ proc itrajcomp::loadDataBrowse {format} {
 # * file -- filename
 # * format -- format
 # RETURN VALUE
-# 
+#
 # SOURCE
 proc itrajcomp::loadData {file format} {
   if {$file == ""} {
@@ -107,7 +93,7 @@ proc itrajcomp::loadData {file format} {
     tk_messageBox -title "Error" -message "Type not specified in input file"
     return
   }
-  
+
   if {[llength [info procs "calc_$opts(calctype)_options"]] == 0} {
     tk_messageBox -title "Error" -message "Could not find calc_$opts(calctype)_options"
     return
@@ -116,7 +102,7 @@ proc itrajcomp::loadData {file format} {
   # Create new object
   set obj [eval [namespace current]::Objnew ":auto"]
   [namespace current]::processData $obj $data
-  
+
   # opts
   array set opts {
     mode "frames"
@@ -161,7 +147,7 @@ proc itrajcomp::loadData {file format} {
 # * self -- object
 # * alldata -- data to process
 # RETURN VALUE
-# 
+#
 # SOURCE
 proc itrajcomp::processData {self alldata} {
   set vals {}

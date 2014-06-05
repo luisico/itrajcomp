@@ -1,23 +1,9 @@
 #****h* itrajcomp/gui
 # NAME
-# gui -- GUI for iTrajComp objects
-#
-# AUTHOR
-# Luis Gracia
+# gui
 #
 # DESCRIPTION
-#
 # GUI for iTrajComp objects.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* gui/itcObjGui
@@ -55,14 +41,14 @@ proc itrajcomp::itcObjGui {self} {
       append title " $v=$guiopts($v)"
     }
     wm title $win_obj $title
-    wm iconname $win_obj $self 
+    wm iconname $win_obj $self
 
     # Menu
     #-----
     set menubar [frame $win_obj.menubar -relief raised -bd 2]
     pack $win_obj.menubar -side top -padx 1 -fill x
     [namespace parent]::itcObjMenubar $self
-    
+
     # Tabs
     #-----
     frame $win_obj.tabc
@@ -114,7 +100,7 @@ proc itrajcomp::itcObjMenubar {self} {
     $menubar.file.menu add command -label "Hide" -command "wm withdraw .${self}_main" -underline 0
     $menubar.file.menu add command -label "Destroy" -command "[namespace parent]::Destroy $self" -underline 0
     pack $menubar.file -side left
-    
+
     menubutton $menubar.transform -text "Transform" -menu $menubar.transform.menu -underline 0
     menu $menubar.transform.menu
     set transform_data1 1
@@ -127,12 +113,12 @@ proc itrajcomp::itcObjMenubar {self} {
       $menubar.transform.menu.normalize add command -label $norm -command "[namespace parent]::TransformData $self norm_$norm 1"
     }
     pack $menubar.transform -side left
-    
+
     menubutton $menubar.analysis -text "Analysis" -menu $menubar.analysis.menu -underline 0
     menu $menubar.analysis.menu -tearoff no
     $menubar.analysis.menu add command -label "Descriptive" -command "[namespace parent]::StatDescriptive $self" -underline 0
     pack $menubar.analysis -side left
-    
+
     menubutton $menubar.help -text "Help" -menu $menubar.help.menu -underline 0
     menu $menubar.help.menu -tearoff no
     $menubar.help.menu add command -label "Keybindings" -command "[namespace parent]::help_keys $self" -underline 0
@@ -164,11 +150,11 @@ proc itrajcomp::itcObjInfo {self} {
 
     label $tab_info.frame.calc.type -text $opts(calctype)
     pack $tab_info.frame.calc.type -side top -anchor nw
-    
+
     # Calculation options
     labelframe $tab_info.frame.opt -text "Calculation Options"
     pack $tab_info.frame.opt -side top -anchor nw -expand yes -fill x
-    
+
     set row 1
     grid columnconfigure $tab_info.frame.opt 2 -weight 1
     incr row
@@ -191,7 +177,7 @@ proc itrajcomp::itcObjInfo {self} {
 
     set row 1
     grid columnconfigure $tab_info.frame.sel1 2 -weight 1
-    
+
     label $tab_info.frame.sel1.mol_l -text "Molecule(s):"
     label $tab_info.frame.sel1.mol_v -text "$sets(mol1_def) ($sets(mol1))"
     grid $tab_info.frame.sel1.mol_l -row $row -column 1 -sticky nw
@@ -219,18 +205,18 @@ proc itrajcomp::itcObjInfo {self} {
     } else {
       set row 1
       grid columnconfigure $tab_info.frame.sel2 2 -weight 1
-      
+
       label $tab_info.frame.sel2.mol_l -text "Molecule(s):"
       label $tab_info.frame.sel2.mol_v -text "$sets(mol2_def) ($sets(mol2))"
       grid $tab_info.frame.sel2.mol_l -row $row -column 1 -sticky nw
       grid $tab_info.frame.sel2.mol_v -row $row -column 2 -sticky nw
-      
+
       incr row
       label $tab_info.frame.sel2.frame_l -text "Frame(s):"
       label $tab_info.frame.sel2.frame_v -text "$sets(frame2_def) ([[namespace parent]::SplitFrames $sets(frame2)])"
       grid $tab_info.frame.sel2.frame_l -row $row -column 1 -sticky nw
       grid $tab_info.frame.sel2.frame_v -row $row -column 2 -sticky nw
-      
+
       incr row
       label $tab_info.frame.sel2.atom_l -text "Atom Sel:"
       label $tab_info.frame.sel2.atom_v -text "$sets(sel2)"
@@ -243,7 +229,7 @@ proc itrajcomp::itcObjInfo {self} {
     pack $tab_info.frame.mols -side top -anchor nw -expand yes -fill x
     set row 1
     grid columnconfigure $tab_info.frame.mols 3 -weight 1
-    
+
     label $tab_info.frame.mols.header_n -text "Name"
     grid $tab_info.frame.mols.header_n -row $row -column 2 -sticky nw
     label $tab_info.frame.mols.header_f -text "Files"
@@ -311,7 +297,7 @@ proc itrajcomp::itcObjGraph {self} {
       set type_frame [frame $tab_graph.l.type]
       pack $type_frame -side top -anchor nw
       [namespace parent]::setBalloonHelp $type_frame "Select a set to graph"
-      
+
       label $type_frame.l -text "Set:"
       pack $type_frame.l -side left -anchor nw
       for {set i 0} {$i < [llength $opts(collections)]} {incr i} {
@@ -364,7 +350,7 @@ proc itrajcomp::itcObjGraph {self} {
     checkbutton $info_frame.mapdel -text "Del" -variable [namespace current]::map_del -command "set [namespace current]::map_add 0"
     pack $info_frame.mapdel -side left
     [namespace parent]::setBalloonHelp $info_frame.mapdel "Remove from selected cells"
-     
+
     #    label $info_frame.high_label -text "Highlight:"
     #    entry $info_frame.high_entry -width 3 -textvariable [namespace current]::highlight
     #    pack $info_frame.high_label $info_frame.high_entry -side left
@@ -389,7 +375,7 @@ proc itrajcomp::itcObjGraph {self} {
     labelframe $tab_graph.r.zoom  -relief ridge -bd 2 -text "Zoom"
     pack $tab_graph.r.zoom -side bottom
     [namespace parent]::setBalloonHelp $tab_graph.r.zoom "Use the Zoom button to zoom in and out the graph. You can also enter a value in the text entry"
- 
+
     frame $tab_graph.r.zoom.incr
     pack $tab_graph.r.zoom.incr
     button $tab_graph.r.zoom.incr.1 -text "+1" -width 2 -padx 1 -pady 0 -command "[namespace parent]::Zoom $self 1" -font [list helvetica 6]
@@ -515,11 +501,11 @@ proc itrajcomp::itcObjRep {self} {
       labelframe $tab_rep.frame.disp.sel -text "Selection"
       pack $tab_rep.frame.disp.sel -side left -anchor nw -expand yes -fill both
       [namespace parent]::setBalloonHelp $tab_rep.frame.disp.sel "Enter a VMD selection"
-      
+
       text $tab_rep.frame.disp.sel.e -exportselection yes -height 2 -width 25 -wrap word
       $tab_rep.frame.disp.sel.e insert end $sets(rep_sel)
       pack $tab_rep.frame.disp.sel.e -side top -anchor w -expand yes -fill both
-      
+
       # Style
       #------
       set style [labelframe $tab_rep.frame.disp.style -text "Style"]
@@ -583,7 +569,7 @@ proc itrajcomp::itcObjRep {self} {
       #      checkbutton $tab_rep.frame.connect.all -text "All" -variable [namespace current]::connect_all -command "[namespace parent]::UpdateSelection $self"
       #      pack $tab_rep.frame.connect.all -side left
     }
-    
+
     # frames graphs
     # TODO: add right type of data (dual?)
     if {$opts(mode) == "frames"} {
@@ -620,15 +606,15 @@ proc itrajcomp::itcObjRep {self} {
 proc itrajcomp::ViewData {self} {
   set r [toplevel ".${self}_raw"]
   wm title $r "View $self"
-  
+
   text $r.data -exportselection yes -width 80 -xscrollcommand "$r.xs set" -yscrollcommand "$r.ys set" -font [list fixed]
   scrollbar $r.xs -orient horizontal -command "$r.data xview"
   scrollbar $r.ys -orient vertical   -command "$r.data yview"
-  
+
   pack $r.xs -side bottom -fill x
   pack $r.ys -side right -fill y
   pack $r.data -side right -expand yes -fill both
-  
+
   $r.data insert end [[namespace current]::saveData $self "" "tab"]
 }
 #*****
@@ -657,7 +643,7 @@ proc itrajcomp::StatDescriptive {self} {
   set std  [format "$format_data" $std]
   set min  [format "$format_data" $min]
   set max  [format "$format_data" $max]
-  
+
   tk_messageBox -title "$self Stats"  -parent [set ${self}::win_obj] -message \
     "Descriptive statistics
 ----------------------------------------
@@ -743,11 +729,11 @@ proc itrajcomp::AddRep {self key} {
 
   set rep_list [set ${self}::rep_list($key)]
   set rep_num [set ${self}::rep_num($key)]
-  
+
   set rep_sel [[namespace current]::ParseSel [$tab_rep.frame.disp.sel.e get 1.0 end] ""]
 
   incr rep_num
-  
+
   #puts "add $key = $rep_num"
   if {$rep_num <= 1} {
     if {$opts(color) eq "ColorID"} {
@@ -760,7 +746,7 @@ proc itrajcomp::AddRep {self key} {
     foreach m $mols {
       lappend rep_list "$m:[[namespace current]::AddRep1 $m $f $s $opts(style) $color]"
     }
-    
+
   }
   set ${self}::rep_list($key) $rep_list
   set ${self}::rep_num($key) $rep_num
@@ -823,7 +809,7 @@ proc itrajcomp::AddConnect {self key} {
         set m [lindex $mols $i]
         # TODO: use same color as in the cell
         graphics $m color 4
-        
+
         switch [set ${self}::guiopts(segment)] {
           byatom {
             set sel1 [atomselect $m "index [lindex [split $key1 :] 0]"]
@@ -872,60 +858,60 @@ proc itrajcomp::AddConnect {self key} {
 
 
           if {[set ${self}::opts(ascii)]} {
-	    lassign [split $key1 :] m1 f1
-	    lassign [split $key2 :] m2 f2
+            lassign [split $key1 :] m1 f1
+            lassign [split $key2 :] m2 f2
 
-	    # TODO: this will only work for hbonds
-	    # try to generalize a bit more, maybe by specifying cones or lines, but
-	    # also how format will be passed in data0 or/and which fields to use to draw the points
-	    set nconnects [lindex [set ${self}::data0($key)] 0]
-	    set connect_data [lindex [set ${self}::data0($key)] 1]
-	    
-	    set n_one_connect [llength $connect_data]
-	    
-	    # this should be passed with the calctype
-	    set field1 1
-	    set field2 0
-	    # TODO: check field1 and field2 are within boundaries of n_one_connect
-	    
-	    set points1 [lindex $connect_data $field1]
-	    set points2 [lindex $connect_data $field2]
-	    
-	    # TODO: other fields should be printed as well
-	    #set hydrogens [lindex $connect_data 2]
-	    
-	    # set a different color for each cell, increasing colorID as they are selected to be drawn
-	    set color [array size ${self}::connect_lines]
+            # TODO: this will only work for hbonds
+            # try to generalize a bit more, maybe by specifying cones or lines, but
+            # also how format will be passed in data0 or/and which fields to use to draw the points
+            set nconnects [lindex [set ${self}::data0($key)] 0]
+            set connect_data [lindex [set ${self}::data0($key)] 1]
+
+            set n_one_connect [llength $connect_data]
+
+            # this should be passed with the calctype
+            set field1 1
+            set field2 0
+            # TODO: check field1 and field2 are within boundaries of n_one_connect
+
+            set points1 [lindex $connect_data $field1]
+            set points2 [lindex $connect_data $field2]
+
+            # TODO: other fields should be printed as well
+            #set hydrogens [lindex $connect_data 2]
+
+            # set a different color for each cell, increasing colorID as they are selected to be drawn
+            set color [array size ${self}::connect_lines]
             [namespace current]::set_color top $color
-	    
-	    puts "Connects:"
-	    for {set i 0} {$i < $nconnects} {incr i} {
-	      set point1 [atomselect $m2 "index [lindex $points1 $i]" frame $f2]
-	      set point2 [atomselect $m1 "index [lindex $points2 $i]" frame $f1]
-	      set point1_label [$point1 get {resname resid name}]
-	      set point2_label [$point2 get {resname resid name}]
-	      set label ""
-	      set gid ""
-	      switch [set ${self}::opts(connect)] {
-		cones {
-		  set label "cone"
-		  set gid [[namespace current]::draw_cone top $point1 $point2]
-		}
-		lines {
-		  set label "line"
-		  set gid [[namespace current]::draw_line top $point1 $point2]
-		}
-		# TODO: Add default as lines (just in case, so gid is not empty
-	      }
-	      puts "$label $i ([lindex [colorinfo colors] $color]): $m1:$f1 [lindex $points2 $i] $point2_label -- $m2:$f2 [lindex $points1 $i] $point1_label"
-	      lappend connect_lines "$m1:$gid"
-	    }
-	  }
+
+            puts "Connects:"
+            for {set i 0} {$i < $nconnects} {incr i} {
+              set point1 [atomselect $m2 "index [lindex $points1 $i]" frame $f2]
+              set point2 [atomselect $m1 "index [lindex $points2 $i]" frame $f1]
+              set point1_label [$point1 get {resname resid name}]
+              set point2_label [$point2 get {resname resid name}]
+              set label ""
+              set gid ""
+              switch [set ${self}::opts(connect)] {
+                cones {
+                  set label "cone"
+                  set gid [[namespace current]::draw_cone top $point1 $point2]
+                }
+                lines {
+                  set label "line"
+                  set gid [[namespace current]::draw_line top $point1 $point2]
+                }
+                # TODO: Add default as lines (just in case, so gid is not empty
+              }
+              puts "$label $i ([lindex [colorinfo colors] $color]): $m1:$f1 [lindex $points2 $i] $point2_label -- $m2:$f2 [lindex $points1 $i] $point1_label"
+              lappend connect_lines "$m1:$gid"
+            }
+          }
         }
       }
 
     }
-    
+
   }
   set ${self}::connect_lines($key) $connect_lines
 }
@@ -1010,7 +996,7 @@ proc itrajcomp::ExplorePoint {self key} {
 proc itrajcomp::ShowPoint {self key val keep} {
   array set opts [array get ${self}::opts]
   if {[set ${self}::info_keep] && $keep} return
-    
+
   lassign [split $key ,:] i j k l
   set ${self}::info_key1 [format "$opts(format_key)" $i $j]
   set ${self}::info_key2 [format "$opts(format_key)" $k $l]
@@ -1032,7 +1018,7 @@ proc itrajcomp::ShowPoint {self key val keep} {
 # SOURCE
 proc itrajcomp::MapAdd {self key {check 0}} {
   lassign [split $key ,] key1 key2
-  
+
   set map_active [set ${self}::map_active($key)]
   if {$map_active == 1} {
     return
@@ -1041,7 +1027,7 @@ proc itrajcomp::MapAdd {self key {check 0}} {
   if {$check && $key1 == $key2} {
     return
   }
-  
+
   set plot [set ${self}::plot]
   set color [set ${self}::colors_act($key)]
   $plot itemconfigure $key -fill $color
@@ -1050,13 +1036,13 @@ proc itrajcomp::MapAdd {self key {check 0}} {
   set ${self}::rep_active($key) 1
   [namespace current]::AddRep $self $key1
   [namespace current]::AddRep $self $key2
-  
+
   if {[set ${self}::opts(mode)] == "segments"} {
     if {[set ${self}::connect_sw] == 1} {
       [namespace current]::AddConnect $self $key
     }
   }
-  
+
   if {[set ${self}::opts(mode)] == "frames"} {
     switch [set ${self}::opts(sets)] {
       single {
@@ -1096,25 +1082,25 @@ proc itrajcomp::MapDel {self key {check 0}} {
   if {$check && $key1 == $key2} {
     return
   }
-  
+
   set plot [set ${self}::plot]
   set color [set ${self}::colors($key)]
   $plot itemconfigure $key -fill $color
   $plot itemconfigure $key -outline $color
   set ${self}::map_active($key) 0
-  
+
   if {[info exists ${self}::rep_active($key)]} {
     unset ${self}::rep_active($key)
     [namespace current]::DelRep $self $key1
     [namespace current]::DelRep $self $key2
   }
-  
+
   lassign [[namespace current]::ParseKey $self $key] mols frames sel
-  
+
   if {[set ${self}::opts(mode)] == "segments"} {
     [namespace current]::DelConnect $self $key
   }
-  
+
   if {[set ${self}::opts(mode)] == "frames"} {
     switch [set ${self}::opts(sets)] {
       single {
@@ -1147,7 +1133,7 @@ proc itrajcomp::MapDel {self key {check 0}} {
 # SOURCE
 proc itrajcomp::MapPoint {self key data {mod 0}} {
   set map_active [set ${self}::map_active($key)]
-  
+
   if {$map_active == 0 || $mod} {
     [namespace current]::MapAdd $self $key
     set mod 1
@@ -1192,7 +1178,7 @@ proc itrajcomp::MapCluster3 {self key {mod1 0} {mod2 0}} {
   array set data [array get ${self}::data]
 
   set indices [split $key ,]
-  
+
   if {!$map_add && !$map_del} {
     [namespace current]::MapClear $self
     set map_add 1
@@ -1264,7 +1250,7 @@ proc itrajcomp::MapCluster3 {self key {mod1 0} {mod2 0}} {
             if {!$mod1} {
               [namespace current]::MapAdd $self $mykey 1
             }
-          } else {      
+          } else {
             if {!$mod1} {
               [namespace current]::MapDel $self $mykey 1
             }
@@ -1335,13 +1321,13 @@ proc itrajcomp::MapCluster2 {self key {mod1 0} {mod2 0} } {
 # SYNOPSIS
 # itrajcomp::MapClear self
 # FUNCTION
- # Unselect all matrix cells
+# Unselect all matrix cells
 # PARAMETERS
 # * self -- object
 # SOURCE
 proc itrajcomp::MapClear {self} {
   set plot [set ${self}::plot]
-  
+
   foreach key [set ${self}::keys] {
     if {[set ${self}::map_active($key)] == 1 } {
       $plot itemconfigure $key -fill [set ${self}::colors($key)]
@@ -1359,13 +1345,13 @@ proc itrajcomp::MapClear {self} {
     }
   }
   #[namespace current]::RepList $self
-  
+
   if {[set ${self}::opts(mode)] == "segments"} {
     foreach k [array names ${self}::connect_lines] {
       [namespace current]::DelConnect $self $k
     }
   }
-  
+
   if {[set ${self}::opts(mode)] == "frames"} {
     switch [set ${self}::opts(sets)] {
       single {
@@ -1392,7 +1378,7 @@ proc itrajcomp::MapClear {self} {
 # SYNOPSIS
 # itrajcomp::UpdateSelection self
 # FUNCTION
- # Update representation in vmd window
+# Update representation in vmd window
 # PARAMETERS
 # * self -- object
 # SOURCE
@@ -1424,20 +1410,20 @@ proc itrajcomp::UpdateSelection {self} {
       }
     }
   }
-  
+
   # Representation style
   foreach key [array names rep_list] {
     if {[set ${self}::rep_num($key)] > 0} {
       lassign [[namespace current]::ParseKey $self $key] mols f s
-      
+
       foreach r $rep_list($key) {
         lassign [split $r :] m rep
-        
+
         set repname [mol repindex $m $rep]
-        
+
         # Selection
         mol modselect $repname $m $s
-        
+
         # Style
         switch $opts(style) {
           HBonds {
@@ -1455,7 +1441,7 @@ proc itrajcomp::UpdateSelection {self} {
             mol modstyle $repname $m $opts(style)
           }
         }
-        
+
         # Color
         switch $opts(color) {
           ColorID {
@@ -1465,7 +1451,7 @@ proc itrajcomp::UpdateSelection {self} {
             mol modcolor $repname $m $opts(color)
           }
         }
-        
+
       }
     }
   }
@@ -1509,7 +1495,7 @@ proc itrajcomp::UpdateSelection {self} {
       }
     }
   }
-  
+
 }
 #*****
 
@@ -1622,10 +1608,10 @@ proc itrajcomp::UpdateScale {self} {
   set sc_h [winfo height $scale]
   set sc_w [winfo width $scale]
   set offset 10.
-  
+
   # Delete all
   $scale delete all
-  
+
   # Colors
   #-------
   set c_n 50
@@ -1668,7 +1654,7 @@ proc itrajcomp::UpdateScale {self} {
   #-------
   set l_n 10
   set l_h [expr {($sc_h-2*$offset)/$l_n}]
-  
+
   # Intervals
   set val $min
   set y $offset

@@ -3,6 +3,7 @@
 # iTrajComp - interactive Trajectory Comparison
 #
 # http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
+# https://github.com/luisico/itrajcomp
 #
 # AUTHOR
 # Luis Gracia, PhD
@@ -11,11 +12,12 @@
 # 1300 York Avenue, Box 75
 # New York, NY 10021
 # lug2002@med.cornell.edu
+# lgraval@gmail.com
 #
 # DESCRIPTION
 # iTrajComp is a VMD plugin for general analysis of trajectories.
 # This file sets up the environment and loads the rest of code.
-# 
+#
 # SEE ALSO
 # More documentation can be found in the README.txt file and
 # http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
@@ -27,16 +29,15 @@
 # BUGS
 #
 # COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
+# Copyright (C) 2005-2014 by Luis Gracia <lgraval@gmail.com>
 #
-# 
 # SOURCE
-package provide itrajcomp 1.0
+package provide itrajcomp 1.2
 
 namespace eval itrajcomp {
   # TODO: does init conflict with other global functions?
   namespace export init
-  
+
   global env
 
   # TODO: these lists could go to save/load or maingui.tcl

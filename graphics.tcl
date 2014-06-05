@@ -1,23 +1,9 @@
 #****h* itrajcomp/graphics
 # NAME
-# graphics -- Graphics functions
-#
-# AUTHOR
-# Luis Gracia
+# graphics
 #
 # DESCRIPTION
-#
 # Graphics functions.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* graphics/draw_line
@@ -74,7 +60,7 @@ proc itrajcomp::draw_cone {{mol top} base tip {radius .3}} {
 # Change the colorr of next graphics objects
 # PARAMETERS
 # * mol -- molecule to store the graphics object
-# * color -- color 
+# * color -- color
 # SOURCE
 proc itrajcomp::set_color {{mol top} {color ""}} {
   if {$color == ""} {

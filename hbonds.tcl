@@ -1,23 +1,9 @@
 #****h* itrajcomp/hbonds
 # NAME
-# hbonds -- Functions to calculate hydrogen bonds between selections
-#
-# AUTHOR
-# Luis Gracia
+# hbonds
 #
 # DESCRIPTION
-#
 # Functions to calculate hydrogen bonds between selections.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* hbonds/calc_hbonds
@@ -43,7 +29,7 @@ proc itrajcomp::calc_hbonds {self} {
     tk_messageBox -title "Error " -message "Selections must come from the same molecule." -parent .itrajcomp
     return -code error
   }
-  
+
   return [[namespace current]::LoopFrames $self]
 }
 #*****

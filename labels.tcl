@@ -1,23 +1,9 @@
 #****h* itrajcomp/labels
 # NAME
-# labels -- Functions to calculate distance between labels
-#
-# AUTHOR
-# Luis Gracia
+# labels
 #
 # DESCRIPTION
-#
 # Functions to calculate distance between labels (Atoms, Bonds, Angles, Dihedrals).
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* labels/calc_labels
@@ -35,14 +21,14 @@
 # SOURCE
 proc itrajcomp::calc_labels {self} {
   array set guiopts [array get ${self}::guiopts]
-  
+
   # Get values for each mol
   set i 0
   if {! [info exists guiopts(labels_status)]} {
     tk_messageBox -title "Error" -message "No $guiopts(label_type) have been defined" -type ok
     return -code error
   }
-  
+
   # Precalculate values
   foreach lab $guiopts(labels_status) {
     if {$lab == 1} {
@@ -209,7 +195,7 @@ proc itrajcomp::labels_update_status {id} {
   # Update status of a label
   variable labels_status_array
   variable calc_labels_guiopts
-  
+
   set calc_labels_guiopts(labels_status) [lreplace $calc_labels_guiopts(labels_status) $id $id $labels_status_array($id)]
 }
 #*****

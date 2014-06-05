@@ -1,23 +1,9 @@
 #****h* itrajcomp/covar
 # NAME
-# covar -- Functions to calculate the covariance matrix
-#
-# AUTHOR
-# Luis Gracia
+# covar
 #
 # DESCRIPTION
-#
 # Functions to calculate the covariance matrix.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* covar/calc_covar
@@ -51,7 +37,7 @@ proc itrajcomp::calc_covar {self} {
         break
       }
     }
-    
+
     # Precalculate rmsf of each segment
     if {$sets(frame1_def) == "all" && $not1frame == 1} {
       # All molecules have more than 1 frame
@@ -73,7 +59,7 @@ proc itrajcomp::calc_covar {self} {
         lset rmsf $n [expr {sqrt([lindex $rmsf $n] / double($count))} ]
       }
       #puts "DEBUG: rmsf $rmsf"
-      
+
     } else {
       # At least one molecule has only 1 frame
       # Calculate rmsf for each atom in one run

@@ -1,26 +1,13 @@
 #****h* itrajcomp/combine
 # NAME
-# combine -- Combine objects to create a new one
-#
-# AUTHOR
-# Luis Gracia
+# combine
 #
 # DESCRIPTION
 # Combine objects to create a new one.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
 #
 # TODO
 # * Broken
 # * Convert to a serialize object
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* combine/Combine
@@ -37,7 +24,7 @@ proc itrajcomp::Combine {} {
 
   set c [toplevel .itrajcompcomb]
   wm title $c "iTrajComp - Combine Calculations"
-  wm iconname $c "iTrajComp" 
+  wm iconname $c "iTrajComp"
   wm resizable $c 1 1
 
   frame $c.obj
@@ -117,7 +104,7 @@ proc itrajcomp::CombineUpdate {widget} {
   foreach i [lsort -integer -decreasing [$widget curselection]] {
     $widget delete 0 $i
   }
-  
+
   #  set combobj {}
   foreach obj [[namespace current]::Objlist] {
     set name [namespace tail $obj]
@@ -179,7 +166,7 @@ proc itrajcomp::Objcombine {formula} {
     set data1($s)       [array get $self($s)::data1]
     set data_index($s)  [set $self($s)::data_index]
   }
-  
+
   # ToDo: check more things, like data has same format
   foreach check [list "opts(calctype)"] {
     set test [set $self($s0)::$check]
@@ -231,7 +218,7 @@ proc itrajcomp::Objcombine {formula} {
     set ${obj}::guiopts(segment) [set $self($s0)::guiopts(segment)]
     array set ${obj}::segments [array get $self($s0)::segments]
   }
-  
+
   # other options
   set ${obj}::data_index 0
 

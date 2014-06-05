@@ -1,23 +1,9 @@
 #****h* itrajcomp/standard
 # NAME
-# standard -- Standard calculation types
-#
-# AUTHOR
-# Luis Gracia
+# standard
 #
 # DESCRIPTION
-#
 # Standard calculation types.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* standard/AddStandardCalc

@@ -1,23 +1,9 @@
 #****h* itrajcomp/frames
 # NAME
-# frames -- Frames objects
-#
-# AUTHOR
-# Luis Gracia
+# frames
 #
 # DESCRIPTION
-#
 # Frames objects.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 
@@ -42,7 +28,7 @@ proc itrajcomp::GraphFrames {self} {
     $plot delete all
     set maxkeys [llength $keys]
     set count 0
-    
+
     set offx 0
     set offy 0
     set width 0
@@ -70,8 +56,8 @@ proc itrajcomp::GraphFrames {self} {
             $plot create rectangle $x $y [expr {$x+$grid}] [expr {$y+$grid}] -fill $colors($key) -outline $colors($key) -tag $key -width $width
 
             $plot bind $key <Enter>                    "[namespace parent]::ShowPoint $self $key $data($key) 1"
-            $plot bind $key <B1-ButtonRelease>         "[namespace parent]::MapPoint $self $key $data($key)" 
-            $plot bind $key <B2-ButtonRelease>         "[namespace parent]::ExplorePoint $self $key" 
+            $plot bind $key <B1-ButtonRelease>         "[namespace parent]::MapPoint $self $key $data($key)"
+            $plot bind $key <B2-ButtonRelease>         "[namespace parent]::ExplorePoint $self $key"
             $plot bind $key <Shift-B1-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  0"
             $plot bind $key <Shift-B2-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0 -1"
             $plot bind $key <Shift-B3-ButtonRelease>   "[namespace parent]::MapCluster3 $self $key  0  1"
@@ -137,7 +123,7 @@ proc itrajcomp::LoopFrames {self} {
         }
       }
     }
-    
+
     # Calculate for each pair reference(mol,frame)-target(mol,frame)
     set count 0
     foreach i $sets(mol1) {
@@ -172,7 +158,7 @@ proc itrajcomp::LoopFrames {self} {
         }
       }
     }
-    
+
     # Create keys and values variables
     set keys [lsort -dictionary [array names data0]]
     foreach key $keys {
@@ -180,7 +166,7 @@ proc itrajcomp::LoopFrames {self} {
     }
 
     [namespace parent]::PrepareData $self
-    
+
     return 0
   }
 }

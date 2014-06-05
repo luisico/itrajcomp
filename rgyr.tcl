@@ -1,23 +1,9 @@
 #****h* itrajcomp/rgyr
 # NAME
-# rgyr -- Functions to calculate diff radius of gyration between structures
-#
-# AUTHOR
-# Luis Gracia
+# rgyr
 #
 # DESCRIPTION
-#
 # Functions to calculate diff radius of gyration between structures.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* rgyr/calc_rgyr
@@ -36,7 +22,7 @@
 proc itrajcomp::calc_rgyr {self} {
   #array set guiopts [array get ${self}::guiopts]
   array set sets [array get ${self}::sets]
-  
+
   # Precalculate
   # Get values for each mol/frame
   foreach i $sets(mol1) {

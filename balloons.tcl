@@ -1,26 +1,9 @@
 #****h* itrajcomp/balloons
 # NAME
-# balloons -- Provides balloon style tooltips
-#
-# AUTHOR
-# Luis Gracia
+# balloons
 #
 # DESCRIPTION
-#
 # Provides balloon style tooltips.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# SEE ALSO
-# http://wiki.tcl.tk/16317
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* balloons/setBalloonHelp
@@ -133,7 +116,7 @@ proc itrajcomp::wrapmsg {msg {width 50}} {
     append msg "\n"
     append msg [[namespace current]::wrapmsg $msg2]
   }
-  
+
   return $msg
 }
 #*****

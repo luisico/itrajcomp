@@ -1,23 +1,9 @@
 #****h* itrajcomp/dist
 # NAME
-# dist -- Functions to calculate the distance matrix
-#
-# AUTHOR
-# Luis Gracia
+# dist
 #
 # DESCRIPTION
-#
 # Functions to calculate the distance matrix.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* dist/calc_dist

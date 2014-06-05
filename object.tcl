@@ -1,23 +1,9 @@
 #****h* itrajcomp/object
 # NAME
-# object -- Definition of the itrajcomp object and main methods
-#
-# AUTHOR
-# Luis Gracia
+# object
 #
 # DESCRIPTION
-#
 # Definition of the itrajcomp object and main methods.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 # FIXME: move to itrajcomp.tcl
@@ -47,7 +33,7 @@ proc itrajcomp::Objnew {{self ":auto"} args} {
     }
     set self "itc[incr itcObjId]"
   }
-  
+
   # TODO: this is the only part that is dependent on itc objects. Move out?
   array set defaults {
     keys {} vals {}

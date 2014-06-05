@@ -1,23 +1,9 @@
 #****h* itrajcomp/rmsd
 # NAME
-# rmsd -- Functions to calculate rmsd
-#
-# AUTHOR
-# Luis Gracia
+# rmsd
 #
 # DESCRIPTION
-#
 # Functions to calculate rmsd.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* rmsd/calc_rmsd
@@ -38,7 +24,7 @@ proc itrajcomp::calc_rmsd {self} {
   if {[[namespace current]::CheckNatoms $self] == -1} {
     return -code error
   }
-  
+
   return [[namespace current]::LoopFrames $self]
 }
 #*****

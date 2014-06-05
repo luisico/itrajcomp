@@ -1,8 +1,18 @@
+#****h* itrajcomp/hacks
+# NAME
+# hacks
+#
+# DESCRIPTION
+# Test for VMD hacks
+#****
+
 #****f* hacks/test_hacks
 # NAME
 # test_hacks
+#
 # FUNCTION
 # Tests all hacks
+#
 # SOURCE
 proc itrajcomp::test_hacks {} {
   variable hacks

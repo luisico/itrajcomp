@@ -1,23 +1,9 @@
 #****h* itrajcomp/save
 # NAME
-# save -- Functions to save the data to external files
-#
-# AUTHOR
-# Luis Gracia
+# save
 #
 # DESCRIPTION
-#
 # Functions to save the data to external files.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* save/SaveDataBrowse
@@ -37,13 +23,13 @@ proc itrajcomp::SaveDataBrowse {self {format "tab"}} {
     {"Postscript Files" ".ps .eps"}
     {"All files" ".*"}
   }
-  
+
   set file [tk_getSaveFile -filetypes $typeList -defaultextension ".dat" -title "Select file to save data" -parent [set ${self}::win_obj]]
-  
+
   if { $file == "" } {
     return;
   }
-  
+
   [namespace current]::saveData $self $file $format
 }
 #*****
@@ -91,7 +77,7 @@ proc ::itrajcomp::saveData {self {fileout ""} {format "tab"} {options ""}} {
       }
     } else {
       return $output
-    }    
+    }
   } else {
     puts "WARNING: SaveData_$format not implemented yet"
   }
@@ -159,7 +145,7 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
 
   set output ""
   # Object info
-  
+
   # opts
   array set opts [array get ${self}::opts]
   append output "\#* opts\n"
@@ -216,7 +202,7 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
       }
     }
     append output "\n"
-    
+
     foreach key $keys {
       lassign [split $key :,] i j k l
       append output [format "%8s %8s   %8s %8s  " $i $j $k $l]
@@ -242,7 +228,7 @@ proc ::itrajcomp::SaveData_tab {self {options ""}} {
     }
 
   } else {
-    
+
     array set data [array get ${self}::data1]
     append output [format "%8s %8s   %8s %8s  " "$opts(header1)1" "$opts(header2)1" "$opts(header1)2" "$opts(header2)2"]
     foreach s $opts(collections) {

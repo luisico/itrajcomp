@@ -1,26 +1,9 @@
 #****h* itrajcomp/clustering
 # NAME
-# clustering -- Functions for clustering
-#
-# AUTHOR
-# Luis Gracia
+# clustering
 #
 # DESCRIPTION
-#
 # Functions for clustering.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# SEE ALSO
-# http://wiki.tcl.tk/16317
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* clustering/Cluster
@@ -44,9 +27,9 @@ proc itrajcomp::Cluster {self} {
   set frame1 [set ${self}::frame1]
   set r_thres_rel [set ${self}::r_thres_rel]
   set N_crit_rel [set ${self}::N_crit_rel]
-  
+
   puts "Clustering: $clustering_graphics"
-  
+
   if {$clustering_graphics} {
     [namespace current]::MapClear $self
   }
@@ -59,7 +42,7 @@ proc itrajcomp::Cluster {self} {
       incr nc
     }
   }
-  
+
   set z 0
   while {$z>=0} {
     puts "iteration $z:"
@@ -75,7 +58,7 @@ proc itrajcomp::Cluster {self} {
       }
     }
     set r_thres [expr {$r_thres_rel * $r_max}]
-    
+
     ### 3.
     foreach key $keys {
       lassign [split $key ,] key1 key2
@@ -98,7 +81,7 @@ proc itrajcomp::Cluster {self} {
       }
     }
     set N_crit [expr {$N_crit_rel * $N_max}]
-    
+
     puts [format "\tN_crit_rel:  %4.2f    N_crit:  %5.2f   N_max: %5.2f" $N_crit_rel $N_crit $N_max]
     puts [format "\tr_thres_rel: %4.2f    r_thres: %5.2f   r_max: %5.2f" $r_thres_rel $r_thres $r_max]
     puts "\tNumber confs: $nc"

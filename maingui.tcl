@@ -1,23 +1,9 @@
 #****h* itrajcomp/maingui
 # NAME
-# maingui -- Main GUI for the iTrajComp plugin
-#
-# AUTHOR
-# Luis Gracia
+# maingui
 #
 # DESCRIPTION
-#
 # Main GUI for the iTrajComp plugin.
-# 
-# SEE ALSO
-# More documentation can be found in:
-# * README.txt
-# * itrajcomp.tcl
-# * http://physiology.med.cornell.edu/faculty/hweinstein/vmdplugins/itrajcomp
-#
-# COPYRIGHT
-# Copyright (C) 2005-2008 by Luis Gracia <lug2002@med.cornell.edu> 
-#
 #****
 
 #****f* maingui/init
@@ -46,7 +32,7 @@ proc itrajcomp::init {} {
   set win_main [toplevel .itrajcomp]
   #  catch {destroy $win_main}
   wm title $win_main "iTrajComp"
-  wm iconname $win_main "iTrajComp" 
+  wm iconname $win_main "iTrajComp"
   wm resizable $win_main 1 0
 
   # Menu
@@ -164,9 +150,9 @@ proc itrajcomp::TabSel {w} {
 
   variable tab_sel [buttonbar::add $w sel]
   buttonbar::name $w sel "Selection"
-  
+
   # New object button
-  button $tab_sel.new -text "Do it" -command "[namespace current]::NewObject" -padx 10 -pady 7
+  button $tab_sel.new -text "Calculate" -command "[namespace current]::NewObject" -padx 10 -pady 7
   pack $tab_sel.new -side top
   [namespace current]::setBalloonHelp $tab_sel.new "Start a new calculation"
 
@@ -203,7 +189,7 @@ proc itrajcomp::SelWidget {w id} {
   variable mol${id}_f_list 0
   variable skip${id} 0
   variable selmod${id} "no"
-  
+
   labelframe $w.mol$id -relief ridge -bd 4 -text "Set $id"
   pack $w.mol$id -side top -anchor nw -expand yes -fill x
 
@@ -225,14 +211,14 @@ proc itrajcomp::SelWidget {w id} {
   entry $w.mol$id.m.ids.list -width 10 -textvariable [namespace current]::mol${id}_m_list
 
   pack $w.mol$id.m -side left
-  pack $w.mol$id.m.all $w.mol$id.m.top $w.mol$id.m.act $w.mol$id.m.ids -side top -anchor w 
+  pack $w.mol$id.m.all $w.mol$id.m.top $w.mol$id.m.act $w.mol$id.m.ids -side top -anchor w
   pack $w.mol$id.m.ids.r $w.mol$id.m.ids.list -side left
 
   [namespace current]::setBalloonHelp $w.mol$id.m.all "Select all molecules"
   [namespace current]::setBalloonHelp $w.mol$id.m.top "Select only the top molecule"
   [namespace current]::setBalloonHelp $w.mol$id.m.act "Select only the active molecules"
   [namespace current]::setBalloonHelp $w.mol$id.m.ids "Select molecules by id"
-  
+
   # Frames
   labelframe $w.mol$id.f -relief ridge -bd 2 -text "Frames"
   radiobutton $w.mol$id.f.all -text "All"     -variable [namespace current]::frame${id}_def -value "all"
@@ -245,7 +231,7 @@ proc itrajcomp::SelWidget {w id} {
   entry $w.mol$id.f.skip.e -width 3 -textvariable [namespace current]::skip${id}
 
   pack $w.mol$id.f -side left -anchor n -expand yes -fill x
-  pack $w.mol$id.f.all $w.mol$id.f.top -side top -anchor w 
+  pack $w.mol$id.f.all $w.mol$id.f.top -side top -anchor w
   pack $w.mol$id.f.ids -side top -anchor w -expand yes -fill x
   pack $w.mol$id.f.skip -side top -anchor w -padx 20
   pack $w.mol$id.f.ids.r -side left
@@ -314,7 +300,7 @@ proc itrajcomp::TabCalc {w} {
   variable diagonal 0
   frame $tab_calc.opt.general
   pack $tab_calc.opt.general -side top -anchor nw
-  
+
   checkbutton $tab_calc.opt.general.diagonal -text "Self only" -variable [namespace current]::diagonal
   pack $tab_calc.opt.general.diagonal -side top -anchor nw
   [namespace current]::setBalloonHelp $tab_calc.opt.general.diagonal "Calculate only amongs equal pairs, i.e. the diagonal of the graph"
@@ -363,7 +349,7 @@ proc itrajcomp::TabRes {w} {
   [namespace current]::setBalloonHelp $dataframe.header_type "Calculation type"
   [namespace current]::setBalloonHelp $dataframe.header_opts "Calculation options"
   [namespace current]::setBalloonHelp $dataframe.header_sel "Selection summary"
-  
+
   variable datalist
   set datalist(id)    [listbox $dataframe.body_id    -width 2  -height 10 -relief sunken -exportselection 0 -yscrollcommand [namespace current]::dataframe_yset -selectmode extended]
   set datalist(state) [listbox $dataframe.body_state -width 1  -height 10 -relief sunken -exportselection 0 -yscrollcommand [namespace current]::dataframe_yset -selectmode extended]
@@ -483,7 +469,7 @@ proc itrajcomp::AddCalc {type mode {description ""} {script ""} } {
   array set calc_${type}_guiopts {
     force_samemols 0
   }
-  
+
   # Options
   if {[llength [info procs "calc_${type}_options"]]} {
     variable calc_${type}_gui [frame $tab_calc.opt.$type]
@@ -507,7 +493,7 @@ proc itrajcomp::AddCalc {type mode {description ""} {script ""} } {
 # SOURCE
 proc itrajcomp::DelCalc {type mode} {
   variable tab_calc
-  
+
   grid forget $tab_calc.$mode.${type}_n $tab_calc.$mode.${type}_d
   pack forget $tab_calc.opt.$type
   destroy $tab_calc.$mode.${type}_n $tab_calc.$mode.${type}_d $tab_calc.opt.$type
@@ -528,7 +514,7 @@ proc itrajcomp::TabCalcUpdate {} {
   # Refresh the tab for calculations
   variable tab_calc
   variable calctype
-  
+
   foreach opt [winfo children $tab_calc.opt] {
     if {[winfo name $opt] == "general"} {
       continue
@@ -563,7 +549,7 @@ proc itrajcomp::TabCalcUpdate {} {
 # SOURCE
 proc itrajcomp::SwitchSamemols {} {
   variable samemols
-  
+
   set status "off"
   if {$samemols} {
     set status "on"
@@ -746,7 +732,7 @@ proc itrajcomp::NewObject {} {
     }
   }
   array set ${obj}::opts [array get opts]
-  
+
   # Do the calculation
   [namespace current]::Status "Calculating $calctype ..."
   if [catch { [namespace current]::calc_$calctype $obj } msg] {
@@ -757,7 +743,7 @@ proc itrajcomp::NewObject {} {
   # Create the new graph
   [namespace current]::Status "Creating graph for $obj ..."
   [namespace current]::itcObjGui $obj
-  
+
   # Update results table
   [namespace current]::UpdateRes
 
@@ -850,7 +836,7 @@ proc itrajcomp::SelOptions {} {
 # SYNOPSIS
 # itrajcomp::help_about parent
 # FUNCTION
-  # Help window
+# Help window
 # PARAMETERS
 # * parent -- parent window
 # SOURCE
